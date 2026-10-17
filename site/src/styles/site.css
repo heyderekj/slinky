@@ -272,13 +272,6 @@ section { scroll-margin-top: 90px; }
 .section-sub { margin: 14px auto 0; max-width: 36rem; font-size: 18px; color: var(--ink-soft); letter-spacing: -0.012em; }
 @media (max-width: 860px) { .section { padding-top: 88px; } }
 
-.features { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 40px; }
-.feature { border-radius: 22px; padding: 22px; display: grid; gap: 6px; align-content: start; }
-.feature .feature-icon { margin-bottom: 4px; }
-.feature h3 { font-size: 18px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; }
-.feature p { font-size: 15px; line-height: 1.55; color: var(--ink-soft); }
-@media (max-width: 860px) { .features { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 560px) { .features { grid-template-columns: 1fr; } }
 
 .cta-mid { padding-top: 120px; display: flex; flex-direction: column; align-items: center; text-align: center; }
 .cta-mid-sub { margin: 14px auto 26px; max-width: min(34ch, 100%); font-size: 18px; line-height: 1.55; color: var(--ink-soft); letter-spacing: -0.012em; }
@@ -600,4 +593,36 @@ button.replay:active { transform: scale(0.97); }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: 1ms !important; animation-delay: 0s !important; transition-duration: 1ms !important; }
   .reveal { opacity: 1; transform: none; }
+}
+/* ---------- "Also in …": a bento of features; the bigger tiles carry a small piece of the app ---------- */
+  .b-grid { margin-top: 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.b-tile { border-radius: 24px; padding: 24px; display: grid; gap: 6px; align-content: start; overflow: hidden; }
+.b-tile .feature-icon { margin-bottom: 4px; }
+.b-tile--wide { grid-column: span 2; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center; }
+.b-tile--row { grid-column: 1 / -1; grid-template-columns: auto 1fr auto; align-items: center; }
+.b-tile--dark { background: #121418 !important; color: #f2f4f7; }
+.b-tile--dark p { color: rgb(242 244 247 / 0.7); }
+.b-art { margin-top: 14px; font-family: var(--app-font); font-size: 12.5px; color: var(--app-text); }
+.b-import { margin: 0; display: grid; gap: 6px; padding: 12px; border-radius: 16px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); }
+.b-src { display: grid; grid-template-columns: 24px 1fr auto; gap: 10px; align-items: center; padding: 6px 4px; }
+.b-src b { font-weight: 400; }
+.b-src small { color: var(--app-secondary); }
+.b-dot { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 11px; background: hsl(var(--h) 70% 52%); }
+.b-tile .b-note { margin: 4px 4px 0; font-size: 11.5px; color: var(--app-secondary); }
+.b-tile .b-big { margin-top: 10px; font-size: 64px; font-weight: 700; letter-spacing: -0.05em; line-height: 1; color: var(--ink); }
+.b-tile .b-big span { font-size: 22px; letter-spacing: 0; margin-left: 4px; color: var(--muted); }
+.b-update, .b-settings > div { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: 12px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); }
+.b-settings { display: grid; gap: 6px; }
+.b-pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--green); background: color-mix(in oklch, var(--green) 14%, transparent); }
+.b-pill--gh { height: 34px; padding: 0 14px; color: var(--ink); background: color-mix(in oklch, var(--ink) 7%, transparent); }
+.b-pill--gh .icon { width: 16px; height: 16px; }
+.b-switch { width: 30px; height: 18px; border-radius: 999px; background: var(--brand); position: relative; }
+.b-switch::after { content: ''; position: absolute; right: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
+.b-term { margin: 14px 0 0; padding: 12px 14px; border-radius: 12px; background: #000; color: #c9f7d8; font-family: var(--mono); font-size: 12px; line-height: 1.6; white-space: pre; overflow: hidden; }
+.b-tile h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.012em; line-height: 1.3; }
+.b-tile p { font-size: 15px; line-height: 1.5; color: var(--ink-soft); }
+.b-tile--dark p { color: rgb(242 244 247 / 0.7); }
+@media (max-width: 900px) {
+  .b-grid { grid-template-columns: 1fr; }
+  .b-tile--wide, .b-tile--row { grid-column: auto; grid-template-columns: 1fr; }
 }

@@ -197,13 +197,26 @@ const faq = [
 
     <section class="section wrap" aria-labelledby="also-heading">
       <div class="section-head"><p class="eyebrow">Features</p><h2 class="section-title" id="also-heading">Also in Slinky</h2></div>
-      <div class="features">
-        <div class="feature card-plain"><Icon name="import" class="feature-icon" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden or a CSV. Passwords stay behind.</p></div>
-        <div class="feature card-plain"><Icon name="gear" class="feature-icon" /><h3>Settings that matter</h3><p>When to lock, how long until the clipboard clears, sounds, open at login.</p></div>
-        <div class="feature card-plain"><Icon name="update" class="feature-icon" /><h3>Updates in place</h3><p>One click, and only if the update is signed by Slinky’s developer.</p></div>
-        <div class="feature card-plain"><Icon name="feather" class="feature-icon" /><h3>A {release.sizeMB} MB download</h3><p>Native Swift and Apple frameworks only. No web views, no dependencies.</p></div>
-        <div class="feature card-plain"><Icon name="key" class="feature-icon" /><h3>AI agents, next</h3><p>Coming in 1.1: tools like Claude Code run your app with the real keys while only ever seeing dots.</p></div>
-        <div class="feature card-plain"><Icon name="github" class="feature-icon" /><h3>Free and open source</h3><p>MIT licensed, made by Testament Made. Read every line on GitHub.</p></div>
+      <div class="b-grid">
+        <div class="b-tile b-tile--wide card-plain">
+          <div><Icon name="import" class="feature-icon" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden or a CSV. Passwords stay behind.</p></div>
+          <div class="b-art b-import" aria-hidden="true">
+            {[['1Password', '24 keys'], ['Apple Passwords', '9 keys'], ['Bitwarden', '12 keys'], ['keys.csv', '6 keys']].map(([n, c], i) => (
+              <div class="b-src"><span class="b-dot" style={`--h:${200 + i * 40}`}>{n[0]}</span><b>{n}</b><small>{c}</small></div>
+            ))}
+            <p class="b-note">31 passwords left behind</p>
+          </div>
+        </div>
+        <div class="b-tile card-plain"><Icon name="feather" class="feature-icon" /><h3>A {release.sizeMB} MB download</h3><p>Native Swift and Apple frameworks only. No web views, no dependencies.</p><p class="b-big">{release.sizeMB}<span>MB</span></p></div>
+        <div class="b-tile card-plain"><Icon name="update" class="feature-icon" /><h3>Updates in place</h3><p>One click, and only if the update is signed by Slinky’s developer.</p>
+          <div class="b-art b-update" aria-hidden="true"><span>Slinky {release.version}</span><span class="b-pill">Up to date</span></div></div>
+        <div class="b-tile card-plain"><Icon name="gear" class="feature-icon" /><h3>Settings that matter</h3><p>When to lock, how long until the clipboard clears, sounds, open at login.</p>
+          <div class="b-art b-settings" aria-hidden="true"><div><span>Clear clipboard after</span><b>60 seconds</b></div><div><span>Lock when away</span><i class="b-switch"></i></div></div></div>
+        <div class="b-tile b-tile--dark card-plain"><Icon name="key" class="feature-icon" /><h3>AI agents, next</h3><p>Coming in 1.1: tools like Claude Code run your app with the real keys while only ever seeing dots.</p>
+          <pre class="b-art b-term" aria-hidden="true">$ slinky run -- npm start
+STRIPE_SECRET_KEY=••••••••
+✓ started with 4 keys</pre></div>
+        <div class="b-tile b-tile--wide b-tile--row card-plain"><Icon name="github" class="feature-icon" /><div><h3>Free and open source</h3><p>MIT licensed, made by Testament Made. Read every line on GitHub.</p></div><span class="b-pill b-pill--gh"><Icon name="github" /> heyderekj/slinky</span></div>
       </div>
     </section>
 
