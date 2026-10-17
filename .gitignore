@@ -6,3 +6,4 @@ build/
 design/icon/**/png/
 spike/.build/
 dist/
+.wrangler/
