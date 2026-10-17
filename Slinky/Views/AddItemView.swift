@@ -496,6 +496,9 @@ struct AddItemPanel: View {
                     Text("↵").font(.callout.weight(.semibold)).opacity(0.6)
                 }
             }
+            // A button label never wraps.
+            .lineLimit(1)
+            .fixedSize()
             .keyboardShortcut(.defaultAction)
             .glassProminentButton()
             .controlSize(.large)

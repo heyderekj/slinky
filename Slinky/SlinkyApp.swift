@@ -163,7 +163,8 @@ struct RootView: View {
     var body: some View {
         Group {
             switch model.phase {
-            case .loading: ProgressView()
+            // Loading is a split second; show the locked window's shape rather than a spinner.
+            case .loading: LockView(autoUnlock: false)
             case .locked: LockView()
             case .unlocked: MainView()
             }

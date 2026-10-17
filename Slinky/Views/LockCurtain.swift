@@ -111,8 +111,9 @@ struct LockCurtain: View {
                     .contentTransition(.symbolEffect(.replace))
                     .frame(width: 120, height: 120)
                     .glass(in: .circle)
-                    .scaleEffect(opening ? 1 + hole * 0.5 : 0.85 + cover * 0.15)
-                    .opacity(opening ? 1 - hole * 1.6 : Double(cover))
+                    .scaleEffect(opening ? 1 : 0.85 + cover * 0.15)
+                    // Opening has no lock in the middle: the lock screen already showed it, and Touch ID just said yes.
+                    .opacity(opening ? 0 : Double(cover))
                     .position(middle)
             }
             .mask {
@@ -185,13 +186,11 @@ struct LockCurtain: View {
         cover = 1
         hole = 0
         fade = 1
-        closedGlyph = true
+        closedGlyph = false
         shown = true
-        try? await Task.sleep(for: .milliseconds(120))
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { closedGlyph = false }
-        try? await Task.sleep(for: .milliseconds(380))
-        withAnimation(.easeInOut(duration: 0.6)) { hole = 1 }
-        try? await Task.sleep(for: .milliseconds(620))
+        // Quick: Touch ID already took its moment. The ice opens from the middle in well under half a second.
+        withAnimation(.easeOut(duration: 0.38)) { hole = 1 }
+        try? await Task.sleep(for: .milliseconds(400))
         model.curtain = .none
         reset()
     }

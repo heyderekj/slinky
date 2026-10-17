@@ -86,15 +86,43 @@ enum RecoveryPrinter {
     }
 }
 
-/// Quiet lock: the mark, one line, one button, on ice. Touch ID is usually already asking.
+/// The locked window looks like the app itself: the same sidebar (its fixed rows only, nothing from the vault)
+/// with the lock in the content area, so unlocking just fills it in. Touch ID is usually already asking.
 struct LockView: View {
     @Environment(AppModel.self) private var model
+    var autoUnlock = true
     @State private var showRecovery = false
     @State private var recoveryText = ""
 
     var body: some View {
+        NavigationSplitView(columnVisibility: .constant(.all)) {
+            List {
+                Section {
+                    ForEach(LibraryFilter.allCases, id: \.self) { filter in
+                        Label(filter.title, systemImage: filter.symbol)
+                    }
+                }
+                Section("Projects") { EmptyView() }
+            }
+            .listStyle(.sidebar)
+            .foregroundStyle(.secondary)
+            .allowsHitTesting(false)
+            .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 300)
+            .toolbar(removing: .sidebarToggle)
+        } detail: {
+            // While Slinky is still starting, just the window's shape: no "locked" for a vault that may not exist.
+            if model.phase == .locked { lockPanel } else { Color.clear }
+        }
+    }
+
+    private var lockPanel: some View {
         VStack(spacing: 14) {
-            KeyholeMark(size: 72).floating()
+            Image(systemName: "lock.fill")
+                .font(.system(size: 40, weight: .semibold))
+                .foregroundStyle(.tint)
+                .symbolEffect(.pulse, isActive: model.busy)
+                .frame(width: 92, height: 92)
+                .glass(in: .circle)
             Text("Slinky is locked")
                 .font(.title3.weight(.semibold))
             if let note = model.lockNote {
@@ -104,12 +132,11 @@ struct LockView: View {
                 model.unlock()
             } label: {
                 Label(model.unlockLabel, systemImage: "touchid")
-                    .symbolEffect(.pulse, isActive: model.busy)
             }
             .glassProminentButton()
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
-            .disabled(model.busy)
+            .disabled(model.busy || model.phase != .locked)
             if let error = model.errorMessage {
                 Text(error).font(.callout).foregroundStyle(.red).frame(maxWidth: 380).multilineTextAlignment(.center)
             }
@@ -117,6 +144,7 @@ struct LockView: View {
                 .buttonStyle(.link)
                 .font(.callout)
                 .padding(.top, 4)
+                .disabled(model.phase != .locked)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $showRecovery) {
@@ -142,7 +170,7 @@ struct LockView: View {
         }
         .task {
             // Ask straight away on open; the button is there if they cancel.
-            if model.lockNote == nil, model.errorMessage == nil { model.unlock() }
+            if autoUnlock, model.phase == .locked, model.lockNote == nil, model.errorMessage == nil { model.unlock() }
         }
     }
 }
