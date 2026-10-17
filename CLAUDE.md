@@ -29,3 +29,4 @@
 - Brand: clear, glassy, white, glacier/ice blue. Accent `#4a7aa3` light / `#a9c7dc` dark. Glass on chrome (sidebars, toolbars, panels, cards that float); values on opaque cool "paper" (`Color.paper`).
 - Layouts from `docs/slinky-layouts.html`: A (.env project view), B (Library shelf), C (Quick Access ⌥⌘K), D (agent receipts, later), F (menu bar stack).
 - Voice: see `VOICE.md`.
+- **Design: read `docs/DESIGN.md` before any UI work.** It holds the principles, every reference and what we took from it, and decisions already made. No welcome screens or wizards (family rule).

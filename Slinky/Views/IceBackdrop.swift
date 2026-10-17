@@ -50,14 +50,4 @@ struct Floating: ViewModifier {
 extension View {
     func floating() -> some View { modifier(Floating()) }
 
-    /// A centered glass card on the ice backdrop, for welcome, Recovery Key and lock screens.
-    func gateCard() -> some View {
-        self
-            .padding(.horizontal, 44)
-            .padding(.vertical, 36)
-            .frame(maxWidth: 560)
-            .glassEffect(.regular, in: .rect(cornerRadius: 30))
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(IceBackdrop())
-    }
 }

@@ -1,75 +1,53 @@
 import AppKit
 import SwiftUI
 
-/// First run. The empty state is the onboarding.
-struct WelcomeView: View {
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        VStack(spacing: 18) {
-            KeyholeMark(size: 112).floating()
-            Text("Slinky keeps secrets out of your files.")
-                .font(.system(size: 26, weight: .bold))
-                .multilineTextAlignment(.center)
-            VStack(alignment: .leading, spacing: 10) {
-                Label("API keys, project .env values, recovery codes, and anything a site says to keep safe.", systemImage: "tray.full")
-                Label("Locked by your Mac's Secure Enclave. Touch ID to open.", systemImage: "touchid")
-                Label("Nothing leaves this Mac. No account, no cloud.", systemImage: "laptopcomputer")
-            }
-            .font(.callout)
-            .foregroundStyle(.secondary)
-            .frame(maxWidth: 440, alignment: .leading)
-            Button("Create My Vault") { model.createVault() }
-                .buttonStyle(.glassProminent)
-                .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
-            if let error = model.errorMessage {
-                Text(error).font(.callout).foregroundStyle(.red).frame(maxWidth: 440)
-            }
-        }
-        .gateCard()
-    }
-}
-
-/// Shown once, right after creating the vault.
-struct RecoveryKeyView: View {
+/// Shown once, as a sheet, right after the first save creates the vault. Not a welcome screen.
+struct RecoveryKeySheet: View {
     @Environment(AppModel.self) private var model
     let key: String
     @State private var saved = false
 
     var body: some View {
-        VStack(spacing: 18) {
-            Image(systemName: "key.horizontal")
-                .font(.system(size: 34))
-                .foregroundStyle(.tint)
-            Text("Your Recovery Key")
-                .font(.system(size: 24, weight: .bold))
-            Text("It opens your vault on a new Mac, or if this one forgets you. Slinky never stores it. Print it, or keep it in Apple Passwords. Never in Slinky.")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: 480)
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 12) {
+                KeyholeMark(size: 44)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Your vault is set.").font(.title3.weight(.bold))
+                    Text("Here's the key that opens it anywhere.").foregroundStyle(.secondary)
+                }
+            }
             Text(key)
-                .font(.system(size: 24, weight: .semibold, design: .monospaced))
-                .tracking(1)
+                .font(.system(size: 21, weight: .semibold, design: .monospaced))
+                .tracking(0.6)
                 .textSelection(.enabled)
-                .padding(.horizontal, 22)
+                .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(.background.secondary, in: .rect(cornerRadius: 14))
-                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.separator, lineWidth: 0.5))
+                .background(.paper, in: .rect(cornerRadius: 14))
+                .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.separator.opacity(0.6), lineWidth: 0.5))
+            Text("It opens your vault on a new Mac, or if this one forgets Touch ID. Slinky never stores it. Print it, or keep it in Apple Passwords. Never in Slinky.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
             HStack {
-                Button("Print It…") { RecoveryPrinter.print(key) }
+                Button("Print…") { RecoveryPrinter.print(key) }
                 Button("Copy") { model.copy(key, label: "your Recovery Key") }
+                Spacer()
             }
             .buttonStyle(.glass)
-            Toggle("I've saved it somewhere safe, outside Slinky", isOn: $saved)
-                .toggleStyle(.checkbox)
-            Button("Continue") { model.finishOnboarding() }
-                .buttonStyle(.glassProminent)
-                .controlSize(.large)
-                .disabled(!saved)
-                .keyboardShortcut(.defaultAction)
+            Divider()
+            HStack {
+                Toggle("I've saved it somewhere safe, outside Slinky", isOn: $saved)
+                    .toggleStyle(.checkbox)
+                Spacer()
+                Button("Done") { model.recoveryKeyToShow = nil }
+                    .buttonStyle(.glassProminent)
+                    .keyboardShortcut(.defaultAction)
+                    .disabled(!saved)
+            }
         }
-        .gateCard()
+        .padding(24)
+        .frame(width: 520)
+        .interactiveDismissDisabled()
     }
 }
 
@@ -89,18 +67,19 @@ enum RecoveryPrinter {
     }
 }
 
+/// Quiet lock: the mark, one line, one button, on ice. Touch ID is usually already asking.
 struct LockView: View {
     @Environment(AppModel.self) private var model
     @State private var showRecovery = false
     @State private var recoveryText = ""
 
     var body: some View {
-        VStack(spacing: 16) {
-            KeyholeMark(size: 96).floating()
+        VStack(spacing: 14) {
+            KeyholeMark(size: 72).floating()
             Text("Locked. Touch ID to peek.")
-                .font(.system(size: 22, weight: .bold))
+                .font(.title3.weight(.semibold))
             if let note = model.lockNote {
-                Text(note).foregroundStyle(.secondary)
+                Text(note).font(.callout).foregroundStyle(.secondary)
             }
             Button {
                 model.unlock()
@@ -112,17 +91,19 @@ struct LockView: View {
             .keyboardShortcut(.defaultAction)
             .disabled(model.busy)
             if let error = model.errorMessage {
-                Text(error).font(.callout).foregroundStyle(.red).frame(maxWidth: 420).multilineTextAlignment(.center)
+                Text(error).font(.callout).foregroundStyle(.red).frame(maxWidth: 380).multilineTextAlignment(.center)
             }
             Button("Use Recovery Key…") { showRecovery = true }
                 .buttonStyle(.link)
                 .font(.callout)
+                .padding(.top, 4)
         }
-        .gateCard()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(IceBackdrop())
         .sheet(isPresented: $showRecovery) {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Unlock with your Recovery Key").font(.headline)
-                Text("For a new Mac, a restored backup, or if Touch ID stopped working. Slinky will set up Touch ID again afterwards.")
+                Text("For a new Mac, a restored backup, or if Touch ID stopped working. Slinky sets up Touch ID again afterwards.")
                     .font(.callout).foregroundStyle(.secondary)
                 TextField("XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX", text: $recoveryText)
                     .font(.system(.body, design: .monospaced))
@@ -133,7 +114,7 @@ struct LockView: View {
                     Button("Unlock") {
                         if model.unlock(recoveryText: recoveryText) { showRecovery = false }
                     }
-                    .buttonStyle(.borderedProminent)
+                    .buttonStyle(.glassProminent)
                     .keyboardShortcut(.defaultAction)
                 }
             }

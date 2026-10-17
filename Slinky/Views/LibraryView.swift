@@ -53,6 +53,10 @@ struct LibraryView: View {
             KeyholeMark(size: 72)
             Text("Nothing to hide. Yet.").font(.title2.weight(.bold))
             Text(emptyLine).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 400)
+            if !model.hasVault {
+                Text("Your vault is created the first time you tuck something away. Touch ID guards it from then on.")
+                    .font(.callout).foregroundStyle(.tertiary).multilineTextAlignment(.center).frame(maxWidth: 400)
+            }
             Button {
                 model.tuckPrefill = ""
                 model.tuckProject = nil

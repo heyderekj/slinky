@@ -39,6 +39,10 @@ struct MainView: View {
         }
         .sheet(isPresented: $model.showTuck) { TuckItAwayView() }
         .sheet(isPresented: $model.showNewProject) { NewProjectView() }
+        .sheet(isPresented: Binding(get: { model.recoveryKeyToShow != nil && !model.showTuck },
+                                    set: { if !$0 { model.recoveryKeyToShow = nil } })) {
+            if let key = model.recoveryKeyToShow { RecoveryKeySheet(key: key) }
+        }
     }
 }
 
@@ -79,7 +83,7 @@ struct SidebarView: View {
         }
         .listStyle(.sidebar)
         .safeAreaInset(edge: .bottom) {
-            Text("\(model.document.secretCount) secrets · \(model.document.projects.count) projects · 0 lying around")
+            Text(model.hasVault ? "\(model.document.secretCount) secrets · \(model.document.projects.count) projects · 0 lying around" : "No vault yet. It appears with your first secret.")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
                 .frame(maxWidth: .infinity, alignment: .leading)

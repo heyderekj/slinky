@@ -88,8 +88,6 @@ struct RootView: View {
         Group {
             switch model.phase {
             case .loading: ProgressView()
-            case .welcome: WelcomeView()
-            case let .recoveryKey(key): RecoveryKeyView(key: key)
             case .locked: LockView()
             case .unlocked: MainView()
             }

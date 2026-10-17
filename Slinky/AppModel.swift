@@ -53,7 +53,7 @@ struct Toast: Identifiable, Equatable {
 @Observable
 final class AppModel {
     enum Phase: Equatable {
-        case loading, welcome, recoveryKey(String), locked, unlocked
+        case loading, locked, unlocked
     }
 
     var phase: Phase = .loading
@@ -67,6 +67,9 @@ final class AppModel {
     var errorMessage: String?
     var lockNote: String?
     var busy = false
+    /// Shown once, right after the vault is created by the first save.
+    var recoveryKeyToShow: String?
+    var hasVault = false
     var quickAccessToken = UUID()
     @ObservationIgnored var openMainWindow: (() -> Void)?
 
@@ -82,28 +85,27 @@ final class AppModel {
 
     func start() {
         guard phase == .loading else { return }
-        phase = store.exists ? .locked : .welcome
+        hasVault = store.exists
+        // No welcome screen: with no vault yet, open straight into the (empty) app.
+        phase = hasVault ? .locked : .unlocked
         observeLocks()
     }
 
     // MARK: Create and unlock
 
-    func createVault() {
+    /// The vault is created the first time something is tucked away, then the Recovery Key is shown in context.
+    private func createVaultWithCurrentDocument() {
         do {
             try enclave.ensureKey()
-            let (newSession, recovery) = try store.create()
+            let (newSession, recovery) = try store.create(document)
             session = newSession
-            document = newSession.document
+            hasVault = true
             unlockedAt = .now
-            phase = .recoveryKey(recovery.display)
+            recoveryKeyToShow = recovery.display
+            startIdleTimer()
         } catch {
             errorMessage = Self.friendly(error)
         }
-    }
-
-    func finishOnboarding() {
-        phase = .unlocked
-        startIdleTimer()
     }
 
     /// "Unlock with Touch ID" on Macs that have it, otherwise the password wording.
@@ -165,7 +167,7 @@ final class AppModel {
     }
 
     func lock(reason: LockReason) {
-        guard phase == .unlocked else { return }
+        guard phase == .unlocked, hasVault else { return }
         session = nil
         document = VaultDocument()
         undoSnapshot = nil
@@ -330,7 +332,10 @@ final class AppModel {
     }
 
     private func persist() {
-        guard var current = session else { return }
+        guard var current = session else {
+            if !hasVault { createVaultWithCurrentDocument() }
+            return
+        }
         current.document = document
         session = current
         do { try store.save(current) } catch { errorMessage = "Couldn't save: \(Self.friendly(error))" }
