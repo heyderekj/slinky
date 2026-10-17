@@ -72,7 +72,7 @@ Default path `/Applications/Slinky.app/Contents/MacOS/slinky`, then `~/Applicati
 4. **Store submission.**
 5. Later: Run with Slinky.
 
-## Decisions for Derek
-1. **Who's allowed to copy:** B (allow once per unlock, with Touch ID) or A (Touch ID every time)?
-2. **Recovery codes in Raycast:** show them (Return copies the next code), or keep recovery things Slinky-only?
-3. **Store author:** publish under your Raycast handle (heyderekj?) with "Testament Made, LLC" in the README?
+## Decisions (2026-10-17, Derek: "whatever you recommend", open to change)
+1. **Who's allowed to copy:** B. Raycast is allowed once per unlock, after Touch ID, verified by its code signature. Items set to "Never leaves" stay out of Raycast.
+2. **Recovery codes in Raycast:** yes. Return copies the next unused code and crosses it off, under the same allowance.
+3. **Store author:** Derek's Raycast handle (heyderekj), with "Made by Testament Made, LLC" in the README.
