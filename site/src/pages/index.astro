@@ -7,6 +7,7 @@ import Icon from '../components/Icon.astro';
 import FamilyTabs from '../components/FamilyTabs.astro';
 import Desktop from '../components/Desktop.astro';
 import Guided from '../components/Guided.astro';
+import Editorial from '../components/Editorial.astro';
 import Monogram from '../components/Monogram.astro';
 import release from '../release.json';
 
@@ -110,33 +111,13 @@ const faq = [
         </div>
       </Guided>
 
-      <Guided id="projects" eyebrow="Projects" title="Every project’s .env,<br />in one place." flip features={[
+      <Editorial eyebrow="Projects" title="Every project’s .env,<br />in one place." flip features={[
         { icon: 'folder', title: 'Drop a project folder', text: 'Slinky reads its .env files and sorts them into Local, Preview and Production. It never changes them.' },
         { icon: 'attention', title: 'Checks .gitignore', text: 'Files git could commit get a warning, before they end up in your repo.' },
         { icon: 'check', title: 'Shows what’s missing', text: '.env.example tells Slinky what the project needs. Copy an environment as .env lines when your host asks.' },
       ]}>
-        <div slot="s0" class="additem" data-glass="panel" style="max-width:440px">
-          <div class="additem__top">New Project <span class="keycap">esc</span></div>
-          <div class="np-name">harbor-app</div>
-          <div class="np-files">
-            <div class="np-file"><Icon name="feather" /><b>.env</b><span>Local · 9 variables</span></div>
-            <div class="np-file"><Icon name="feather" /><b>.env.preview</b><span>Preview · 10 variables</span></div>
-            <div class="np-file"><Icon name="feather" /><b>.env.production</b><span>Production · 10 variables</span></div>
-          </div>
-          <div class="additem__foot"><Icon name="folder" style="width:14px;height:14px" /> ~/Code/harbor-app <span class="save">Create Project ↵</span></div>
-        </div>
-        <div slot="s1" class="additem" data-glass="panel" style="max-width:440px">
-          <div class="additem__top">New Project <span class="keycap">esc</span></div>
-          <div class="np-name">harbor-app</div>
-          <div class="np-files">
-            <div class="np-file"><Icon name="feather" /><b>.env</b><span>Local · 9 variables</span></div>
-            <div class="np-file"><Icon name="feather" /><b>.env.preview</b><span class="chip chip--warn">Not in .gitignore</span></div>
-            <div class="np-file"><Icon name="feather" /><b>.env.production</b><span>Production · 10 variables</span></div>
-          </div>
-          <div class="detect" style="color:var(--orange);align-items:flex-start"><Icon name="attention" style="width:14px;height:14px;flex:none;margin-top:2px" /> Some of these files aren’t in .gitignore, so git could commit them. Slinky won’t change your files.</div>
-        </div>
-        <Fragment slot="s2"><Demos which="env" /></Fragment>
-      </Guided>
+        <Demos which="env" />
+      </Editorial>
 
       <Guided id="recovery" eyebrow="Recovery" title="Backup codes<br />that keep count." features={[
         { icon: 'hash', title: 'Codes that cross themselves off', text: 'Copy a backup code and it’s marked used, so you never try one twice.' },
@@ -176,28 +157,13 @@ const faq = [
         </div>
       </Guided>
 
-      <Guided id="quick" eyebrow="Quick Access" title="Your keys,<br />a shortcut away." flip features={[
+      <Editorial eyebrow="Quick Access" title="Your keys,<br />a shortcut away." flip features={[
         { icon: 'search', title: '⌥⌘K, from anywhere', text: 'Find a key by name and press Return. Try it here: type “stripe” or “codes”.' },
         { icon: 'copy', title: 'Private copies', text: 'Clipboard history apps skip what Slinky copies, and it clears itself after a minute.' },
         { icon: 'layers', title: 'Shortcuts too', text: 'Add to Slinky, Copy from Slinky with Touch ID, Quick Access and Lock, right in the Shortcuts app.' },
       ]}>
-        <Fragment slot="s0"><Demos which="quick" /></Fragment>
-        <div slot="s1" class="mbstack-wrap">
-          <div class="mbstack" data-glass="panel">
-            <div class="mbstack__head"><b>Slinky</b><small>Unlocked</small></div>
-            <div class="mbstack__label">Recently Copied</div>
-            <div class="mbstack__row"><Monogram text="Stripe" size={22} /><span class="mono">STRIPE_SECRET_KEY</span></div>
-            <div class="mbstack__row"><Monogram text="GitHub" size={22} /><span class="mono">GITHUB_TOKEN</span></div>
-            <div class="mbstack__row"><Monogram text="Vercel" size={22} /><span>Vercel recovery code</span></div>
-          </div>
-          <div class="toast float-glass is-on" style="position:static;translate:0;margin-top:14px"><Icon name="checkc" /><span>Copied. The clipboard clears in 60 seconds.</span></div>
-        </div>
-        <div slot="s2" class="sc-grid">
-          {['Add to Slinky', 'Copy from Slinky', 'Open Quick Access', 'Lock Slinky'].map((t) => (
-            <div class="sc-tile"><img src="/icons/slinky-320.webp" alt="" width="34" height="34" /><b>{t}</b></div>
-          ))}
-        </div>
-      </Guided>
+        <Demos which="quick" />
+      </Editorial>
 
       <Guided id="lock" eyebrow="Locking" title="Locked unless<br />you’re using it." features={[
         { icon: 'touchid', title: 'Opens with Touch ID', text: 'Your vault is one encrypted file on your Mac, opened by the Secure Enclave.' },
