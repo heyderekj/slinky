@@ -64,6 +64,9 @@ Read this before any design work. Every visual decision should trace back to som
   - an orange "Not in .gitignore" chip on files git could commit, with one plain line of advice (Slinky never edits .gitignore itself);
   - `.env.example` (or .sample/.template/.dist) as the list of expected names, with "Still missing after import: …".
   - The button says what happens: "Create and Import 21 Variables ↵". Dropping a folder or .env file on the sidebar opens this panel with the folder already read.
+- **Edit** (`EditItemView.swift`): the same floating panel, fields as label/control rows on paper (`FieldCard`). A value is never shown in full while editing: the current one is a peek, and "Replace…" opens a secure field for the new one. Recovery codes can be replaced with a new set (used marks reset). Remove/Delete sits bottom left, with a confirmation and Undo.
+- **Settings** (`SettingsView.swift`): a Window scene with a sidebar (General, Security, Recovery Key, About) and grouped forms, like Binky. About shows honest stats: secrets kept out of files, times copied, and "Seen by: You".
+- **Help** (`HelpView.swift`): Help › Slinky Help, short plain sections on paper cards.
 - **Working state:** the keyhole is absorbed into the asterisk, which spins (see `docs/plan.md`).
 
 ## Live documents

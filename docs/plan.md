@@ -303,3 +303,9 @@ While Slinky is busy, the keyhole is absorbed into the asterisk (it scales and f
 - **Shortcuts (built):** Add to Slinky (opens Add Item prefilled; pair with Get Clipboard for "Save clipboard to Slinky"), Copy from Slinky (Touch ID every time, never returns the value), Open Quick Access, Lock Slinky. Items show by name only while unlocked.
 - **Raycast (with the agents milestone):** a small open-source Raycast extension that calls the `slinky` CLI: search items by name, copy (goes through the same approval and Touch ID rules as agents), add from clipboard, lock. It has to wait for the CLI and socket broker, which are what keep values from flowing through Raycast's own process. Raycast would show up in receipts like any other caller ("Raycast › slinky").
 - **Clipboard managers:** everything Slinky copies is marked concealed and transient (`org.nspasteboard.ConcealedType` / `TransientType`), so Raycast's clipboard history, Paste, Maccy and similar skip it, and it clears after 60 seconds. Worth saying on the site.
+
+
+## v1.0.0 status (2026-10-17)
+Built: vault with Touch ID and Recovery Key (and making a new one), Keys & Tokens, Recovery, Projects with folder scan/.gitignore check/.env.example, Add Item and New Project panels, editing everything, Needs Attention, search, Quick Access ⌥⌘K, menu bar, Shortcuts actions, Settings (lock timing, clipboard timing, menu bar, open at login, sounds), Help, project export (Copy as .env, Save .env.example), release script, DMG/zip, Homebrew cask.
+Before publishing: Derek's real-use test (his recovery key, personal token and .env secret), a light-mode pass, and a GitHub remote.
+Next milestone (v1.1): the agents work (slinky CLI with masking, socket broker, approval cards, receipts, MCP, Connect for Claude Code), then Raycast.
