@@ -11,6 +11,8 @@ import Editorial from '../components/Editorial.astro';
 import Monogram from '../components/Monogram.astro';
 import release from '../release.json';
 import { faq, faqId } from '../data/faq';
+const core = ['Is Slinky free?', 'Where are my things stored?', 'Should I keep passwords in Slinky?', 'Why does macOS say it can’t check Slinky?'];
+const faqSorted = [...faq.filter(([q]) => core.includes(q)), ...faq.filter(([q]) => !core.includes(q))];
 
 const title = 'Slinky keeps secrets out of files.';
 const description = 'A free, native Mac app for API keys, .env variables and recovery codes. Encrypted on your Mac and opened with Touch ID.';
@@ -249,9 +251,11 @@ STRIPE_SECRET_KEY=••••••••
         <label class="fask__field"><span class="fmb-orb" aria-hidden="true"></span><input name="q" type="text" placeholder="Ask a question about Slinky" aria-label="Ask a question about Slinky" maxlength="280" autocomplete="off" spellcheck="false" /></label>
       </form>
       <div class="fask__answer" data-ask-answer hidden><span class="fmb-orb" aria-hidden="true"></span><div><p data-ask-text aria-live="polite"></p><p data-ask-src hidden></p></div></div>
-      <div class="faq">
-        {faq.map(([q, a]) => <details class="card-plain" id={faqId(q)}><summary>{q}</summary><p>{a}</p></details>)}
+      {/* A few core questions first; the rest behind "Show all", since the ask field answers anything. */}
+      <div class="faq" data-faq-collapsed>
+        {faqSorted.map(([q, a]) => <details class:list={['card-plain', { 'faq-more': !core.includes(q) }]} id={faqId(q)}><summary>{q}</summary><p>{a}</p></details>)}
       </div>
+      <button type="button" class="faq-all" data-faq-all>Show all {faq.length} questions</button>
     </section>
   </main>
 
