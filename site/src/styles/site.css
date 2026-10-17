@@ -224,16 +224,32 @@ body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
 .g-scene { grid-area: 1 / 1; width: 100%; display: grid; place-items: center; opacity: 0; transform: translateY(10px) scale(0.985); transition: opacity 0.45s var(--ease), transform 0.5s var(--ease); }
 .g-scene.is-on { opacity: 1; transform: none; }
 .g-scene[hidden] { display: grid; visibility: hidden; }
-.e-list { list-style: none; margin: 28px 0 0; padding: 0; }
-.e-list li { display: grid; grid-template-columns: 22px 1fr; gap: 14px; padding: 17px 0; border-top: 1px solid color-mix(in oklch, var(--ink) 10%, transparent); }
-.e-list li:last-child { border-bottom: 1px solid color-mix(in oklch, var(--ink) 10%, transparent); }
-.e-list h3 { font-size: 16.5px; font-weight: 600; letter-spacing: -0.01em; }
-.e-list p { margin-top: 3px; font-size: 15px; line-height: 1.5; color: var(--ink-soft); }
 @media (max-width: 900px) {
   .g-row, .g-row.is-flip { grid-template-columns: 1fr; gap: 28px; margin-top: 80px; }
   .g-row.is-flip .g-copy { order: 0; }
   .g-row .desktop__stage { min-height: 400px; }
 }
+/* New Project files, the menu bar's Recently Copied, and Slinky's actions in Shortcuts. */
+.np-name { margin-top: 12px; height: 36px; display: flex; align-items: center; padding: 0 12px; border-radius: 10px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); font-size: 14px; font-weight: 600; }
+.np-files { margin-top: 10px; display: grid; gap: 6px; }
+.np-file { display: grid; grid-template-columns: 18px auto 1fr; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 10px; background: var(--app-fill); font-size: 12.5px; }
+.np-file .icon { width: 14px; height: 14px; color: var(--app-secondary); }
+.np-file b { font-family: var(--mono); font-weight: 600; }
+.np-file span { justify-self: end; color: var(--app-secondary); font-size: 11.5px; }
+.np-file .chip--warn { color: #b25e00; background: color-mix(in oklch, var(--orange) 18%, transparent); }
+.mbstack-wrap { display: grid; justify-items: center; }
+.mbstack { width: 290px; padding: 10px; border-radius: 16px; font-family: var(--app-font); color: var(--app-text); }
+.mbstack__head { display: flex; align-items: baseline; justify-content: space-between; padding: 4px 8px 8px; }
+.mbstack__head b { font-size: 14px; }
+.mbstack__head small { font-size: 11.5px; color: var(--app-secondary); }
+.mbstack__label { padding: 6px 8px 4px; font-size: 11px; font-weight: 600; color: var(--app-tertiary); }
+.mbstack__row { display: flex; align-items: center; gap: 9px; padding: 6px 8px; border-radius: 8px; font-size: 12.5px; }
+.mbstack__row:first-of-type { background: color-mix(in oklch, var(--brand) 16%, transparent); }
+.mbstack__row .mono { font-family: var(--mono); font-size: 12px; font-weight: 600; }
+.sc-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 170px)); gap: 12px; }
+.sc-tile { display: grid; gap: 22px; align-content: space-between; min-height: 110px; padding: 14px; border-radius: 18px; color: #fff; background: linear-gradient(160deg, #3fd0e0, #0b7f8f); box-shadow: 0 10px 24px -14px rgb(5 60 70 / 0.6); font-family: var(--app-font); }
+.sc-tile img { width: 34px; height: 34px; border-radius: 9px; }
+.sc-tile b { font-size: 14px; font-weight: 600; line-height: 1.2; }
 /* Small scene parts: Needs Attention rows, a printed Recovery Key, the Touch ID prompt. */
 .att { display: grid; gap: 8px; margin-top: 4px; }
 .att__row { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); }
