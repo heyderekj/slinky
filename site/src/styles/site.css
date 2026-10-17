@@ -196,6 +196,62 @@ body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
 @media (max-width: 860px) { .ss-trio { grid-template-columns: 1fr; } }
 
 /* Rows: a desktop beside a card */
+/* ---------- Feature rows: guided steps (scenes change with the step) and editorial lists ---------- */
+.g-row { display: grid; grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.28fr); gap: 56px; align-items: center; margin-top: 120px; }
+.g-row.is-flip { grid-template-columns: minmax(0, 1.28fr) minmax(0, 0.82fr); }
+.g-row.is-flip .g-copy { order: 2; }
+.g-row .desktop { width: 100%; }
+.g-row .desktop__stage { min-height: 480px; }
+.g-title { font-size: clamp(28px, 3.2vw, 38px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 700; margin-top: 8px; }
+.g-steps { margin-top: 26px; display: grid; gap: 4px; }
+.g-step { position: relative; display: grid; text-align: left; padding: 15px 18px 15px 18px; border-radius: 16px; color: inherit; overflow: hidden; cursor: pointer; transition: background var(--t-ui), box-shadow var(--t-ui); }
+.g-step:hover { background: color-mix(in oklch, var(--ink) 4%, transparent); }
+.g-step.is-on { background: var(--card); box-shadow: var(--shadow); }
+.g-step:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+.g-step__head { display: flex; align-items: center; gap: 12px; }
+.g-step__head .feature-icon { width: 20px; height: 20px; color: var(--muted); transition: color var(--t-ui); }
+.g-step.is-on .g-step__head .feature-icon { color: var(--brand); }
+.g-step h3 { font-size: 16.5px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink-soft); }
+.g-step.is-on h3 { color: var(--ink); }
+.g-step__body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.4s var(--ease); }
+.g-step__body p { overflow: hidden; padding-left: 32px; font-size: 15px; line-height: 1.5; color: var(--ink-soft); }
+.g-step.is-on .g-step__body { grid-template-rows: 1fr; }
+.g-step.is-on .g-step__body p { padding-top: 6px; }
+.g-step__bar { position: absolute; left: 18px; right: 18px; bottom: 0; height: 2px; border-radius: 2px; background: var(--brand); transform-origin: left; transform: scaleX(0); opacity: 0; }
+.g-row.is-playing .g-step.is-on .g-step__bar { opacity: 0.7; animation: g-fill var(--g-dur, 6s) linear forwards; }
+@keyframes g-fill { to { transform: scaleX(1); } }
+.g-scenes { display: grid; width: 100%; place-items: center; }
+.g-scene { grid-area: 1 / 1; width: 100%; display: grid; place-items: center; opacity: 0; transform: translateY(10px) scale(0.985); transition: opacity 0.45s var(--ease), transform 0.5s var(--ease); }
+.g-scene.is-on { opacity: 1; transform: none; }
+.g-scene[hidden] { display: grid; visibility: hidden; }
+.e-list { list-style: none; margin: 28px 0 0; padding: 0; }
+.e-list li { display: grid; grid-template-columns: 22px 1fr; gap: 14px; padding: 17px 0; border-top: 1px solid color-mix(in oklch, var(--ink) 10%, transparent); }
+.e-list li:last-child { border-bottom: 1px solid color-mix(in oklch, var(--ink) 10%, transparent); }
+.e-list h3 { font-size: 16.5px; font-weight: 600; letter-spacing: -0.01em; }
+.e-list p { margin-top: 3px; font-size: 15px; line-height: 1.5; color: var(--ink-soft); }
+@media (max-width: 900px) {
+  .g-row, .g-row.is-flip { grid-template-columns: 1fr; gap: 28px; margin-top: 80px; }
+  .g-row.is-flip .g-copy { order: 0; }
+  .g-row .desktop__stage { min-height: 400px; }
+}
+/* Small scene parts: Needs Attention rows, a printed Recovery Key, the Touch ID prompt. */
+.att { display: grid; gap: 8px; margin-top: 4px; }
+.att__row { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); }
+.att__row .icon { width: 16px; height: 16px; color: var(--orange); justify-self: center; }
+.att__row b { display: block; font-size: 13px; font-weight: 600; }
+.att__row small { display: block; font-size: 11.5px; color: var(--app-secondary); margin-top: 1px; }
+.att__row .copy { height: 24px; }
+.paper { width: min(360px, 100%); padding: 26px 26px 22px; border-radius: 6px; background: #fdfdfb; color: #1d1d1f; box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 18px 40px -16px rgb(0 0 0 / 0.35); transform: rotate(-1.5deg); font-family: var(--app-font); }
+.paper h4 { font-size: 15px; font-weight: 700; }
+.paper p { font-size: 12px; line-height: 1.5; color: #55555a; margin-top: 6px; }
+.paper .paper__key { margin: 16px 0 14px; padding: 12px; border: 1px dashed #c9c9cf; border-radius: 8px; font-family: var(--mono); font-size: 15px; letter-spacing: 0.04em; text-align: center; }
+.touch { width: min(300px, 100%); display: grid; justify-items: center; gap: 10px; padding: 26px 22px 18px; border-radius: 22px; text-align: center; font-family: var(--app-font); color: var(--app-text); }
+.touch__fp { width: 52px; height: 52px; display: grid; place-items: center; border-radius: 50%; color: #ff375f; }
+.touch__fp .icon { width: 44px; height: 44px; }
+.touch h4 { font-size: 14px; font-weight: 700; }
+.touch p { font-size: 12px; color: var(--app-secondary); line-height: 1.45; }
+.touch .touch__btn { margin-top: 6px; width: 100%; height: 30px; border-radius: 999px; display: grid; place-items: center; font-size: 13px; background: var(--app-fill); }
+
 .ss-row { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: 16px; align-items: center; margin-top: 96px; }
 .ss-row.is-rev { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); }
 .ss-row .desktop { width: 100%; }

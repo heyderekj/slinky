@@ -1,0 +1,33 @@
+---
+// A feature row as guided steps: a headline, three steps on one side, and a desktop whose scene changes
+// with the open step. Steps advance on their own while the row is on screen (not with Reduce Motion).
+// Scenes go in the named slots s0, s1 and s2. Behaviour lives in scripts/demos.ts (guided).
+import Desktop from './Desktop.astro';
+import Icon from './Icon.astro';
+interface Feature { icon: string; title: string; text: string }
+interface Props { id: string; eyebrow: string; title: string; features: Feature[]; flip?: boolean }
+const { id, eyebrow, title, features, flip = false } = Astro.props;
+---
+<div class:list={['g-row', 'reveal', { 'is-flip': flip }]} data-guided>
+  <div class="g-copy">
+    <p class="eyebrow">{eyebrow}</p>
+    <h2 class="g-title" set:html={title} />
+    <div class="g-steps" role="tablist" aria-label={eyebrow}>
+      {features.map((f, i) => (
+        <button class:list={['g-step', { 'is-on': i === 0 }]} role="tab" type="button" id={`${id}-tab-${i}`}
+          aria-selected={i === 0 ? 'true' : 'false'} aria-controls={`${id}-scene-${i}`} tabindex={i === 0 ? 0 : -1} data-step>
+          <span class="g-step__head"><Icon name={f.icon} class="feature-icon" /><h3>{f.title}</h3></span>
+          <span class="g-step__body"><p>{f.text}</p></span>
+          <i class="g-step__bar" aria-hidden="true"></i>
+        </button>
+      ))}
+    </div>
+  </div>
+  <Desktop class="g-desk">
+    <div class="g-scenes">
+      <div class="g-scene is-on" id={`${id}-scene-0`} role="tabpanel" aria-labelledby={`${id}-tab-0`} data-scene><slot name="s0" /></div>
+      <div class="g-scene" id={`${id}-scene-1`} role="tabpanel" aria-labelledby={`${id}-tab-1`} data-scene hidden><slot name="s1" /></div>
+      <div class="g-scene" id={`${id}-scene-2`} role="tabpanel" aria-labelledby={`${id}-tab-2`} data-scene hidden><slot name="s2" /></div>
+    </div>
+  </Desktop>
+</div>

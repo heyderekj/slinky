@@ -6,6 +6,9 @@ import Demos from '../components/Demos.astro';
 import Icon from '../components/Icon.astro';
 import FamilyTabs from '../components/FamilyTabs.astro';
 import Desktop from '../components/Desktop.astro';
+import Guided from '../components/Guided.astro';
+import Editorial from '../components/Editorial.astro';
+import Monogram from '../components/Monogram.astro';
 import release from '../release.json';
 
 const title = 'Slinky keeps secrets out of files.';
@@ -86,37 +89,42 @@ const faq = [
     </header>
 
     <section class="screenshots wrap" id="features" aria-label="What Slinky does">
-      <div class="ss-row is-rev reveal">
-        <div class="ss-card card-plain">
-          <div class="ss-card-features">
-            <div class="ss-card-feature"><Icon name="plus" class="feature-icon" /><h3>Paste anything secret</h3><p>Press ⌘N and paste. The value turns into dots right away, and Slinky suggests where it belongs.</p></div>
-            <div class="ss-card-feature"><Icon name="sparkle" class="feature-icon" /><h3>Knows the service</h3><p>Stripe, OpenAI, Anthropic, GitHub, Supabase, Resend, AWS and more, with the usual variable name filled in.</p></div>
-            <div class="ss-card-feature"><Icon name="attention" class="feature-icon" /><h3>No accidental doubles</h3><p>Paste something you’ve already saved and Slinky tells you where it is. Wallet phrases are refused.</p></div>
-          </div>
+      <Guided id="add" eyebrow="Add Item" title="Paste it once.<br />Slinky files it." features={[
+        { icon: 'plus', title: 'Paste anything secret', text: 'Press ⌘N and paste. The value turns into dots right away, and Slinky suggests where it belongs.' },
+        { icon: 'sparkle', title: 'Knows the service', text: 'Stripe, OpenAI, Anthropic, GitHub, Supabase, Resend, AWS and more, with the usual variable name filled in.' },
+        { icon: 'attention', title: 'No accidental doubles', text: 'Paste something you’ve already saved and Slinky tells you where it is. Wallet phrases are refused.' },
+      ]}>
+        <Fragment slot="s0"><Demos which="additem" /></Fragment>
+        <div slot="s1" class="additem is-ready" data-glass="panel">
+          <div class="additem__top">Add Item <span class="keycap">esc</span></div>
+          <div class="slab"><div style="display:flex;gap:13px;align-items:flex-start"><Monogram text="Stripe" size={38} /><div><div class="slab__name">STRIPE_SECRET_KEY</div><div class="slab__value">sk_live_••••••••••••4f2a</div></div></div></div>
+          <div class="detect"><Icon name="sparkle" style="width:14px;height:14px" /> Looks like a Stripe secret key, live mode.</div>
+          <div class="chips"><span class="pchip"><Icon name="key" /> Key or Token</span><span class="pchip pchip--add"><Icon name="calendar" /> Add expiry date</span></div>
+          <div class="additem__foot"><Icon name="shield" style="width:14px;height:14px" /> Encrypted on this Mac <span class="save">Save to Keys &amp; Tokens ↵</span></div>
         </div>
-        <Desktop><Demos which="additem" /></Desktop>
-      </div>
+        <div slot="s2" class="additem is-ready" data-glass="panel">
+          <div class="additem__top">Add Item <span class="keycap">esc</span></div>
+          <div class="slab"><div style="display:flex;gap:13px;align-items:flex-start"><Monogram text="GitHub" size={38} /><div><div class="slab__name">GITHUB_TOKEN</div><div class="slab__value">ghp_••••••••••••8c1d</div></div></div></div>
+          <div class="detect" style="color:var(--orange)"><Icon name="attention" style="width:14px;height:14px" /> Already saved in Keys &amp; Tokens, as GITHUB_TOKEN.</div>
+          <div class="chips"><span class="pchip"><Icon name="key" /> Key or Token</span></div>
+          <div class="additem__foot"><Icon name="shield" style="width:14px;height:14px" /> Encrypted on this Mac <span class="save">Save to Keys &amp; Tokens ↵</span></div>
+        </div>
+      </Guided>
 
-      <div class="ss-row reveal">
-        <Desktop><Demos which="env" /></Desktop>
-        <div class="ss-card card-plain">
-          <div class="ss-card-features">
-            <div class="ss-card-feature"><Icon name="folder" class="feature-icon" /><h3>Drop a project folder</h3><p>Slinky reads its .env files and sorts them into Local, Preview and Production. It never changes them.</p></div>
-            <div class="ss-card-feature"><Icon name="attention" class="feature-icon" /><h3>Checks .gitignore</h3><p>Files git could commit get a warning, before they end up in your repo.</p></div>
-            <div class="ss-card-feature"><Icon name="check" class="feature-icon" /><h3>Shows what’s missing</h3><p>.env.example tells Slinky what the project needs. Copy an environment as .env lines when your host asks.</p></div>
-          </div>
-        </div>
-      </div>
+      <Editorial eyebrow="Projects" title="Every project’s .env,<br />in one place." flip features={[
+        { icon: 'folder', title: 'Drop a project folder', text: 'Slinky reads its .env files and sorts them into Local, Preview and Production. It never changes them.' },
+        { icon: 'attention', title: 'Checks .gitignore', text: 'Files git could commit get a warning, before they end up in your repo.' },
+        { icon: 'check', title: 'Shows what’s missing', text: '.env.example tells Slinky what the project needs. Copy an environment as .env lines when your host asks.' },
+      ]}>
+        <Demos which="env" />
+      </Editorial>
 
-      <div class="ss-row is-rev reveal">
-        <div class="ss-card card-plain">
-          <div class="ss-card-features">
-            <div class="ss-card-feature"><Icon name="hash" class="feature-icon" /><h3>Codes that cross themselves off</h3><p>Copy a backup code and it’s marked used, so you never try one twice.</p></div>
-            <div class="ss-card-feature"><Icon name="bell" class="feature-icon" /><h3>A heads-up when you’re low</h3><p>Needs Attention lists codes running out, keys about to expire, and recovery keys never printed.</p></div>
-            <div class="ss-card-feature"><Icon name="life" class="feature-icon" /><h3>Recovery keys, kept safe</h3><p>For the day you’re locked out of an account. Print them from Slinky in one click.</p></div>
-          </div>
-        </div>
-        <Desktop>
+      <Guided id="recovery" eyebrow="Recovery" title="Backup codes<br />that keep count." features={[
+        { icon: 'hash', title: 'Codes that cross themselves off', text: 'Copy a backup code and it’s marked used, so you never try one twice.' },
+        { icon: 'bell', title: 'A heads-up when you’re low', text: 'Needs Attention lists codes running out, keys about to expire, and recovery keys never printed.' },
+        { icon: 'life', title: 'Recovery keys, kept safe', text: 'For the day you’re locked out of an account. Print them from Slinky in one click.' },
+      ]}>
+        <Fragment slot="s0">
           <div class="additem" data-glass="panel" style="max-width:380px">
             <div class="card" data-codeset>
               <div class="card__head">
@@ -131,30 +139,51 @@ const faq = [
             </div>
             <p class="detect" style="margin-top:12px"><Icon name="attention" style="width:14px;height:14px;color:var(--orange)" /> Only 4 codes left. Click one to copy it.</p>
           </div>
-        </Desktop>
-      </div>
-
-      <div class="ss-row reveal">
-        <Desktop><Demos which="quick" /></Desktop>
-        <div class="ss-card card-plain">
-          <div class="ss-card-features">
-            <div class="ss-card-feature"><Icon name="search" class="feature-icon" /><h3>⌥⌘K, from anywhere</h3><p>Find a key by name and press Return. Try it here: type “stripe” or “codes”.</p></div>
-            <div class="ss-card-feature"><Icon name="copy" class="feature-icon" /><h3>Private copies</h3><p>Clipboard history apps skip what Slinky copies, and it clears itself after a minute.</p></div>
-            <div class="ss-card-feature"><Icon name="layers" class="feature-icon" /><h3>Shortcuts too</h3><p>Add to Slinky, Copy from Slinky with Touch ID, Quick Access and Lock, right in the Shortcuts app.</p></div>
+        </Fragment>
+        <div slot="s1" class="additem" data-glass="panel" style="max-width:420px">
+          <div class="additem__top">Needs Attention <span class="keycap">3</span></div>
+          <div class="att">
+            <div class="att__row"><Icon name="hash" /><div><b>Only 4 Vercel codes left</b><small>Make new recovery codes on Vercel, then add them here.</small></div></div>
+            <div class="att__row"><Icon name="calendar" /><div><b>GITHUB_TOKEN expires in 5 days</b><small>Make a new one on GitHub, then replace it here.</small></div></div>
+            <div class="att__row"><Icon name="life" /><div><b>FileVault recovery key has no copy outside Slinky</b><small>A printed copy is your way back in.</small></div><span class="copy">Print</span></div>
           </div>
         </div>
-      </div>
-
-      <div class="ss-row is-rev reveal">
-        <div class="ss-card card-plain">
-          <div class="ss-card-features">
-            <div class="ss-card-feature"><Icon name="touchid" class="feature-icon" /><h3>Opens with Touch ID</h3><p>Your vault is one encrypted file on your Mac, opened by the Secure Enclave.</p></div>
-            <div class="ss-card-feature"><Icon name="lock" class="feature-icon" /><h3>Locks itself</h3><p>When your screen locks, when your Mac sleeps, when you’re away, and after 12 hours. Or flip the switch, top right.</p></div>
-            <div class="ss-card-feature"><Icon name="shield" class="feature-icon" /><h3>A Recovery Key, on paper</h3><p>Opens your vault on any Mac if Touch ID can’t. Slinky never keeps a copy.</p></div>
+        <div slot="s2" class="additem" data-glass="panel" style="max-width:400px">
+          <div class="card">
+            <div class="card__head"><Monogram text="Apple Account" /><div><div class="card__kind">RECOVERY KEY</div><div class="card__name">Apple Account recovery key</div><div class="card__sub">From Apple</div></div></div>
+            <div class="card__value"><span>R7KQ-••••-••••-••••</span></div>
+            <div class="card__foot"><span class="chip">Printed</span><span style="margin-left:auto;display:flex;gap:6px"><span class="copy">Print</span><span class="copy"><Icon name="copy" /> Copy</span></span></div>
           </div>
         </div>
-        <Desktop><Demos which="lock" /></Desktop>
-      </div>
+      </Guided>
+
+      <Editorial eyebrow="Quick Access" title="Your keys,<br />a shortcut away." flip features={[
+        { icon: 'search', title: '⌥⌘K, from anywhere', text: 'Find a key by name and press Return. Try it here: type “stripe” or “codes”.' },
+        { icon: 'copy', title: 'Private copies', text: 'Clipboard history apps skip what Slinky copies, and it clears itself after a minute.' },
+        { icon: 'layers', title: 'Shortcuts too', text: 'Add to Slinky, Copy from Slinky with Touch ID, Quick Access and Lock, right in the Shortcuts app.' },
+      ]}>
+        <Demos which="quick" />
+      </Editorial>
+
+      <Guided id="lock" eyebrow="Locking" title="Locked unless<br />you’re using it." features={[
+        { icon: 'touchid', title: 'Opens with Touch ID', text: 'Your vault is one encrypted file on your Mac, opened by the Secure Enclave.' },
+        { icon: 'lock', title: 'Locks itself', text: 'When your screen locks, when your Mac sleeps, when you’re away, and after 12 hours. Or flip the switch, top right.' },
+        { icon: 'shield', title: 'A Recovery Key, on paper', text: 'Opens your vault on any Mac if Touch ID can’t. Slinky never keeps a copy.' },
+      ]}>
+        <div slot="s0" class="touch" data-glass="panel">
+          <span class="touch__fp"><Icon name="touchid" /></span>
+          <h4>Slinky</h4>
+          <p>Slinky wants to unlock your vault.<br />Touch ID or enter your password to allow this.</p>
+          <span class="touch__btn">Use Password…</span>
+        </div>
+        <Fragment slot="s1"><Demos which="lock" /></Fragment>
+        <div slot="s2" class="paper">
+          <h4>Slinky Recovery Key</h4>
+          <p>You need this key to open your vault on another Mac, or if Touch ID stops working. Slinky doesn’t keep a copy.</p>
+          <div class="paper__key">EXMP-7K2Q-4MXP-9TRB-6WZD</div>
+          <p>Keep it somewhere safe, away from your Mac.</p>
+        </div>
+      </Guided>
     </section>
 
     <section class="section wrap" aria-labelledby="also-heading">

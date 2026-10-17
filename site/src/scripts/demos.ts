@@ -61,9 +61,67 @@ function codeSets() {
 }
 
 /** Add Item: paste, the characters turn into dots, then Slinky says what it found. */
+/**
+ * Guided feature rows: each step opens its scene on the desktop. While the row is on screen the steps
+ * advance every few seconds; a click or the arrow keys take over, and Reduce Motion turns advancing off.
+ * Opening a scene sends it "scene:show" so a demo inside can play again.
+ */
+function guided() {
+  const DUR = 6500;
+  for (const row of $$('[data-guided]')) {
+    const steps = $$<HTMLButtonElement>('[data-step]', row);
+    const scenes = $$('[data-scene]', row);
+    let at = 0;
+    let timer = 0;
+    let inView = false;
+    row.style.setProperty('--g-dur', `${DUR}ms`);
+    const schedule = () => {
+      clearTimeout(timer);
+      const playing = inView && !still();
+      row.classList.toggle('is-playing', playing);
+      if (playing) timer = window.setTimeout(() => open((at + 1) % steps.length), DUR);
+    };
+    const open = (n: number, focus = false) => {
+      at = n;
+      steps.forEach((s, k) => {
+        const on = k === n;
+        s.classList.toggle('is-on', on);
+        s.setAttribute('aria-selected', String(on));
+        s.tabIndex = on ? 0 : -1;
+        // Restart the progress line.
+        const bar = s.querySelector<HTMLElement>('.g-step__bar');
+        if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+      });
+      scenes.forEach((sc, k) => {
+        const on = k === n;
+        sc.classList.toggle('is-on', on);
+        sc.hidden = !on;
+        if (on) sc.dispatchEvent(new CustomEvent('scene:show'));
+      });
+      if (focus) steps[n].focus();
+      schedule();
+    };
+    steps.forEach((s, k) => {
+      s.addEventListener('click', () => open(k));
+      s.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : e.key === 'ArrowUp' || e.key === 'ArrowLeft' ? -1 : 0;
+        if (!d) return;
+        e.preventDefault();
+        open((at + d + steps.length) % steps.length, true);
+      });
+    });
+    // Hovering the row holds the current step, so it doesn't change while someone is reading or trying the demo.
+    row.addEventListener('pointerenter', () => { inView = false; schedule(); });
+    row.addEventListener('pointerleave', () => { inView = true; schedule(); });
+    new IntersectionObserver(([e]) => { inView = e.isIntersecting && !row.matches(':hover'); schedule(); }, { threshold: 0.45 }).observe(row);
+  }
+}
+
 function addItem() {
-  const panel = $('[data-additem]');
-  if (!panel) return;
+  $$('[data-additem]').forEach(addItemDemo);
+}
+
+function addItemDemo(panel: HTMLElement) {
   const slab = $('[data-slab]', panel)!;
   const placeholder = $('[data-placeholder]', panel)!;
   const filled = $('[data-filled]', panel)!;
@@ -104,7 +162,8 @@ function addItem() {
     panel!.classList.add('is-ready');
   }
   onVisible(panel, play);
-  $('[data-replay]')?.addEventListener('click', play);
+  panel.parentElement?.querySelector('[data-replay]')?.addEventListener('click', play);
+  panel.closest('[data-scene]')?.addEventListener('scene:show', play);
 }
 
 /** Quick Access: type to filter, arrows to move, Return to copy. ⌥⌘K or K focuses it. */
@@ -408,6 +467,7 @@ function navReveal() {
 
 export function startDemos() {
   reveals();
+  guided();
   copyButtons();
   codeSets();
   addItem();
