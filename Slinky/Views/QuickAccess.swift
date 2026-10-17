@@ -122,7 +122,7 @@ struct QuickAccessView: View {
             if model.isUnlocked { unlocked } else { locked }
         }
         .frame(width: 720, height: 430)
-        .glassEffect(.regular, in: .rect(cornerRadius: 26))
+        .glass(in: .rect(cornerRadius: 26))
         .onChange(of: model.quickAccessToken) { query = ""; selected = 0; focused = true }
         .onAppear { focused = true }
         .onKeyPress(.escape) { QuickAccess.shared.close(); return .handled }
@@ -133,7 +133,7 @@ struct QuickAccessView: View {
             KeyholeMark(size: 64)
             Text("Slinky is locked").font(.title3.weight(.semibold))
             Button { model.unlock() } label: { Label(model.unlockLabel, systemImage: "touchid") }
-                .buttonStyle(.glassProminent)
+                .glassProminentButton()
                 .controlSize(.large)
                 .keyboardShortcut(.defaultAction)
             if let error = model.errorMessage { Text(error).font(.callout).foregroundStyle(.red) }
@@ -253,7 +253,7 @@ struct QuickAccessView: View {
                     model.openMainWindow?()
                     model.showTuck = true
                 }
-                .buttonStyle(.glass)
+                .glassButton()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }

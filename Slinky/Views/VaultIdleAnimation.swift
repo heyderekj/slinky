@@ -92,7 +92,7 @@ struct VaultIdleAnimation: View {
                             .offset(x: 10, y: 10)
                             .scaleEffect(checkFade ? 0.5 : 1)
                             .opacity(checkFade ? 0 : 1)
-                            .transition(.symbolEffect(.drawOn))
+                            .drawOnTransition()
                     }
                 }
                 .offset(y: Self.iconY)
@@ -140,7 +140,7 @@ struct VaultIdleAnimation: View {
         .padding(.trailing, 16)
         .padding(.vertical, 8)
         .fixedSize()
-        .glassEffect(.regular, in: .capsule)
+        .glass(in: .capsule)
     }
 
     /// Characters turn into dots from left to right; separators stay so the shape still reads.

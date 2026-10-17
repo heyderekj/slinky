@@ -134,7 +134,7 @@ struct AddItemPanel: View {
         }
         .padding(24)
         .frame(width: 720)
-        .glassEffect(.regular, in: .rect(cornerRadius: 28))
+        .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)
         .scaleEffect(appeared ? 1 : 0.95)
         .offset(y: appeared ? 0 : 14)
@@ -405,7 +405,7 @@ struct AddItemPanel: View {
             Spacer()
             Button("Cancel", action: close)
                 .keyboardShortcut(.cancelAction)
-                .buttonStyle(.glass)
+                .glassButton()
                 .controlSize(.large)
             Button(action: save) {
                 HStack(spacing: 8) {
@@ -414,7 +414,7 @@ struct AddItemPanel: View {
                 }
             }
             .keyboardShortcut(.defaultAction)
-            .buttonStyle(.glassProminent)
+            .glassProminentButton()
             .controlSize(.large)
             .disabled(!canSave)
         }

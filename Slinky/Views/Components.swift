@@ -135,13 +135,13 @@ struct ToastView: View {
                 Text(toast.text).font(.callout)
                 if toast.canUndo {
                     Button("Undo") { model.undo() }
-                        .buttonStyle(.glass)
+                        .glassButton()
                         .controlSize(.small)
                 }
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .glassEffect(.regular, in: .capsule)
+            .glass(in: .capsule)
             .padding(.bottom, 22)
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .id(toast.id)

@@ -51,7 +51,7 @@ struct NewProjectPanel: View {
         }
         .padding(24)
         .frame(width: 720)
-        .glassEffect(.regular, in: .rect(cornerRadius: 28))
+        .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)
         .scaleEffect(appeared ? 1 : 0.95)
         .offset(y: appeared ? 0 : 14)
@@ -131,7 +131,7 @@ struct NewProjectPanel: View {
             }
             Spacer(minLength: 8)
             Button("Choose Folder…", action: chooseFolder)
-                .buttonStyle(.glass)
+                .glassButton()
         }
         .padding(14)
         .background(dropTargeted ? Color.accentColor.opacity(0.12) : Color.clear, in: .rect(cornerRadius: 14))
@@ -243,7 +243,7 @@ struct NewProjectPanel: View {
             Spacer()
             Button("Cancel", action: close)
                 .keyboardShortcut(.cancelAction)
-                .buttonStyle(.glass)
+                .glassButton()
                 .controlSize(.large)
             Button(action: create) {
                 HStack(spacing: 8) {
@@ -252,7 +252,7 @@ struct NewProjectPanel: View {
                 }
             }
             .keyboardShortcut(.defaultAction)
-            .buttonStyle(.glassProminent)
+            .glassProminentButton()
             .controlSize(.large)
             .disabled(trimmedName.isEmpty)
         }

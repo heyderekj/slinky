@@ -87,7 +87,7 @@ struct LibraryView: View {
             } label: {
                 Label("Add Item", systemImage: "plus")
             }
-            .buttonStyle(.glassProminent)
+            .glassProminentButton()
             .controlSize(.extraLarge)
             .font(.title3.weight(.semibold))
             .padding(.top, 8)
@@ -179,7 +179,7 @@ struct CodeSetCard: View {
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 9, weight: .bold))
                                     .foregroundStyle(.secondary)
-                                    .transition(.symbolEffect(.drawOn))
+                                    .drawOnTransition()
                             }
                         }
                         .frame(maxWidth: .infinity)
@@ -227,7 +227,7 @@ struct KeptCard: View {
             RevealField(value: item.value)
             HStack {
                 CopyButton { model.copy(item.value, label: item.label) }
-                    .buttonStyle(.glass).controlSize(.small)
+                    .glassButton().controlSize(.small)
                 if item.kind == .recoveryKey {
                     if item.printedCopy {
                         Label("Printed", systemImage: "checkmark").font(.caption).foregroundStyle(.secondary)
@@ -236,7 +236,7 @@ struct KeptCard: View {
                             RecoveryPrinter.print(item.value, title: item.label)
                             model.markPrinted(item.id)
                         }
-                        .buttonStyle(.glass).controlSize(.small)
+                        .glassButton().controlSize(.small)
                     }
                 }
                 Spacer()
@@ -276,7 +276,7 @@ struct KeyCard: View {
                 Chip(text: key.agentPolicy.title, style: .plain)
                 Spacer()
                 CopyButton { model.copy(key.value, label: key.name) }
-                    .buttonStyle(.glass).controlSize(.small)
+                    .glassButton().controlSize(.small)
                 Menu {
                     Button("Edit…") { model.editing = .key(key.id) }
                     Divider()

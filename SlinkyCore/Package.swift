@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "SlinkyCore",
-    platforms: [.macOS(.v26)],
+    platforms: [.macOS(.v15)],
     products: [
         .library(name: "SlinkyCoreShared", targets: ["SlinkyCoreShared"]),
         .library(name: "SlinkyCoreVault", targets: ["SlinkyCoreVault"]),

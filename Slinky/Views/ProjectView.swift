@@ -125,7 +125,7 @@ struct ProjectView: View {
                     Button("Import .env File…") { pickEnvFile(p) }
                     Button("Add Variable…") { model.tuckProject = projectID; model.tuckPrefill = ""; model.showTuck = true }
                 }
-                .buttonStyle(.glass)
+                .glassButton()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
@@ -230,7 +230,7 @@ struct ProjectView: View {
             HStack(spacing: 8) {
                 Text("missing").foregroundStyle(.orange)
                 Button("Add") { tuckMissing(name) }
-                    .buttonStyle(.glass).controlSize(.small)
+                    .glassButton().controlSize(.small)
             }
             .padding(.leading, 12)
             Spacer()
@@ -249,7 +249,7 @@ struct ProjectView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(name).font(.system(.headline, design: .monospaced))
                 Text("Listed in .env.example but not saved in Slinky.").foregroundStyle(.secondary)
-                Button("Add Value…") { tuckMissing(name) }.buttonStyle(.glassProminent)
+                Button("Add Value…") { tuckMissing(name) }.glassProminentButton()
                 Spacer()
             }
             .padding(18)
@@ -345,11 +345,11 @@ struct VariableInspector: View {
                         Button { model.copy("\(variable.name)=\(value)", label: "\(variable.name)=…") } label: { Text("KEY=value") }
                         Button { draft = ""; editing = true } label: { Image(systemName: "pencil") }.help("Replace the \(env.title) value")
                     }
-                    .buttonStyle(.glass)
+                    .glassButton()
                     .controlSize(.small)
                 } else {
                     Text("Not set for \(env.title).").foregroundStyle(.orange)
-                    Button("Set \(env.title) Value…") { draft = ""; editing = true }.buttonStyle(.glass)
+                    Button("Set \(env.title) Value…") { draft = ""; editing = true }.glassButton()
                 }
 
                 if !variable.isPlain {

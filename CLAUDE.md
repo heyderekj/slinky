@@ -1,6 +1,6 @@
 # Slinky — Agent Rules
 
-**Slinky keeps secrets out of files.** The third app in Derek Castelli's family (Dinky makes files smaller, Binky sorts your files). Native macOS 26+ app for developer secrets: API keys, project .env variables, 2FA recovery codes, and anything a website says to store somewhere safe. Agents use secrets without seeing them (CLI and MCP land in the agents milestone).
+**Slinky keeps secrets out of files.** The third app in Derek Castelli's family (Dinky makes files smaller, Binky sorts your files). Native macOS 15+ app for developer secrets (Liquid Glass on macOS 26, the standard look on 15): API keys, project .env variables, 2FA recovery codes, and anything a website says to store somewhere safe. Agents use secrets without seeing them (CLI and MCP land in the agents milestone).
 
 ## Ownership
 - Slinky is made by **Testament Made, LLC**, the same as Dinky and Binky. Use it in `LICENSE` (MIT), the Info.plist copyright (`© 2026 Testament Made, LLC`), the About panel credits, and the site footer.
@@ -32,7 +32,8 @@
 
 ## Design
 - Brand: clear, glassy, white, **glacier cyan** (changed from ice blue on 2026-10-17 so Slinky holds its own spot next to Harvous's blue in the Testament Made suite). Accent `#0b7f8f` in light and dark mode (it carries white text). Icon fill `#1ac8db`.
-- Apple silicon only (arm64). Set at the project level and checked by `release.sh`. Glass on chrome (sidebars, toolbars, panels, cards that float); values on opaque cool "paper" (`Color.paper`).
+- Apple silicon only (arm64). Set at the project level and checked by `release.sh`.
+- Runs on macOS 15 Sequoia and later. Liquid Glass APIs are macOS 26 only: use the helpers in `Slinky/Views/Glass.swift` (`.glass(in:)`, `.glassButton()`, `.glassProminentButton()`, `.drawOnTransition()`), never `glassEffect`/`.buttonStyle(.glass…)` directly. Any other newer API needs `if #available` with a plain fallback. Glass on chrome (sidebars, toolbars, panels, cards that float); values on opaque cool "paper" (`Color.paper`).
 - Layouts from `docs/slinky-layouts.html`: A (.env project view), B (Library shelf), C (Quick Access ⌥⌘K), D (agent receipts, later), F (menu bar stack).
 - Voice: see `VOICE.md`. Plain, serious, non-technical, for everyone. No clever labels in the app.
 - **Design: read `docs/DESIGN.md` before any UI work.** It holds the principles, every reference and what we took from it, and decisions already made. No welcome screens or wizards (family rule).

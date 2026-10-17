@@ -112,13 +112,13 @@ private struct AttentionRow: View {
                     RecoveryPrinter.print(kept.value, title: kept.label)
                     model.markPrinted(id)
                 }
-                .buttonStyle(.glassProminent)
+                .glassProminentButton()
             } else {
                 Button("Show", action: show)
             }
         }
         .padding(12)
-        .glassEffect(.regular, in: .rect(cornerRadius: 14))
+        .glass(in: .rect(cornerRadius: 14))
     }
 }
 

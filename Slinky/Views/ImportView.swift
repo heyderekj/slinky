@@ -126,7 +126,7 @@ private struct ImportPanel: View {
                 Spacer()
                 Button("Cancel", action: close)
                     .keyboardShortcut(.cancelAction)
-                    .buttonStyle(.glass)
+                    .glassButton()
                     .controlSize(.large)
                 Button(action: importChosen) {
                     HStack(spacing: 8) {
@@ -135,7 +135,7 @@ private struct ImportPanel: View {
                     }
                 }
                 .keyboardShortcut(.defaultAction)
-                .buttonStyle(.glassProminent)
+                .glassProminentButton()
                 .controlSize(.large)
                 .disabled(chosen.isEmpty)
             }
@@ -143,7 +143,7 @@ private struct ImportPanel: View {
         }
         .padding(24)
         .frame(width: 680)
-        .glassEffect(.regular, in: .rect(cornerRadius: 28))
+        .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)
         .scaleEffect(appeared ? 1 : 0.95)
         .offset(y: appeared ? 0 : 14)

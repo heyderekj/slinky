@@ -14,7 +14,7 @@ Slinky should be the pleasant, HIG-native fix: a real Mac app, plus a `slinky` C
 ## Decisions (Derek, 2026-09-24)
 - **Next deliverable:** a brief plus a clickable UX mock, as one private, shareable page. The Swift scaffold comes after UX sign-off.
 - **Tagline:** "Slinky keeps secrets out of files." Domain: **slinkyfiles.com**.
-- **Minimum macOS:** 26 Tahoe, Apple silicon, like the rest of the family.
+- **Minimum macOS:** 15 Sequoia (from 1.1; 1.0 required 26 Tahoe), Apple silicon. Liquid Glass on Tahoe, the standard frosted look on Sequoia (2026-10-17, to reach more developers).
 - **No paid Apple Developer account yet.** Plan a fallback that ships without one; a Developer ID later is an upgrade, not a rewrite.
 
 ## Positioning: what exists, where Slinky wins

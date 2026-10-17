@@ -91,3 +91,8 @@ Read this before any design work. Every visual decision should trace back to som
 - Brief: https://claude.ai/artifact/McGgBjGnbNoYo5WwDqKURU (`docs/slinky-brief.html`)
 - Layouts: https://claude.ai/artifact/8YhiTxEgrAT4oewnE1D37c (`docs/slinky-layouts.html`)
 - Research: `docs/research-*.md`
+
+## Sequoia and Tahoe (2026-10-17)
+- Slinky runs on macOS 15 Sequoia and later, to reach more developers. Liquid Glass is Tahoe-only.
+- Every glass surface and glass button goes through `Slinky/Views/Glass.swift`: real glass on Tahoe; on Sequoia, Apple's own standard look (the regular material with a hairline edge, bordered and bordered-prominent buttons). Never fake glass on Sequoia.
+- The draw-on symbol transition becomes a fade on Sequoia. Layout, wording and behavior are the same on both.

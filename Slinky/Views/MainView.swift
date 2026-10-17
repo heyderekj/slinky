@@ -244,7 +244,7 @@ struct UpdateBanner: View {
             }
             HStack(spacing: 8) {
                 Button("Install") { Task { await updater.install() } }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                     .controlSize(.small)
                     .disabled(updater.installState == .downloading || updater.installState == .installing)
                 if let url = updater.releaseURL {
@@ -253,7 +253,7 @@ struct UpdateBanner: View {
             }
         }
         .padding(12)
-        .glassEffect(.regular, in: .rect(cornerRadius: 14))
+        .glass(in: .rect(cornerRadius: 14))
     }
 }
 

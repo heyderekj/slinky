@@ -38,7 +38,7 @@ struct RecoveryKeySheet: View {
                 Button("Copy") { model.copy(key, label: "your Recovery Key", remember: false) }
                 Spacer()
             }
-            .buttonStyle(.glass)
+            .glassButton()
             Divider()
             HStack {
                 Toggle("I've saved my Recovery Key", isOn: $saved)
@@ -47,7 +47,7 @@ struct RecoveryKeySheet: View {
                 Button("Done") {
                     if let onDone { onDone() } else { model.recoveryKeyToShow = nil }
                 }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                     .keyboardShortcut(.defaultAction)
                     .disabled(!saved)
             }
@@ -106,7 +106,7 @@ struct LockView: View {
                 Label(model.unlockLabel, systemImage: "touchid")
                     .symbolEffect(.pulse, isActive: model.busy)
             }
-            .buttonStyle(.glassProminent)
+            .glassProminentButton()
             .controlSize(.large)
             .keyboardShortcut(.defaultAction)
             .disabled(model.busy)
@@ -133,7 +133,7 @@ struct LockView: View {
                     Button("Unlock") {
                         if model.unlock(recoveryText: recoveryText) { showRecovery = false }
                     }
-                    .buttonStyle(.glassProminent)
+                    .glassProminentButton()
                     .keyboardShortcut(.defaultAction)
                 }
             }

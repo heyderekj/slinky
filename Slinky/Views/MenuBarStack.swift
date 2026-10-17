@@ -73,7 +73,7 @@ struct MenuBarStack: View {
                         .contentTransition(.symbolEffect(.replace))
                         .frame(width: 18, height: 18)
                 }
-                .buttonStyle(.glass)
+                .glassButton()
                 .buttonBorderShape(.circle)
                 .help(model.isUnlocked ? "Lock Slinky" : "Unlock Slinky")
             }

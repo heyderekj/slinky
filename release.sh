@@ -63,9 +63,20 @@ echo "→ dist/Slinky-$VERSION.zip"
 rm -f "dist/Slinky-$VERSION.zip"
 ditto -c -k --sequesterRsrc --keepParent "$APP" "dist/Slinky-$VERSION.zip"
 
+# The oldest macOS this build runs on, from the app's own Info.plist. The cask, the site and the agent files
+# follow it, so they never promise a Mac the release can't open.
+MIN_MACOS=$(/usr/libexec/PlistBuddy -c "Print :LSMinimumSystemVersion" "$APP/Contents/Info.plist" | cut -d. -f1)
+case "$MIN_MACOS" in
+  14) MIN_NAME="macOS 14 Sonoma"; MIN_CASK=":sonoma" ;;
+  15) MIN_NAME="macOS 15 Sequoia"; MIN_CASK=":sequoia" ;;
+  26) MIN_NAME="macOS 26 Tahoe"; MIN_CASK=":tahoe" ;;
+  *) echo "✘ Unknown minimum macOS $MIN_MACOS; add it to release.sh"; exit 1 ;;
+esac
+
 SHA=$(shasum -a 256 "dist/Slinky-$VERSION.zip" | awk '{print $1}')
 sed -i '' "s/version \".*\"/version \"$VERSION\"/" Casks/slinky.rb
 sed -i '' "s/sha256 \".*\"/sha256 \"$SHA\"/" Casks/slinky.rb
+sed -i '' "s/depends_on macos: :[a-z]*/depends_on macos: $MIN_CASK/" Casks/slinky.rb
 echo "→ Casks/slinky.rb updated (sha256 $SHA)"
 
 # 5. The website reads its version and download links from one file.
@@ -76,9 +87,10 @@ cat > site/src/release.json <<JSON
   "dmg": "https://github.com/heyderekj/slinky/releases/download/v$VERSION/Slinky-$VERSION.dmg",
   "zip": "https://github.com/heyderekj/slinky/releases/download/v$VERSION/Slinky-$VERSION.zip",
   "sizeMB": $SIZE_MB,
-  "minOS": "macOS 26 Tahoe"
+  "minOS": "$MIN_NAME"
 }
 JSON
+sed -i '' -E "s/macOS [0-9]+ (Sonoma|Sequoia|Tahoe)/$MIN_NAME/g" site/public/llms.txt site/public/homepage.md
 echo "→ site/src/release.json updated (v$VERSION, ${SIZE_MB} MB). Pushing main deploys the site."
 
 if [ "$PUBLISH" = false ]; then
@@ -88,7 +100,7 @@ if [ "$PUBLISH" = false ]; then
 fi
 
 # 6. Publish
-git add Slinky.xcodeproj/project.pbxproj Casks/slinky.rb site/src/release.json
+git add Slinky.xcodeproj/project.pbxproj Casks/slinky.rb site/src/release.json site/public/llms.txt site/public/homepage.md
 git commit -m "Release v$VERSION"
 git tag "v$VERSION"
 git push && git push --tags

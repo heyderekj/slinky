@@ -76,7 +76,7 @@ struct SettingsView: View {
                             .help("Forward")
                             .disabled(index >= history.count - 1)
                     }
-                    ToolbarSpacer(.flexible)
+                    if #available(macOS 26.0, *) { ToolbarSpacer(.flexible) }
                 }
             }
         }
@@ -182,7 +182,7 @@ private struct SecurityPane: View {
                     HStack {
                         Spacer()
                         Button("Lock Now") { model.lockAnimated() }
-                            .buttonStyle(.glass)
+                            .glassButton()
                     }
                 }
             }

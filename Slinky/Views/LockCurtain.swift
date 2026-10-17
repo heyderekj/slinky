@@ -33,7 +33,7 @@ struct LockSwitch: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .glassEffect(.regular.interactive(), in: .capsule)
+        .glass(in: .capsule, interactive: true)
         .animation(.spring(response: 0.38, dampingFraction: 0.72), value: locked)
         .help(!model.hasVault ? "Slinky can lock once you've saved your first item" : locked ? "Unlock Slinky" : "Lock Slinky (⌃⌘L)")
         .accessibilityLabel("Lock")
@@ -110,7 +110,7 @@ struct LockCurtain: View {
                     .foregroundStyle(.tint)
                     .contentTransition(.symbolEffect(.replace))
                     .frame(width: 120, height: 120)
-                    .glassEffect(.regular, in: .circle)
+                    .glass(in: .circle)
                     .scaleEffect(opening ? 1 + hole * 0.5 : 0.85 + cover * 0.15)
                     .opacity(opening ? 1 - hole * 1.6 : Double(cover))
                     .position(middle)
