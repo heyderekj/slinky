@@ -317,6 +317,8 @@ struct VariableInspector: View {
     let env: AppEnvironment
     @State private var editing = false
     @State private var draft = ""
+    @State private var note = ""
+    @State private var link = ""
 
     var body: some View {
         let value = variable.value(in: env)
@@ -364,6 +366,25 @@ struct VariableInspector: View {
                     }
                 }
 
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Note and link").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    TextField("Note", text: $note, prompt: Text("Optional, like where to make a new one"), axis: .vertical)
+                        .lineLimit(1...4)
+                        .onSubmit(saveDetails)
+                    HStack(spacing: 6) {
+                        TextField("Link", text: $link, prompt: Text("Optional, like the dashboard page"))
+                            .onSubmit(saveDetails)
+                        if let url = ItemActions.url(variable.link) {
+                            Button("Open") { NSWorkspace.shared.open(url) }.help(url.absoluteString)
+                        }
+                    }
+                    if !link.trimmingCharacters(in: .whitespaces).isEmpty, Links.normalized(link) == nil {
+                        Text("Only web addresses (https) are kept.").font(.caption2).foregroundStyle(.orange)
+                    }
+                }
+                .textFieldStyle(.roundedBorder)
+                .controlSize(.small)
+
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
                     GridRow { Text("Updated").foregroundStyle(.secondary); Text(variable.updated.formatted(.relative(presentation: .named))) }
                     GridRow { Text("Added").foregroundStyle(.secondary); Text(variable.created.formatted(date: .abbreviated, time: .omitted)) }
@@ -376,6 +397,13 @@ struct VariableInspector: View {
             }
             .padding(18)
         }
+        .onAppear(perform: loadDetails)
+        .onChange(of: variable.id) { old, _ in
+            // Switching rows saves what was typed for the previous variable first.
+            model.setVariableDetails(note: note, link: link, variable: old, in: projectID)
+            loadDetails()
+        }
+        .onDisappear(perform: saveDetails)
         .sheet(isPresented: $editing) {
             VStack(alignment: .leading, spacing: 12) {
                 Text("\(variable.name) · \(env.title)").font(.system(.headline, design: .monospaced))
@@ -403,6 +431,17 @@ struct VariableInspector: View {
             .padding(22)
             .frame(width: 440)
         }
+    }
+
+    private func loadDetails() {
+        note = variable.note ?? ""
+        link = variable.link ?? ""
+    }
+
+    private func saveDetails() {
+        guard model.isUnlocked else { return }
+        model.setVariableDetails(note: note, link: link, variable: variable.id, in: projectID)
+        link = Links.normalized(link) ?? (link.isEmpty ? "" : link)
     }
 
     private var policyNote: String {

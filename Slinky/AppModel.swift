@@ -511,6 +511,20 @@ final class AppModel {
         }
     }
 
+    /// The details pane's note and link fields. Empty clears them; a link that isn't https is dropped.
+    func setVariableDetails(note: String, link: String, variable: UUID, in projectID: UUID) {
+        let note = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        let link = Links.normalized(link)
+        guard let p = document.projects.firstIndex(where: { $0.id == projectID }),
+              let v = document.projects[p].variables.firstIndex(where: { $0.id == variable }) else { return }
+        let current = document.projects[p].variables[v]
+        guard current.note ?? "" != note || current.link != link else { return }
+        change { doc in
+            doc.projects[p].variables[v].note = note.isEmpty ? nil : note
+            doc.projects[p].variables[v].link = link
+        }
+    }
+
     func deleteVariable(_ variable: UUID, in projectID: UUID) {
         change(Self.trashToast, undoable: true) { doc in
             guard let p = doc.projects.firstIndex(where: { $0.id == projectID }),
