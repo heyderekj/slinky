@@ -53,7 +53,6 @@ struct TuckItAwayView: View {
                     Text(detection.label)
                 } icon: {
                     Image(systemName: detection.kind == .walletSeed ? "hand.raised.fill" : "sparkle.magnifyingglass")
-                        .symbolEffect(.bounce, value: detection.label)
                 }
                     .font(.callout)
                     .foregroundStyle(detection.kind == .walletSeed ? Color.orange : Color.primary)

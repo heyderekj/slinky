@@ -237,6 +237,19 @@ final class AppModel {
         return project.id
     }
 
+    /// A folder becomes a linked project; a .env file becomes a project named after its folder, with the file imported.
+    @discardableResult
+    func createProject(dropped url: URL) -> UUID {
+        var isDir: ObjCBool = false
+        if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
+            return createProject(name: url.lastPathComponent, folder: url)
+        }
+        let folder = url.deletingLastPathComponent()
+        let id = createProject(name: folder.lastPathComponent, folder: folder)
+        importEnvFile(url, into: id, env: .local)
+        return id
+    }
+
     func addVariables(_ lines: [DotEnvLine], to projectID: UUID, env: AppEnvironment) {
         guard let p = document.projects.firstIndex(where: { $0.id == projectID }) else { return }
         change(lines.count == 1 ? "Saved \(lines[0].name) to \(document.projects[p].name)." : "Imported \(lines.count) variables to \(document.projects[p].name).") { doc in

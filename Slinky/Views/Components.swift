@@ -94,7 +94,6 @@ struct ToastView: View {
             HStack(spacing: 10) {
                 Image(systemName: "checkmark.circle.fill")
                     .foregroundStyle(.green)
-                    .symbolEffect(.bounce, value: toast.id)
                 Text(toast.text).font(.callout)
                 if toast.canUndo {
                     Button("Undo") { model.undo() }

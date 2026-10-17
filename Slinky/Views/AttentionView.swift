@@ -56,7 +56,6 @@ struct AttentionView: View {
                         .font(.system(size: 44))
                         .symbolRenderingMode(.palette)
                         .foregroundStyle(.white, Color.green)
-                        .symbolEffect(.bounce, value: items.isEmpty)
                     Text("Nothing needs attention").font(.title2.weight(.bold))
                     Text("Slinky lets you know here when codes run low, a project is missing variables or a key is about to expire.")
                         .foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 330)

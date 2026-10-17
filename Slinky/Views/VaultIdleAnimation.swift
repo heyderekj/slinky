@@ -12,26 +12,30 @@ struct VaultIdleAnimation: View {
         let value: String
         /// How the item reads once it's stored.
         let rest: String
+        /// Where it rests in the smile (see `fan`).
+        let slot: Int
     }
 
     var samples: [Sample] = VaultIdleAnimation.defaultSamples
 
     /// Everything Slinky holds: a key, a project's .env line, recovery codes and a recovery key.
     static let defaultSamples = [
-        Sample(symbol: "key.fill", label: "API key", value: "sk_live_51H8xQ2Lm4f2a", rest: "sk_live_…4f2a"),
-        Sample(symbol: "folder.fill", label: "Project variable", value: "RESEND_API_KEY=re_8Kd2Lq9w", rest: "RESEND_API_KEY=••••"),
-        Sample(symbol: "number.square.fill", label: "Recovery codes", value: "a1b2c-3d4e5  f6a7b-8c9d0", rest: "10 codes"),
-        Sample(symbol: "lifepreserver.fill", label: "Recovery key", value: "R7KQ-2MXP-9TDV-4HCE", rest: "R7KQ-••••-••••"),
+        Sample(symbol: "key.fill", label: "API key", value: "sk_live_51H8xQ2Lm4f2a", rest: "sk_live_…4f2a", slot: 0),
+        Sample(symbol: "folder.fill", label: "Project variable", value: "RESEND_API_KEY=re_8Kd2Lq9w", rest: "RESEND_API_KEY=••••", slot: 1),
+        Sample(symbol: "number.square.fill", label: "Recovery codes", value: "a1b2c-3d4e5  f6a7b-8c9d0", rest: "10 codes", slot: 3),
+        Sample(symbol: "lifepreserver.fill", label: "Recovery key", value: "R7KQ-2MXP-9TDV-4HCE", rest: "R7KQ-••••-••••", slot: 2),
     ]
 
     private static let iconY: CGFloat = -50
-    /// A smile under the icon (the icon is the nose): the ends sit higher and tilt with the curve.
-    private static let fan: [(x: CGFloat, y: CGFloat, angle: Double)] = [
-        (-176, 40, 13), (-62, 76, 4), (62, 76, -4), (176, 40, -13),
+    /// A smile under the icon (the icon is the nose), made of the same pills that play the story.
+    /// Outer pills sit higher, inner pills lower. Pills stay level: rotated glass draws oversized.
+    /// `edge` pins the pill's trailing (-1), center (0) or leading (1) edge to `x`, so pills of
+    /// different widths still meet neatly in the middle.
+    private static let fan: [(x: CGFloat, y: CGFloat, edge: Int)] = [
+        (-196, 26, 0), (-7, 82, -1), (7, 82, 1), (196, 26, 0),
     ]
-    /// Ends first, so the middle cards sit on top.
+    /// Inner pills draw on top; the inner pair comes out first, then the ends.
     private static let drawOrder = [0, 3, 1, 2]
-    /// The middle comes out first, then the ends.
     private static let revealOrder = [1, 2, 0, 3]
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -52,13 +56,14 @@ struct VaultIdleAnimation: View {
 
     var body: some View {
         ZStack {
-            // The resting collection, drawn behind the moving card. Middle card on top.
-            ForEach(Self.drawOrder, id: \.self) { i in
-                if samples.indices.contains(i), Self.fan.indices.contains(i) {
-                    restCard(samples[i])
-                        .rotationEffect(.degrees(restShown[i] ? Self.fan[i].angle : 0))
-                        .offset(restShown[i] ? CGSize(width: Self.fan[i].x, height: Self.fan[i].y) : CGSize(width: 0, height: Self.iconY))
-                        .scaleEffect(restShown[i] ? 1 : 0.2)
+            // The resting collection, drawn behind the moving pill.
+            ForEach(Self.drawOrder, id: \.self) { slot in
+                if let i = samples.firstIndex(where: { $0.slot == slot }) {
+                    let spot = Self.fan[slot]
+                    pill(samples[i], text: samples[i].rest)
+                        .scaleEffect(restShown[i] ? 1 : 0.4)
+                        .frame(width: 1, alignment: spot.edge < 0 ? .trailing : spot.edge > 0 ? .leading : .center)
+                        .offset(restShown[i] ? CGSize(width: spot.x, height: spot.y) : CGSize(width: 0, height: Self.iconY))
                         .opacity(restShown[i] ? 1 : 0)
                 }
             }
@@ -96,41 +101,31 @@ struct VaultIdleAnimation: View {
     }
 
     private var movingCard: some View {
-        HStack(spacing: 10) {
-            Image(systemName: sample.symbol)
-                .font(.system(size: 17, weight: .semibold))
+        pill(sample, text: display, animated: true)
+    }
+
+    /// The one pill shape used for both the story and the resting collection.
+    private func pill(_ s: Sample, text: String, animated: Bool = false) -> some View {
+        HStack(spacing: 9) {
+            Image(systemName: s.symbol)
+                .font(.system(size: 15, weight: .semibold))
                 .foregroundStyle(.tint)
-                .symbolEffect(.wiggle, value: index)
                 .contentTransition(.symbolEffect(.replace))
-            VStack(alignment: .leading, spacing: 1) {
-                Text(sample.label).font(.caption).foregroundStyle(.secondary)
-                Text(display)
-                    .font(.system(size: 13.5, weight: .medium, design: .monospaced))
+                .frame(width: 18)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(s.label).font(.caption2).foregroundStyle(.secondary)
+                Text(text)
+                    .font(.system(size: 12.5, weight: .medium, design: .monospaced))
                     .contentTransition(.interpolate)
                     .lineLimit(1)
                     .fixedSize()
             }
         }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .fixedSize()
-        .glassEffect(.regular, in: .capsule)
-    }
-
-    private func restCard(_ s: Sample) -> some View {
-        HStack(spacing: 9) {
-            Image(systemName: s.symbol)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.tint)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(s.label).font(.caption2).foregroundStyle(.secondary)
-                Text(s.rest).font(.system(size: 12, weight: .medium, design: .monospaced)).lineLimit(1).fixedSize()
-            }
-        }
-        .padding(.horizontal, 12)
+        .padding(.leading, 12)
+        .padding(.trailing, 16)
         .padding(.vertical, 8)
         .fixedSize()
-        .glassEffect(.regular, in: .rect(cornerRadius: 14))
+        .glassEffect(.regular, in: .capsule)
     }
 
     /// Characters turn into dots from left to right; separators stay so the shape still reads.

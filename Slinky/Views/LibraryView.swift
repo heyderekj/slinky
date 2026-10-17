@@ -143,7 +143,6 @@ struct CodeSetCard: View {
             }
             if set.isLow {
                 Label("Only \(set.remaining) codes left. Consider generating new ones.", systemImage: "exclamationmark.triangle.fill")
-                    .symbolEffect(.wiggle, value: set.remaining)
                     .font(.caption).foregroundStyle(.orange)
             }
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {

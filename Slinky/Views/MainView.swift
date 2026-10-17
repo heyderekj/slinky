@@ -68,12 +68,7 @@ struct SidebarView: View {
         List(selection: $model.selection) {
             Section("Library") {
                 ForEach(LibraryFilter.allCases, id: \.self) { filter in
-                    Label {
-                        Text(filter.title)
-                    } icon: {
-                        Image(systemName: filter.symbol)
-                            .symbolEffect(.bounce, value: model.selection == .library(filter))
-                    }
+                    Label(filter.title, systemImage: filter.symbol)
                     .badge(count(filter))
                     .tag(SidebarItem.library(filter))
                 }
@@ -84,7 +79,6 @@ struct SidebarView: View {
                     } icon: {
                         Image(systemName: "exclamationmark.triangle")
                             .foregroundStyle(.orange)
-                            .symbolEffect(.wiggle, value: attention.count)
                     }
                     .badge(attention.count)
                     .tag(SidebarItem.attention)
@@ -93,9 +87,9 @@ struct SidebarView: View {
             }
             Section {
                 if model.document.projects.isEmpty {
-                    Text("No projects")
-                        .foregroundStyle(.tertiary)
+                    ProjectsEmptyCard()
                         .selectionDisabled()
+                        .listRowSeparator(.hidden)
                 }
                 ForEach(model.document.projects) { project in
                     projectRow(project)
@@ -195,6 +189,69 @@ struct SidebarView: View {
         case .all: model.document.keys.count + model.document.codeSets.count + model.document.kept.count
         case .keys: model.document.keys.count
         case .recovery: model.document.codeSets.count + model.document.kept.count
+        }
+    }
+}
+
+/// The sidebar's welcome for projects: what a project is, with a drop zone that makes one.
+struct ProjectsEmptyCard: View {
+    @Environment(AppModel.self) private var model
+    @State private var targeted = false
+
+    private let examples = ["DATABASE_URL", "STRIPE_SECRET_KEY", "OPENAI_API_KEY"]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            // A small preview of what a project holds: its .env, with values hidden.
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(examples, id: \.self) { name in
+                    HStack(spacing: 0) {
+                        Text(name).foregroundStyle(.secondary)
+                        Text("=••••").foregroundStyle(.tertiary)
+                    }
+                    .font(.system(size: 10.5, weight: .medium, design: .monospaced))
+                    .lineLimit(1)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color.paper.opacity(0.6), in: .rect(cornerRadius: 8))
+
+            Text("Keep each app's .env variables together, out of the project folder.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Button {
+                model.showNewProject = true
+            } label: {
+                Label("New Project…", systemImage: "folder.badge.plus")
+            }
+            .buttonStyle(.glass)
+            .controlSize(.small)
+
+            Text("Or drop a project folder or .env file here.")
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+        }
+        .padding(12)
+        .background {
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(targeted ? Color.accentColor : Color.secondary.opacity(0.35),
+                              style: StrokeStyle(lineWidth: targeted ? 1.5 : 1, dash: [4, 3]))
+                .background(targeted ? Color.accentColor.opacity(0.1) : .clear, in: .rect(cornerRadius: 12))
+        }
+        .animation(.smooth(duration: 0.2), value: targeted)
+        .padding(.vertical, 4)
+        .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
+            for provider in providers {
+                _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                    guard let url else { return }
+                    Task { @MainActor in model.createProject(dropped: url) }
+                }
+            }
+            return true
         }
     }
 }
