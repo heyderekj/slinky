@@ -458,7 +458,8 @@ function clocks() {
     const d = new Date();
     const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).replace(',', '');
     const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    for (const el of els) el.textContent = `${day}\u00a0\u00a0${time}`;
+    // The day hides on small phones (CSS), leaving the time, as the iPhone status bar does.
+    for (const el of els) el.innerHTML = `<span class="mb-day">${day}\u00a0\u00a0</span>${time}`;
   };
   tick();
   setInterval(tick, 15_000);
@@ -493,6 +494,20 @@ function menubarActions() {
   });
 }
 
+/** On touch screens there's no hover: "Tap to show", and a tap shows or hides the example value. */
+function tapToShow() {
+  if (matchMedia('(hover: hover)').matches) return;
+  for (const v of $$('.card__value')) {
+    const hint = v.querySelector('small');
+    if (!hint || !v.querySelector('.shown')) continue;
+    hint.textContent = 'Tap to show';
+    v.addEventListener('click', () => {
+      const on = v.classList.toggle('is-shown');
+      hint.textContent = on ? 'Tap to hide' : 'Tap to show';
+    });
+  }
+}
+
 export function startDemos() {
   reveals();
   guided();
@@ -509,4 +524,5 @@ export function startDemos() {
   clocks();
   navReveal();
   menubarActions();
+  tapToShow();
 }

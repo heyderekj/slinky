@@ -1100,6 +1100,13 @@ var onRequestGet = /* @__PURE__ */ __name2(async (context2) => {
     }
   });
 }, "onRequestGet");
+var onRequest = /* @__PURE__ */ __name2(async ({ request, next }) => {
+  const res = await next();
+  if (!new URL(request.url).hostname.endsWith(".pages.dev")) return res;
+  const out = new Response(res.body, res);
+  out.headers.set("X-Robots-Tag", "noindex, nofollow");
+  return out;
+}, "onRequest");
 var routes = [
   {
     routePath: "/api/ask",
@@ -1114,6 +1121,13 @@ var routes = [
     method: "GET",
     middlewares: [],
     modules: [onRequestGet]
+  },
+  {
+    routePath: "/",
+    mountPath: "/",
+    method: "",
+    middlewares: [onRequest],
+    modules: []
   }
 ];
 function lexer(str) {
