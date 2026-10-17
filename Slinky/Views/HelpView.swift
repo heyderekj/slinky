@@ -21,8 +21,8 @@ struct HelpView: View {
             "Drop a project folder or a .env file on the sidebar to make a project. Slinky reads the .env files, guesses each file's environment, and tells you if git could commit them.",
             "If you paste something that's already saved, Slinky tells you where. You can still save it again.",
         ]),
-        Topic(symbol: "square.and.arrow.down.on.square", title: "Switching from 1Password", body: [
-            "Export from 1Password (File › Export, as a .1pux file), then choose File › Import from 1Password or CSV… (⇧⌘I) in Slinky. A CSV from Apple Passwords, Bitwarden or a spreadsheet of keys works too.",
+        Topic(symbol: "square.and.arrow.down.on.square", title: "Importing", body: [
+            "Bring keys over from another app with File › Import… (⇧⌘I). Slinky reads a .1pux export from 1Password, or a CSV from Apple Passwords, Bitwarden or a spreadsheet of keys.",
             "Slinky picks out API keys, tokens, backup codes and recovery keys, and skips website passwords, which belong in Apple Passwords. You choose what comes in. Things already in Slinky start unchecked.",
             "Export files aren't encrypted. Slinky can move the file to the Trash for you after importing.",
         ]),

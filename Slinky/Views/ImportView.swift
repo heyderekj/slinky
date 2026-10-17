@@ -3,12 +3,12 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 extension AppModel {
-    /// File › Import from 1Password or CSV… Picks the file, reads it in memory, then opens the import panel.
+    /// File › Import… Picks the file, reads it in memory, then opens the import panel.
     func beginImport() {
         let panel = NSOpenPanel()
         panel.allowedContentTypes = [UTType(filenameExtension: "1pux"), .commaSeparatedText].compactMap { $0 }
         panel.allowsOtherFileTypes = false
-        panel.message = "Choose a 1Password export (.1pux) or a CSV file. Slinky picks out keys, tokens and recovery codes, and skips passwords."
+        panel.message = "Choose an export from another app (.1pux or .csv). Slinky picks out keys, tokens and recovery codes, and skips passwords."
         panel.prompt = "Read File"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         do {

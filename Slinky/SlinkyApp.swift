@@ -37,7 +37,7 @@ struct SlinkyApp: App {
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
                 Divider()
-                Button("Import from 1Password or CSV…") { model.beginImport() }
+                Button("Import…") { model.beginImport() }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
             }

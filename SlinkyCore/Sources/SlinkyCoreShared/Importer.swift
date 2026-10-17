@@ -37,7 +37,7 @@ public enum Importer {
         public var description: String {
             switch self {
             case .unreadable: "Slinky couldn't read that file."
-            case .notAnExport: "That doesn't look like a 1Password export or a CSV file."
+            case .notAnExport: "Slinky can import .1pux and .csv files. That one isn't either."
             case .unsupportedZip: "Slinky couldn't open that export. Try exporting from 1Password again, as a .1pux file."
             }
         }

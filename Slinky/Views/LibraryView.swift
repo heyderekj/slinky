@@ -92,7 +92,7 @@ struct LibraryView: View {
             .font(.title3.weight(.semibold))
             .padding(.top, 8)
             if filter == .all {
-                Button("Switching from 1Password? Import your keys…") { model.beginImport() }
+                Button("Keep keys somewhere else? Import them…") { model.beginImport() }
                     .buttonStyle(.link)
                     .font(.callout)
                     .padding(.top, 2)
