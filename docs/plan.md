@@ -13,7 +13,7 @@ Slinky should be the pleasant, HIG-native fix: a real Mac app, plus a `slinky` C
 
 ## Decisions (Derek, 2026-09-24)
 - **Next deliverable:** a brief plus a clickable UX mock, as one private, shareable page. The Swift scaffold comes after UX sign-off.
-- **Tagline:** "Slinky keeps secrets out of your files." Domain: **slinkyfiles.com**.
+- **Tagline:** "Slinky keeps secrets out of files." Domain: **slinkyfiles.com**.
 - **Minimum macOS:** 26 Tahoe, Apple silicon, like the rest of the family.
 - **No paid Apple Developer account yet.** Plan a fallback that ships without one; a Developer ID later is an upgrade, not a rewrite.
 

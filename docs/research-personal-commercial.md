@@ -172,7 +172,7 @@ GitHub forwards leaked Anthropic keys for automatic revocation, but only in publ
 - Everyone: no fear-selling, no exclamation points.
 
 **Lines:**
-1. Slinky keeps secrets out of your files.
+1. Slinky keeps secrets out of files.
 2. Your agent gets the key's effect, not the key.
 3. The AI can use it. It just can't read it.
 4. For the key you pasted into a chat once and have thought about since.

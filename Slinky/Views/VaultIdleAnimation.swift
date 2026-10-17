@@ -19,7 +19,7 @@ struct VaultIdleAnimation: View {
     }
 
     /// The heading once the story is over.
-    static let restHeadline = "Slinky keeps secrets out of your files."
+    static let restHeadline = "Slinky keeps secrets out of files."
 
     var samples: [Sample] = VaultIdleAnimation.defaultSamples
     /// Reports which example is playing (its index), or nil once everything is at rest,

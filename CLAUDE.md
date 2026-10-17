@@ -1,6 +1,6 @@
 # Slinky — Agent Rules
 
-**Slinky keeps secrets out of your files.** The third app in Derek Castelli's family (Dinky makes files smaller, Binky sorts your files). Native macOS 26+ app for developer secrets: API keys, project .env variables, 2FA recovery codes, and anything a website says to store somewhere safe. Agents use secrets without seeing them (CLI and MCP land in the agents milestone).
+**Slinky keeps secrets out of files.** The third app in Derek Castelli's family (Dinky makes files smaller, Binky sorts your files). Native macOS 26+ app for developer secrets: API keys, project .env variables, 2FA recovery codes, and anything a website says to store somewhere safe. Agents use secrets without seeing them (CLI and MCP land in the agents milestone).
 
 ## Ownership
 - Slinky is made by **Testament Made, LLC**, the same as Dinky and Binky. Use it in `LICENSE` (MIT), the Info.plist copyright (`© 2026 Testament Made, LLC`), the About panel credits, and the site footer.

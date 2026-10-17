@@ -2,6 +2,9 @@
 
 **Plain, calm and serious, written for everyone.** Slinky holds things people are nervous about losing. The words should feel trustworthy and clear to someone who has never opened Terminal. Updated 2026-10-16 at Derek's direction: no clever labels in the app.
 
+## Tagline
+**Slinky keeps secrets out of files.** Chosen 2026-10-17 to sit with the family: Dinky makes files smaller. Binky sorts your files. Slinky keeps secrets out of files. Used on the site heading and as the line the empty-state animation rests on.
+
 ## Rules
 - **Say what it is.** Use the names people already know: Keys & Tokens, Recovery (Recovery Codes, Recovery Keys), Projects, Add Item. No invented words ("Kept", "Tuck It Away", "slink").
 - **Plain verbs.** Save, Add, Copy, Delete, Lock, Unlock, Import.
@@ -15,7 +18,7 @@
 ## Reference lines
 | Moment | Line |
 |---|---|
-| Tagline (site) | Slinky keeps secrets out of your files. |
+| Tagline (site) | Slinky keeps secrets out of files. |
 | Empty Library | No items yet. Add your first item with ⌘N, or create a project for a .env file. |
 | Empty Recovery | No recovery codes or keys yet. For backup codes and recovery keys that get you back into your accounts. |
 | Detection | Looks like a Stripe live key. |
@@ -35,9 +38,9 @@ Like Dinky and Binky: labels, buttons, security copy, errors and the lock screen
   - Project variable: "Your app's secrets, out of its files."
   - Recovery codes: "Backup codes, ready when you're locked out."
   - Recovery key: "Recovery keys, safe for the day you need them."
-  - At rest: "Slinky keeps secrets out of your files."
+  - At rest: "Slinky keeps secrets out of files."
 - **Playful lines, for the website only if anywhere:** "Everyone loves a Slinky. Nobody loves a leaked key." / "Walks down stairs. Never into your files." / "Secrets in. Asterisks out."
-- **Website:** the heading matches the family pattern (Dinky makes files smaller. Binky sorts your files.): **Slinky keeps secrets out of your files.** Lower on the page, a glass pill slinks down a staircase and stops one step short of a `.env` step, a nod to the toy (and a certain detective's monastery staircase), with "Go, Slinky, go." as a small caption.
+- **Website:** the heading matches the family pattern (Dinky makes files smaller. Binky sorts your files.): **Slinky keeps secrets out of files.** Lower on the page, a glass pill slinks down a staircase and stops one step short of a `.env` step, a nod to the toy (and a certain detective's monastery staircase), with "Go, Slinky, go." as a small caption.
 - **Never** quote the toy's jingle lyrics or use an actor's name, image or film title. "Slinky" is the toy's registered trademark; keep it a light nod and check trademarks before launch.
 - Later: honest stats ("Kept 23 secrets out of your files."), agent receipts ("Claude used STRIPE_SECRET_KEY. Never saw it."), family update alerts ("All caught up." / "Nice"), and system sounds with a toggle.
 

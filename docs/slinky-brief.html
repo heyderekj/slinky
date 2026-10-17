@@ -492,7 +492,7 @@ ol.rank li span:last-child{display:block;color:var(--text-2);font-size:14px}
 <rect rx="230" width="1024" height="1024" fill="url(#hdbg)"/><rect rx="230" width="1024" height="1024" fill="url(#hdfrost)"/>
 <rect rx="226" x="6" y="6" width="1012" height="1012" fill="none" stroke="#fff" stroke-width="12" stroke-opacity=".06"/><g mask="url(#hdhole)"><g filter="url(#hdsh)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="#2f3a45" stroke-width="150" stroke-linecap="round"/></g><g mask="url(#hdkm)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="url(#hdglass)" stroke-width="150" stroke-linecap="round"/><g filter="url(#hdblur)"><rect width="1024" height="1024" fill="#05080b" fill-opacity=".55" mask="url(#hdkul)"/></g><rect width="1024" height="1024" fill="#a9bccb" fill-opacity=".55" mask="url(#hdkdr)"/></g></g><g mask="url(#hdinhole)"><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="url(#hdholeg)"/><g filter="url(#hdblur)"><rect width="1024" height="1024" fill="#0b1b2a" fill-opacity=".55" mask="url(#hdshadeTL)"/></g><rect width="1024" height="1024" fill="#a9bccb" fill-opacity=".45" mask="url(#hdlitBR)"/></g></svg>
     <h1>Slinky</h1>
-    <p class="tagline">Slinky keeps secrets out of your files.</p>
+    <p class="tagline">Slinky keeps secrets out of files.</p>
     <p class="meta">Concept brief · Sept 24, 2026 · macOS 26 Tahoe · Apple silicon · Free and open source (MIT)</p>
     <p class="lede">The third app in the family. A quiet, native home for API keys, per-project variables and 2FA recovery codes, so AI coding agents can use your secrets without ever seeing them.</p>
     <nav class="toc" aria-label="On this page">
@@ -1896,7 +1896,7 @@ $("#tbLock").addEventListener("click", function(){
 $("#mSearch").addEventListener("input", function(){ state.q = this.value; renderList(); renderDetail(); renderToolbar(); });
 
 /* ---------- welcome ---------- */
-var TAGS = ["Nothing to hide. Yet.", "Keys under the doormat? Hand them over.", "Psst. Drop a .env here.", "Slinky keeps secrets out of your files."];
+var TAGS = ["Nothing to hide. Yet.", "Keys under the doormat? Hand them over.", "Psst. Drop a .env here.", "Slinky keeps secrets out of files."];
 function renderWelcome(){
   var w = $("#viewWelcome");
   w.innerHTML = '<svg width="64" height="64" viewBox="0 0 120 120" aria-hidden="true" style="border-radius:15px">' + COIL.replace(/^<svg[^>]*>/, "").replace(/<\/svg>$/, "") + '</svg>' +
