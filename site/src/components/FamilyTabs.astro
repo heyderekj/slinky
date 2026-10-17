@@ -10,11 +10,11 @@ const sites = [
   { id: 'slinky', name: 'Slinky', line: 'Keeps secrets out of files', href: 'https://slinkyfiles.com', icon: '/icons/slinky-320.webp' },
 ];
 ---
-<nav class="dock float-glass" aria-label="Apps by Testament Made">
+<nav class="dock float-glass" aria-label="Apps by Testament Made" data-dock>
   {sites.map((s) => (
     <a class:list={['dock__app', { 'is-current': s.id === current }]} href={s.id === current ? '#top' : s.href} aria-current={s.id === current ? 'page' : undefined} aria-label={`${s.name}: ${s.line}`}>
       <img src={s.icon} alt="" width="54" height="54" />
-      <span class="dock__name" aria-hidden="true"><b>{s.name}</b>{s.line}</span>
+      <span class="dock__name" aria-hidden="true">{s.name}</span>
     </a>
   ))}
 </nav>

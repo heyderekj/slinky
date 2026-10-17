@@ -5,6 +5,7 @@ import Library from '../components/Library.astro';
 import Demos from '../components/Demos.astro';
 import Icon from '../components/Icon.astro';
 import FamilyTabs from '../components/FamilyTabs.astro';
+import Desktop from '../components/Desktop.astro';
 import release from '../release.json';
 
 const title = 'Slinky keeps secrets out of files.';
@@ -67,20 +68,24 @@ const faq = [
         <a class="btn btn--quiet" href="https://github.com/heyderekj/slinky"><Icon name="github" /> View on GitHub</a>
       </div>
       <p class="hero__meta">{versionLine} · <button type="button" data-open-install>How to install</button></p>
-      <div class="stage">
+      <Desktop class="desktop--hero">
         <MacWindow title="All Items" subtitle="6 items" selected="all" id="hero-window">
           <Library />
           <div slot="over" class="toast float-glass" data-toast><Icon name="checkc" /><span data-toast-text>Copied.</span></div>
         </MacWindow>
-      </div>
+      </Desktop>
     </header>
 
     <section class="section wrap center" id="features">
       <p class="eyebrow">One home</p>
       <h2>Everything you’re told to “store somewhere safe”</h2>
       <p class="section__lede">API keys, each project’s .env, backup codes and recovery keys. Paste it, and Slinky knows where it goes.</p>
-      <Demos which="kinds" />
-      <p class="kinds__head" id="kinds-head" aria-live="polite">A safe home for your API keys.</p>
+      <Desktop class="desktop--kinds">
+        <div class="kinds-wrap">
+          <Demos which="kinds" />
+          <p class="kinds__head" id="kinds-head" aria-live="polite">A safe home for your API keys.</p>
+        </div>
+      </Desktop>
     </section>
 
     <div class="wrap">
@@ -95,7 +100,7 @@ const faq = [
             <li>Says no to crypto wallet phrases, for your safety.</li>
           </ul>
         </div>
-        <div class="feature__demo"><Demos which="additem" /></div>
+        <div class="feature__demo"><Desktop><Demos which="additem" /></Desktop></div>
       </section>
 
       <section class="feature feature--flip reveal">
@@ -109,7 +114,7 @@ const faq = [
             <li>Save a .env.example with names only, safe to commit.</li>
           </ul>
         </div>
-        <div class="feature__demo"><Demos which="env" /></div>
+        <div class="feature__demo"><Desktop><Demos which="env" /></Desktop></div>
       </section>
 
       <section class="feature reveal">
@@ -122,7 +127,7 @@ const faq = [
             <li>Recovery keys without a printed copy show up in Needs Attention.</li>
           </ul>
         </div>
-        <div class="feature__demo">
+        <div class="feature__demo"><Desktop>
           <div class="additem" data-glass="panel" style="max-width:380px">
             <div class="card" data-codeset>
               <div class="card__head">
@@ -137,7 +142,7 @@ const faq = [
             </div>
             <p class="detect" style="margin-top:12px"><Icon name="attention" style="width:14px;height:14px;color:var(--orange)" /> Only 4 codes left. Consider making new ones.</p>
           </div>
-        </div>
+        </Desktop></div>
       </section>
 
       <section class="feature feature--flip reveal">
@@ -150,7 +155,7 @@ const faq = [
             <li>⌘Return copies KEY=value, ready for a .env.</li>
           </ul>
         </div>
-        <div class="feature__demo"><Demos which="quick" /></div>
+        <div class="feature__demo"><Desktop><Demos which="quick" /></Desktop></div>
       </section>
 
       <section class="feature reveal">
@@ -163,7 +168,7 @@ const faq = [
             <li>A printed Recovery Key opens it on any Mac.</li>
           </ul>
         </div>
-        <div class="feature__demo"><Demos which="lock" /></div>
+        <div class="feature__demo"><Desktop><Demos which="lock" /></Desktop></div>
       </section>
     </div>
 
@@ -171,12 +176,12 @@ const faq = [
       <p class="eyebrow">Also in Slinky</p>
       <h2>Small, native, and thought through</h2>
       <div class="grid3" style="text-align:left">
-        <div class="tile" data-glass="panel"><Icon name="attention" /><h3>Needs Attention</h3><p>Codes running low, variables missing, keys about to expire, recovery keys never printed.</p></div>
-        <div class="tile" data-glass="panel"><Icon name="import" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden or a CSV. Passwords stay behind.</p></div>
-        <div class="tile" data-glass="panel"><Icon name="layers" /><h3>Shortcuts</h3><p>Add to Slinky, Copy from Slinky (Touch ID every time), Quick Access and Lock.</p></div>
-        <div class="tile" data-glass="panel"><Icon name="gear" /><h3>Settings that matter</h3><p>When to lock, how long until the clipboard clears, sounds, open at login.</p></div>
-        <div class="tile" data-glass="panel"><Icon name="update" /><h3>Updates in place</h3><p>One click, and only if the update is signed by Slinky’s developer.</p></div>
-        <div class="tile" data-glass="panel"><Icon name="feather" /><h3>A {release.sizeMB} MB download</h3><p>Native Swift and Apple frameworks only. No web views, no dependencies.</p></div>
+        <div class="tile card-plain"><Icon name="attention" /><h3>Needs Attention</h3><p>Codes running low, variables missing, keys about to expire, recovery keys never printed.</p></div>
+        <div class="tile card-plain"><Icon name="import" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden or a CSV. Passwords stay behind.</p></div>
+        <div class="tile card-plain"><Icon name="layers" /><h3>Shortcuts</h3><p>Add to Slinky, Copy from Slinky (Touch ID every time), Quick Access and Lock.</p></div>
+        <div class="tile card-plain"><Icon name="gear" /><h3>Settings that matter</h3><p>When to lock, how long until the clipboard clears, sounds, open at login.</p></div>
+        <div class="tile card-plain"><Icon name="update" /><h3>Updates in place</h3><p>One click, and only if the update is signed by Slinky’s developer.</p></div>
+        <div class="tile card-plain"><Icon name="feather" /><h3>A {release.sizeMB} MB download</h3><p>Native Swift and Apple frameworks only. No web views, no dependencies.</p></div>
       </div>
     </section>
 
@@ -184,7 +189,7 @@ const faq = [
       <p class="eyebrow">Compare</p>
       <h2>Where Slinky fits</h2>
       <p class="section__lede">Apple Passwords is great for logins. Slinky is for everything else you’re told to keep safe.</p>
-      <div class="compare" data-glass="panel">
+      <div class="compare card-plain">
         <table>
           <thead><tr><th></th>{compare.cols.map((c, i) => <th class={i === 0 ? 'us' : ''} scope="col">{c}</th>)}</tr></thead>
           <tbody>
@@ -200,7 +205,7 @@ const faq = [
     <section class="section wrap center">
       <p class="eyebrow">Coming in 1.1</p>
       <h2>AI agents use your keys without seeing them</h2>
-      <div class="next" data-glass="panel" style="text-align:left">
+      <div class="next card-plain" style="text-align:left">
         <div class="next__term" aria-label="An example terminal session">
           <div><span class="dim">$</span> slinky run -- npm run dev</div>
           <div class="dim">Using 9 variables from harbor-app (Local)</div>
@@ -218,8 +223,8 @@ const faq = [
       <p class="eyebrow">Privacy</p>
       <h2>Your things, in plain English</h2>
       <div class="plain" style="text-align:left">
-        <div class="tile" data-glass="panel"><Icon name="shield" /><h3>Where they live</h3><ul><li>One encrypted file on your Mac.</li><li>Opened by your Mac’s Secure Enclave with Touch ID, or your printed Recovery Key.</li><li>Locked means the key isn’t in memory at all.</li></ul></div>
-        <div class="tile" data-glass="panel"><Icon name="update" /><h3>What leaves your Mac</h3><ul><li>Nothing about you or your vault.</li><li>Once a day, a check with GitHub for a newer version. You can turn it off.</li><li>No account, no analytics in the app, no server.</li></ul></div>
+        <div class="tile card-plain"><Icon name="shield" /><h3>Where they live</h3><ul><li>One encrypted file on your Mac.</li><li>Opened by your Mac’s Secure Enclave with Touch ID, or your printed Recovery Key.</li><li>Locked means the key isn’t in memory at all.</li></ul></div>
+        <div class="tile card-plain"><Icon name="update" /><h3>What leaves your Mac</h3><ul><li>Nothing about you or your vault.</li><li>Once a day, a check with GitHub for a newer version. You can turn it off.</li><li>No account, no analytics in the app, no server.</li></ul></div>
       </div>
     </section>
 
@@ -227,16 +232,16 @@ const faq = [
       <p class="eyebrow">Questions</p>
       <h2>Good to know</h2>
       <div class="faq" style="text-align:left">
-        {faq.map(([q, a]) => <details data-glass="panel"><summary>{q}</summary><p>{a}</p></details>)}
+        {faq.map(([q, a]) => <details class="card-plain"><summary>{q}</summary><p>{a}</p></details>)}
       </div>
     </section>
 
     <section class="section wrap">
       <div class="stairs" data-stairs aria-hidden="true">
         {[0, 1, 2, 3, 4].map((i) => (
-          <div class="stairs__step" data-glass="capsule" style={`left:${i * 110}px;top:${30 + i * 44}px;width:120px`}>{i === 4 && <span>.env</span>}</div>
+          <div class="stairs__step card-plain" style={`left:${i * 110}px;top:${30 + i * 44}px;width:120px`}>{i === 4 && <span>.env</span>}</div>
         ))}
-        <div class="stairs__pill" data-glass="capsule">sk_live_••••4f2a</div>
+        <div class="stairs__pill card-plain">sk_live_••••4f2a</div>
       </div>
       <p class="stairs__caption">Go, Slinky, go. Every step but the last one.</p>
     </section>

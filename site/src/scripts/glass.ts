@@ -13,6 +13,9 @@
  *   rim, and lit from the upper left. The technique follows Kube's "Liquid Glass in CSS and SVG" and
  *   Shu Ding's liquid-glass demo, reworked as a fragment shader.
  *
+ * Wallpaper only appears inside `data-desktop` frames (rounded "Mac desktop" screens); the rest of the
+ * canvas is transparent so the page's paper shows. Glass elements live inside those frames.
+ *
  * Elements: `data-glass="window" | "panel" | "capsule"` (sets bezel and strength). Opacity is read from
  * the element so glass fades with it. Up to 16 visible shapes.
  */
@@ -33,14 +36,19 @@ uniform vec3 uC[5];
 uniform vec4 uRect[${MAX}];  // x, y, w, h in CSS px (viewport, y down)
 uniform vec4 uMeta[${MAX}];  // radius, bezel, strength, opacity
 uniform int uCount;
+uniform vec4 uDesk[8];    // the "Mac desktop" frames, CSS px (viewport, y down)
+uniform int uDeskCount;
+uniform float uDeskR;
 out vec4 outColor;
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
 
+vec4 gDesk;   // the desktop the current pixel belongs to
+
 vec3 wallpaper(vec2 p) {
-  vec2 view = uRes / uDpr;
+  vec2 view = gDesk.zw;
   float aspect = view.x / view.y;
-  vec2 q = vec2(p.x / view.x * aspect, p.y / view.y);
+  vec2 q = vec2((p.x - gDesk.x) / view.x * aspect, (p.y - gDesk.y) / view.y);
   float t = uTime * 0.045;
   q += 0.07 * vec2(sin(q.y * 2.2 + t * 1.7), cos(q.x * 1.9 - t * 1.3));
   vec3 acc = vec3(0.0);
@@ -74,6 +82,20 @@ float shapeD(vec2 p, int i) {
 
 void main() {
   vec2 p = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) / uDpr;   // CSS px, y down
+
+  // Only the desktop frames get wallpaper; everywhere else stays clear so the page's paper shows.
+  float dd = 1e6;
+  int di = -1;
+  for (int i = 0; i < 8; i++) {
+    if (i >= uDeskCount) break;
+    vec4 r = uDesk[i];
+    vec2 hs = r.zw * 0.5;
+    float d = sdRound(p - (r.xy + hs), hs, min(uDeskR, min(hs.x, hs.y)));
+    if (d < dd) { dd = d; di = i; }
+  }
+  if (di < 0 || dd > 1.0) { outColor = vec4(0.0); return; }
+  gDesk = uDesk[di];
+  float deskA = smoothstep(0.75, -0.75, dd);
   vec3 col = wallpaper(p);
 
   // A soft shadow under the larger glass, so it floats.
@@ -134,7 +156,7 @@ void main() {
   }
 
   col += (hash(gl_FragCoord.xy + fract(uTime) * 61.0) - 0.5) * 0.018;   // fine grain, no banding
-  outColor = vec4(col, 1.0);
+  outColor = vec4(col * deskA, deskA);
 }`;
 
 type Shape = { el: HTMLElement; bezel: number; strength: number; radius: number };
@@ -153,7 +175,7 @@ function hexToRgb(hex: string): [number, number, number] {
 
 export function startGlass(canvas: HTMLCanvasElement) {
   const root = document.documentElement;
-  const gl = new URLSearchParams(location.search).has('noGL') ? null : canvas.getContext('webgl2', { antialias: false, premultipliedAlpha: false });
+  const gl = new URLSearchParams(location.search).has('noGL') ? null : canvas.getContext('webgl2', { antialias: false, alpha: true, premultipliedAlpha: true });
   if (!gl) {
     root.classList.add('no-gl');
     return;
@@ -189,6 +211,7 @@ export function startGlass(canvas: HTMLCanvasElement) {
   const u = (n: string) => gl.getUniformLocation(program, n);
   const uRes = u('uRes'), uDpr = u('uDpr'), uTime = u('uTime'), uDark = u('uDark'), uC = u('uC');
   const uRect = u('uRect'), uMeta = u('uMeta'), uCount = u('uCount');
+  const uDesk = u('uDesk'), uDeskCount = u('uDeskCount'), uDeskR = u('uDeskR');
 
   root.classList.add('gl');
   let dirty = true;   // redraw needed (set by scroll, resize, colour scheme and DOM changes)
@@ -212,8 +235,12 @@ export function startGlass(canvas: HTMLCanvasElement) {
     });
   }
   collect();
-  new MutationObserver(() => { collect(); dirty = true; }).observe(document.body, { subtree: true, childList: true, attributeFilter: ['data-glass'] });
+  new MutationObserver(() => { collect(); collectDesks(); dirty = true; }).observe(document.body, { subtree: true, childList: true, attributeFilter: ['data-glass'] });
 
+  const desks = new Float32Array(8 * 4);
+  let deskEls: HTMLElement[] = [];
+  const collectDesks = () => { deskEls = Array.from(document.querySelectorAll<HTMLElement>('[data-desktop]')); };
+  collectDesks();
   const rects = new Float32Array(MAX * 4);
   const metas = new Float32Array(MAX * 4);
   let dpr = 1;
@@ -260,6 +287,17 @@ export function startGlass(canvas: HTMLCanvasElement) {
         metas.set([s.radius, s.bezel, s.strength, op], n * 4);
         n++;
       }
+      let nd = 0;
+      for (const el of deskEls) {
+        if (nd >= 8) break;
+        const r = el.getBoundingClientRect();
+        if (r.bottom < -40 || r.top > (canvas.clientHeight || innerHeight) + 40) continue;
+        desks.set([r.left, r.top, r.width, r.height], nd * 4);
+        nd++;
+      }
+      gl!.uniform4fv(uDesk, desks);
+      gl!.uniform1i(uDeskCount, nd);
+      gl!.uniform1f(uDeskR, deskEls[0] ? parseFloat(getComputedStyle(deskEls[0]).borderTopLeftRadius) || 26 : 26);
       gl!.uniform4fv(uRect, rects);
       gl!.uniform4fv(uMeta, metas);
       gl!.uniform1i(uCount, n);

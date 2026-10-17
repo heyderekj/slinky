@@ -308,6 +308,42 @@ function stars() {
   });
 }
 
+/** The family Dock, the macOS way: icons grow with the pointer's distance (a smooth falloff across
+ *  neighbours), the Dock widens so they push apart, and clicking another app bounces it before going. */
+function dock() {
+  const d = $('[data-dock]');
+  if (!d) return;
+  const apps = $$<HTMLAnchorElement>('.dock__app', d);
+  let centers: number[] = [];
+  const set = (a: HTMLElement, m: number) => a.style.setProperty('--mag', m.toFixed(3));
+  if (matchMedia('(hover: hover)').matches) {
+    d.addEventListener('pointerenter', () => {
+      apps.forEach((a) => set(a, 1));
+      centers = apps.map((a) => { const r = a.getBoundingClientRect(); return r.left + r.width / 2; });
+    });
+    d.addEventListener('pointermove', (e) => {
+      if (still() || !centers.length) return;
+      d.classList.add('is-tracking');
+      apps.forEach((a, i) => {
+        const t = Math.max(0, 1 - Math.abs(e.clientX - centers[i]) / 150);
+        set(a, 1 + 0.62 * Math.pow(Math.sin((t * Math.PI) / 2), 1.8));
+      });
+    });
+    d.addEventListener('pointerleave', () => {
+      d.classList.remove('is-tracking');
+      apps.forEach((a) => set(a, 1));
+    });
+  }
+  for (const a of apps) {
+    a.addEventListener('click', (e) => {
+      if (a.classList.contains('is-current') || still() || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      a.classList.add('is-launching');
+      setTimeout(() => { location.href = a.href; }, 700);
+    });
+  }
+}
+
 export function startDemos() {
   reveals();
   copyButtons();
@@ -319,4 +355,5 @@ export function startDemos() {
   stairs();
   install();
   stars();
+  dock();
 }
