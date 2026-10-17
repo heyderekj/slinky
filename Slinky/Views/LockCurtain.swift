@@ -8,7 +8,14 @@ struct LockSwitch: View {
 
     var body: some View {
         Button {
-            if model.isUnlocked { model.lockAnimated() } else { model.unlock() }
+            if !model.hasVault {
+                // Nothing saved yet means nothing to lock. Say so instead of doing nothing.
+                model.show("Slinky can lock once you've saved your first item.")
+            } else if model.isUnlocked {
+                model.lockAnimated()
+            } else {
+                model.unlock()
+            }
         } label: {
             ZStack {
                 Circle()
@@ -26,7 +33,7 @@ struct LockSwitch: View {
         }
         .buttonStyle(.plain)
         .animation(.spring(response: 0.38, dampingFraction: 0.72), value: locked)
-        .help(locked ? "Unlock Slinky" : "Lock Slinky (⌃⌘L)")
+        .help(!model.hasVault ? "Slinky can lock once you've saved your first item" : locked ? "Unlock Slinky" : "Lock Slinky (⌃⌘L)")
         .accessibilityLabel("Lock")
         .accessibilityValue(locked ? "Locked" : "Unlocked")
         .accessibilityHint(locked ? "Unlocks Slinky" : "Locks Slinky")

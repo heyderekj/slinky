@@ -40,7 +40,7 @@ Read this before any design work. Every visual decision should trace back to som
 ## Decisions already made
 - **Icon:** a glass asterisk with a rounded keyhole (K2, enlarged) on glacier blue. Real Liquid Glass via `Slinky/AppIcon.icon` (asterisk layer with glass on, keyhole layer on top, automatic gradient `#4DA3DC`). Sources and generators in `design/icon/`.
 - **Window:** transparent title bar, toolbar background hidden, ice as the window background. No opaque title strip.
-- **Toolbar:** one control, the lock switch: a small two-position switch (open lock | closed lock) whose knob sits on the current state. It's there whenever a vault exists, on the lock screen too.
+- **Toolbar:** one control, the lock switch: a small two-position switch (open lock | closed lock) whose knob sits on the current state. It's always there, on the lock screen too. Before anything is saved it sits on unlocked, and clicking it says "Slinky can lock once you've saved your first item."
 - **Lock and unlock take over the whole window** (`LockCurtain`). Locking: ice spreads out from the switch with a bright rim until it covers everything, the lock in the middle closes, and only then does the vault lock, so nothing secret is drawn under the ice. Unlocking: the lock opens, then the ice opens from the middle like an iris. Locks from the screen locking, sleep or idle happen at once, with no animation. Reduce Motion skips it.
 - **Layouts:** see `docs/slinky-layouts.html`. A = project `.env` view, B = Library shelf, C = Quick Access (default), E = Rising Shelf (challenger), D = agent receipts, F = menu bar stack, G = widget.
 - **Hotkey:** ⌥⌘K for Quick Access (not ⌃⌥Space, not ⇧⌘Space).

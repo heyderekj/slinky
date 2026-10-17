@@ -104,7 +104,7 @@ struct RootView: View {
         .overlay { LockCurtain() }
         .overlay(alignment: .bottom) { ToastView() }
         .toolbar {
-            if model.hasVault {
+            if model.phase != .loading {
                 ToolbarItem(placement: .primaryAction) { LockSwitch() }
             }
         }
