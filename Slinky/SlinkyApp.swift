@@ -3,7 +3,7 @@ import SwiftUI
 
 @main
 struct SlinkyApp: App {
-    @State private var model = AppModel()
+    @State private var model = AppModel.shared
 
     var body: some Scene {
         Window("Slinky", id: "main") {

@@ -17,7 +17,10 @@ struct MainView: View {
             }
         }
         .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search")
-        .sheet(isPresented: $model.showTuck) { TuckItAwayView() }
+        .overlay {
+            if model.showTuck { AddItemOverlay().transition(.opacity) }
+        }
+        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showTuck)
         .sheet(isPresented: $model.showNewProject) { NewProjectView() }
         .sheet(isPresented: Binding(get: { model.recoveryKeyToShow != nil && !model.showTuck },
                                     set: { if !$0 { model.recoveryKeyToShow = nil } })) {

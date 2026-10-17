@@ -12,6 +12,7 @@
 - The vault key lives in memory only while unlocked (`VaultSession`); locking drops it.
 - Clipboard writes go through `Clipboard.copy` (concealed, transient, current-host-only, auto-clear).
 - Nothing in an MCP/CLI response may contain or be derived from a value (no hashes, lengths, prefixes beyond `Peek`).
+- Shortcuts (`Slinky/Intents/`): no intent returns a value. Items are exposed by name only, and only while unlocked. "Copy from Slinky" asks for Touch ID every time (any app can run a shortcut) and copies through `Clipboard.copy`. "Add to Slinky" opens Add Item for the person to check; it never saves on its own.
 - Copy that promises safety must stay honest and plain. Never overclaim what Slinky protects against.
 
 ## Size and dependencies (from the family rules)

@@ -297,3 +297,9 @@ While Slinky is busy, the keyhole is absorbed into the asterisk (it scales and f
   - the menu bar asterisk while any agent session is active
 - **How:** in SwiftUI it's `KeyholeMark(isWorking:)`, with keyhole scale and opacity going to 0 and a repeating rotation on `AsteriskShape`. The menu bar gets a template-image version of the same frames.
 - **Rules:** honor Reduce Motion (keyhole fade only, no spin). Never spin while idle.
+
+
+## Integrations (decided 2026-10-17)
+- **Shortcuts (built):** Add to Slinky (opens Add Item prefilled; pair with Get Clipboard for "Save clipboard to Slinky"), Copy from Slinky (Touch ID every time, never returns the value), Open Quick Access, Lock Slinky. Items show by name only while unlocked.
+- **Raycast (with the agents milestone):** a small open-source Raycast extension that calls the `slinky` CLI: search items by name, copy (goes through the same approval and Touch ID rules as agents), add from clipboard, lock. It has to wait for the CLI and socket broker, which are what keep values from flowing through Raycast's own process. Raycast would show up in receipts like any other caller ("Raycast › slinky").
+- **Clipboard managers:** everything Slinky copies is marked concealed and transient (`org.nspasteboard.ConcealedType` / `TransientType`), so Raycast's clipboard history, Paste, Maccy and similar skip it, and it clears after 60 seconds. Worth saying on the site.

@@ -61,6 +61,9 @@ struct Toast: Identifiable, Equatable {
 /// Owns the vault session and every change to it. Views only read `document` and call these methods.
 @Observable
 final class AppModel {
+    /// One model for the window, the menu bar, Quick Access and Shortcuts.
+    static let shared = AppModel()
+
     enum Phase: Equatable {
         case loading, locked, unlocked
     }
