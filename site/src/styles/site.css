@@ -18,39 +18,9 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 h1, h2, h3 { margin: 0; text-wrap: balance; }
 p { margin: 0; text-wrap: pretty; }
 
-/* The wallpaper canvas sits behind everything. */
-#wallpaper { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: -1; display: block; }
-
-/* Without WebGL2: the same mesh in CSS, and blur glass (heyderekj's bar recipe). */
-html.no-gl #wallpaper { display: none; }
-html.no-gl .desktop {
-  background:
-    radial-gradient(at 14% 16%, var(--c1) 0, transparent 52%),
-    radial-gradient(at 86% 14%, var(--c2) 0, transparent 48%),
-    radial-gradient(at 80% 86%, var(--c3) 0, transparent 52%),
-    radial-gradient(at 16% 84%, var(--c4) 0, transparent 50%),
-    radial-gradient(at 52% 48%, var(--c5) 0, transparent 46%),
-    var(--c5);
-}
-html.no-gl [data-glass] {
-  background: rgb(255 255 255 / 0.42);
-  -webkit-backdrop-filter: blur(22px) saturate(170%);
-  backdrop-filter: blur(22px) saturate(170%);
-}
-@media (prefers-color-scheme: dark) { html.no-gl [data-glass] { background: rgb(28 30 34 / 0.55); } }
-
-/* Glass elements stay clear: the shader draws the glass. They add a hairline rim and a touch of fill for text. */
-[data-glass] {
-  position: relative;
-  background: rgb(255 255 255 / 0.06);
-  box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.5), inset 0 0 0 0.5px rgb(255 255 255 / 0.22);
-}
-@media (prefers-color-scheme: dark) {
-  [data-glass] { background: rgb(20 22 26 / 0.12); box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.22), inset 0 0 0 0.5px rgb(255 255 255 / 0.1); }
-}
-@media (prefers-reduced-transparency: reduce) {
-  [data-glass] { background: var(--card) !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
-}
+/* Glass that sits on a desktop: clear, a little saturation, and the crisp edge below. In Chromium,
+   scripts/glass.ts swaps in Jhey's SVG displacement filter as the backdrop-filter, which bends the rim. */
+[data-glass] { -webkit-backdrop-filter: saturate(1.5) brightness(1.08); backdrop-filter: saturate(1.5) brightness(1.08); }
 
 /* Glass that floats over page content (the nav, toasts) can't be drawn by the wallpaper shader, which is
    behind the page. It uses CSS blur instead, with the same rim. */
@@ -69,8 +39,26 @@ html.no-gl [data-glass] {
 /* ---------- Desktops: little Mac screens where the mesh wallpaper lives ---------- */
 .desktop {
   --menubar-hole: #eaf4fc;
-  position: relative; border-radius: 28px; overflow: hidden; isolation: isolate;
+  position: relative; border-radius: 14px; overflow: hidden; isolation: isolate;
   box-shadow: 0 0 0 1px var(--hair), var(--shadow);
+  background: var(--c5);
+}
+/* The wallpaper: the testamentmade mesh (five radial pools) in Slinky's ice, drifting slowly. */
+.desktop::before {
+  content: ''; position: absolute; inset: -22%; z-index: -1;
+  background:
+    radial-gradient(at 14% 16%, var(--c1) 0, transparent 52%),
+    radial-gradient(at 86% 14%, var(--c2) 0, transparent 48%),
+    radial-gradient(at 80% 86%, var(--c3) 0, transparent 52%),
+    radial-gradient(at 16% 84%, var(--c4) 0, transparent 50%),
+    radial-gradient(at 52% 48%, var(--c5) 0, transparent 46%),
+    var(--c5);
+  animation: mesh-drift 22s ease-in-out infinite alternate;
+}
+@keyframes mesh-drift {
+  0% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); }
+  50% { transform: translate3d(-2.5%, 2%, 0) rotate(3deg) scale(1.04); }
+  100% { transform: translate3d(2%, -1.5%, 0) rotate(-2deg) scale(1.02); }
 }
 .menubar {
   position: relative; z-index: 3; display: flex; align-items: center; gap: 16px; height: 28px; padding: 0 16px;
@@ -191,12 +179,12 @@ section { scroll-margin-top: 70px; }
 
 /* ---------- The recreated Mac window (Slinky's main window) ---------- */
 .mac {
-  --r: 20px; width: min(980px, 100%); height: 560px; border-radius: 20px; display: grid; grid-template-columns: 236px 1fr;
+  --r: 16px; width: min(980px, 100%); height: 560px; border-radius: 16px; display: grid; grid-template-columns: 236px 1fr;
   font-family: var(--app-font); color: var(--app-text); font-size: 13px; letter-spacing: -0.003em; text-align: left;
   overflow: hidden; padding: 8px;
 }
 .mac--small { width: min(620px, 100%); height: 400px; grid-template-columns: 1fr; }
-.mac__sidebar { border-radius: 14px; padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; }
+.mac__sidebar { border-radius: 10px; padding: 10px 8px; display: flex; flex-direction: column; gap: 2px; }
 .mac__lights { display: flex; gap: 8px; padding: 4px 6px 14px; }
 .mac__lights i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.12); }
 .mac__lights i:nth-child(2) { background: #febc2e; }
@@ -269,7 +257,7 @@ section { scroll-margin-top: 70px; }
 .toast svg { width: 16px; height: 16px; color: var(--green); }
 
 /* ---------- Add Item demo ---------- */
-.additem { width: min(560px, 100%); border-radius: 26px; padding: 20px; font-family: var(--app-font); color: var(--app-text); text-align: left; }
+.additem { width: min(560px, 100%); border-radius: 18px; padding: 20px; font-family: var(--app-font); color: var(--app-text); text-align: left; }
 .additem__top { display: flex; justify-content: space-between; align-items: center; font-weight: 600; font-size: 14px; margin-bottom: 14px; }
 .keycap { font-size: 11px; font-weight: 500; color: var(--app-secondary); padding: 1px 6px; border-radius: 5px; background: var(--app-fill); box-shadow: inset 0 0 0 0.5px var(--app-sep); }
 .slab { background: var(--app-paper); border-radius: 18px; padding: 15px; display: flex; gap: 13px; box-shadow: 0 0 0 1px color-mix(in oklch, var(--brand) 40%, transparent); transition: box-shadow 0.4s var(--ease); min-height: 76px; }
@@ -306,7 +294,7 @@ section { scroll-margin-top: 70px; }
 .envpick span.on { background: var(--app-paper); box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); font-weight: 600; }
 
 /* ---------- Quick Access ---------- */
-.qa { width: min(640px, 100%); border-radius: 22px; padding: 8px; font-family: var(--app-font); color: var(--app-text); text-align: left; }
+.qa { width: min(640px, 100%); border-radius: 18px; padding: 8px; font-family: var(--app-font); color: var(--app-text); text-align: left; }
 .qa__field { display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 12px; }
 .qa__field svg { width: 18px; height: 18px; color: var(--app-secondary); }
 .qa__field input { flex: 1; border: 0; outline: 0; background: none; font: inherit; font-size: 19px; color: inherit; }
@@ -442,9 +430,11 @@ section { scroll-margin-top: 70px; }
 /* GitHub star burst (the family's, simplified) */
 .star-burst { position: fixed; pointer-events: none; z-index: 70; color: var(--brand); font-size: 14px; text-shadow: 0 0 8px var(--glow); }
 
-@media (max-width: 760px) {
+@media (max-width: 1040px) {
   .mac { grid-template-columns: 1fr; height: auto; }
   .mac__sidebar { display: none; }
+}
+@media (max-width: 760px) {
   .cards { grid-template-columns: 1fr; }
   .hero { padding-top: 96px; }
 }

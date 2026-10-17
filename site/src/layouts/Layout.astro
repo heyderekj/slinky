@@ -51,12 +51,11 @@ const ld = {
     <script type="application/ld+json" set:html={JSON.stringify(ld)} />
   </head>
   <body>
-    <canvas id="wallpaper" aria-hidden="true"></canvas>
     <slot />
     <script>
       import { startGlass } from '../scripts/glass';
       import { startDemos } from '../scripts/demos';
-      startGlass(document.getElementById('wallpaper') as HTMLCanvasElement);
+      startGlass();
       startDemos();
     </script>
   </body>
