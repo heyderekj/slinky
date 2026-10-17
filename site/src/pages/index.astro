@@ -45,13 +45,13 @@ const faq = [
 ];
 ---
 <Layout title={`Slinky · ${title}`} description={description}>
-  <nav class="nav float-glass" aria-label="Slinky">
+  <nav class="nav float-glass is-tucked" aria-label="Slinky">
     <a class="nav__home" href="#top"><img src="/icons/slinky-320.webp" alt="" width="26" height="26" /> Slinky</a>
     <a class="nav__link" href="#features">Features</a>
     <a class="nav__link" href="#compare">Compare</a>
     <a class="nav__link" href="#privacy">Privacy</a>
     <a class="nav__link" href="#faq">FAQ</a>
-    <a class="btn btn--quiet btn--small" href="https://github.com/heyderekj/slinky" data-stars><Icon name="github" /><span data-star-count>GitHub</span></a>
+    <a class="btn btn--quiet btn--small" href="https://github.com/heyderekj/slinky" data-stars aria-label="Slinky on GitHub"><Icon name="github" /><span class="star-count" data-star-count></span></a>
     <a class="btn btn--primary btn--small" href={release.dmg} data-download>Download</a>
   </nav>
 
@@ -61,73 +61,60 @@ const faq = [
         <source srcset="/icons/slinky-320-dark.webp" media="(prefers-color-scheme: dark)" />
         <img src="/icons/slinky-320.webp" alt="Slinky's app icon: a glass asterisk with a keyhole" width="128" height="128" />
       </picture>
-      <h1>{title}</h1>
-      <p class="hero__lede">A free Mac app for API keys, .env variables and recovery codes. Encrypted on your Mac, opened with Touch ID.</p>
+      <h1>Slinky</h1>
+      <p class="tagline">{title}</p>
+      <p class="description">A free Mac app for API keys, .env variables and recovery codes. Encrypted on your Mac, opened with Touch ID. Free and open source.</p>
       <div class="hero__actions">
         <a class="btn btn--primary" href={release.dmg} data-download><Icon name="download" /> Download for Mac</a>
-        <a class="btn btn--quiet" href="https://github.com/heyderekj/slinky"><Icon name="github" /> View on GitHub</a>
+        <a class="btn btn--quiet" href="https://github.com/heyderekj/slinky" data-stars><Icon name="github" /> GitHub <span class="star-count" data-star-count></span></a>
       </div>
       <p class="hero__meta">{versionLine} · <button type="button" data-open-install>How to install</button></p>
+
       <Desktop class="desktop--hero" menubar>
         <MacWindow title="All Items" subtitle="6 items" selected="all" id="hero-window">
           <Library />
           <div slot="over" class="toast float-glass" data-toast><Icon name="checkc" /><span data-toast-text>Copied.</span></div>
         </MacWindow>
       </Desktop>
+      <div class="ss-trio">
+        <div class="ss-card card-plain"><Icon name="key" class="feature-icon" /><h3>Keys &amp; Tokens</h3><p>API keys and access tokens your software and AI tools use, with expiry dates and live-key warnings.</p></div>
+        <div class="ss-card card-plain"><Icon name="folder" class="feature-icon" /><h3>Projects</h3><p>Each app’s .env variables for Local, Preview and Production, out of the project folder.</p></div>
+        <div class="ss-card card-plain"><Icon name="life" class="feature-icon" /><h3>Recovery</h3><p>Backup codes that cross themselves off, and recovery keys for the day you need them.</p></div>
+      </div>
     </header>
 
-    <section class="section wrap center" id="features">
-      <p class="eyebrow">One home</p>
-      <h2>Everything you’re told to “store somewhere safe”</h2>
-      <p class="section__lede">API keys, each project’s .env, backup codes and recovery keys. Paste it, and Slinky knows where it goes.</p>
-      <Desktop class="desktop--kinds">
-        <div class="kinds-wrap">
-          <Demos which="kinds" />
-          <p class="kinds__head" id="kinds-head" aria-live="polite">A safe home for your API keys.</p>
+    <section class="screenshots wrap" id="features" aria-label="What Slinky does">
+      <div class="ss-row is-rev reveal">
+        <div class="ss-card card-plain">
+          <div class="ss-card-features">
+            <div class="ss-card-feature"><Icon name="plus" class="feature-icon" /><h3>Paste anything secret</h3><p>Press ⌘N and paste. The value turns into dots right away, and Slinky suggests where it belongs.</p></div>
+            <div class="ss-card-feature"><Icon name="sparkle" class="feature-icon" /><h3>Knows the service</h3><p>Stripe, OpenAI, Anthropic, GitHub, Supabase, Resend, AWS and more, with the usual variable name filled in.</p></div>
+            <div class="ss-card-feature"><Icon name="attention" class="feature-icon" /><h3>No accidental doubles</h3><p>Paste something you’ve already saved and Slinky tells you where it is. Wallet phrases are refused.</p></div>
+          </div>
         </div>
-      </Desktop>
-    </section>
+        <Desktop><Demos which="additem" /></Desktop>
+      </div>
 
-    <div class="wrap">
-      <section class="feature reveal">
-        <div class="feature__text">
-          <p class="eyebrow">Add Item</p>
-          <h2>Paste anything secret</h2>
-          <p class="section__lede">Press ⌘N and paste. The value turns into dots right away, Slinky says what it looks like, and suggests where it belongs.</p>
-          <ul>
-            <li>Recognizes Stripe, OpenAI, Anthropic, GitHub, Supabase, Resend, AWS and more.</li>
-            <li>Tells you if you’ve already saved it, and where.</li>
-            <li>Says no to crypto wallet phrases, for your safety.</li>
-          </ul>
+      <div class="ss-row reveal">
+        <Desktop><Demos which="env" /></Desktop>
+        <div class="ss-card card-plain">
+          <div class="ss-card-features">
+            <div class="ss-card-feature"><Icon name="folder" class="feature-icon" /><h3>Drop a project folder</h3><p>Slinky reads its .env files and sorts them into Local, Preview and Production. It never changes them.</p></div>
+            <div class="ss-card-feature"><Icon name="attention" class="feature-icon" /><h3>Checks .gitignore</h3><p>Files git could commit get a warning, before they end up in your repo.</p></div>
+            <div class="ss-card-feature"><Icon name="check" class="feature-icon" /><h3>Shows what’s missing</h3><p>.env.example tells Slinky what the project needs. Copy an environment as .env lines when your host asks.</p></div>
+          </div>
         </div>
-        <div class="feature__demo"><Desktop><Demos which="additem" /></Desktop></div>
-      </section>
+      </div>
 
-      <section class="feature feature--flip reveal">
-        <div class="feature__text">
-          <p class="eyebrow">Projects</p>
-          <h2>Your app’s secrets, out of its files</h2>
-          <p class="section__lede">Drop a project folder. Slinky reads its .env files, sorts them into Local, Preview and Production, and shows what .env.example says is missing.</p>
-          <ul>
-            <li>Warns when git could commit a .env file.</li>
-            <li>Copy an environment as .env lines for your host’s dashboard.</li>
-            <li>Save a .env.example with names only, safe to commit.</li>
-          </ul>
+      <div class="ss-row is-rev reveal">
+        <div class="ss-card card-plain">
+          <div class="ss-card-features">
+            <div class="ss-card-feature"><Icon name="hash" class="feature-icon" /><h3>Codes that cross themselves off</h3><p>Copy a backup code and it’s marked used, so you never try one twice.</p></div>
+            <div class="ss-card-feature"><Icon name="bell" class="feature-icon" /><h3>A heads-up when you’re low</h3><p>Needs Attention lists codes running out, keys about to expire, and recovery keys never printed.</p></div>
+            <div class="ss-card-feature"><Icon name="life" class="feature-icon" /><h3>Recovery keys, kept safe</h3><p>For the day you’re locked out of an account. Print them from Slinky in one click.</p></div>
+          </div>
         </div>
-        <div class="feature__demo"><Desktop><Demos which="env" /></Desktop></div>
-      </section>
-
-      <section class="feature reveal">
-        <div class="feature__text">
-          <p class="eyebrow">Recovery</p>
-          <h2>Backup codes, ready when you’re locked out</h2>
-          <p class="section__lede">Copy a code and Slinky crosses it off, so you never try a used one. It tells you when you’re running low, and keeps recovery keys safe for the day you need them.</p>
-          <ul>
-            <li>Try it: click a code in the window at the top of the page.</li>
-            <li>Recovery keys without a printed copy show up in Needs Attention.</li>
-          </ul>
-        </div>
-        <div class="feature__demo"><Desktop>
+        <Desktop>
           <div class="additem" data-glass="panel" style="max-width:380px">
             <div class="card" data-codeset>
               <div class="card__head">
@@ -140,55 +127,48 @@ const faq = [
                 {['t2w6r-9bn3j', 'f5m8c-2kd4x'].map((c) => <span class="code is-used">{c}<Icon name="check" class="tick" /></span>)}
               </div>
             </div>
-            <p class="detect" style="margin-top:12px"><Icon name="attention" style="width:14px;height:14px;color:var(--orange)" /> Only 4 codes left. Consider making new ones.</p>
+            <p class="detect" style="margin-top:12px"><Icon name="attention" style="width:14px;height:14px;color:var(--orange)" /> Only 4 codes left. Click one to copy it.</p>
           </div>
-        </Desktop></div>
-      </section>
+        </Desktop>
+      </div>
 
-      <section class="feature feature--flip reveal">
-        <div class="feature__text">
-          <p class="eyebrow">Quick Access</p>
-          <h2>⌥⌘K, from anywhere</h2>
-          <p class="section__lede">Find a key by name and press Return. Copies are private, so clipboard history apps skip them, and they clear themselves after a minute.</p>
-          <ul>
-            <li>Try it: type “stripe” or “codes”, then press Return.</li>
-            <li>⌘Return copies KEY=value, ready for a .env.</li>
-          </ul>
+      <div class="ss-row reveal">
+        <Desktop><Demos which="quick" /></Desktop>
+        <div class="ss-card card-plain">
+          <div class="ss-card-features">
+            <div class="ss-card-feature"><Icon name="search" class="feature-icon" /><h3>⌥⌘K, from anywhere</h3><p>Find a key by name and press Return. Try it here: type “stripe” or “codes”.</p></div>
+            <div class="ss-card-feature"><Icon name="copy" class="feature-icon" /><h3>Private copies</h3><p>Clipboard history apps skip what Slinky copies, and it clears itself after a minute.</p></div>
+            <div class="ss-card-feature"><Icon name="layers" class="feature-icon" /><h3>Shortcuts too</h3><p>Add to Slinky, Copy from Slinky with Touch ID, Quick Access and Lock, right in the Shortcuts app.</p></div>
+          </div>
         </div>
-        <div class="feature__demo"><Desktop><Demos which="quick" /></Desktop></div>
-      </section>
+      </div>
 
-      <section class="feature reveal">
-        <div class="feature__text">
-          <p class="eyebrow">Locking</p>
-          <h2>Locks itself</h2>
-          <p class="section__lede">Touch ID to open. Slinky locks when your screen locks, when your Mac sleeps, when you’re away, and after 12 hours. Or flip the switch.</p>
-          <ul>
-            <li>Nothing secret is on screen while it locks.</li>
-            <li>A printed Recovery Key opens it on any Mac.</li>
-          </ul>
+      <div class="ss-row is-rev reveal">
+        <div class="ss-card card-plain">
+          <div class="ss-card-features">
+            <div class="ss-card-feature"><Icon name="touchid" class="feature-icon" /><h3>Opens with Touch ID</h3><p>Your vault is one encrypted file on your Mac, opened by the Secure Enclave.</p></div>
+            <div class="ss-card-feature"><Icon name="lock" class="feature-icon" /><h3>Locks itself</h3><p>When your screen locks, when your Mac sleeps, when you’re away, and after 12 hours. Or flip the switch, top right.</p></div>
+            <div class="ss-card-feature"><Icon name="shield" class="feature-icon" /><h3>A Recovery Key, on paper</h3><p>Opens your vault on any Mac if Touch ID can’t. Slinky never keeps a copy.</p></div>
+          </div>
         </div>
-        <div class="feature__demo"><Desktop><Demos which="lock" /></Desktop></div>
-      </section>
-    </div>
-
-    <section class="section wrap center">
-      <p class="eyebrow">Also in Slinky</p>
-      <h2>Small, native, and thought through</h2>
-      <div class="grid3" style="text-align:left">
-        <div class="tile card-plain"><Icon name="attention" /><h3>Needs Attention</h3><p>Codes running low, variables missing, keys about to expire, recovery keys never printed.</p></div>
-        <div class="tile card-plain"><Icon name="import" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden or a CSV. Passwords stay behind.</p></div>
-        <div class="tile card-plain"><Icon name="layers" /><h3>Shortcuts</h3><p>Add to Slinky, Copy from Slinky (Touch ID every time), Quick Access and Lock.</p></div>
-        <div class="tile card-plain"><Icon name="gear" /><h3>Settings that matter</h3><p>When to lock, how long until the clipboard clears, sounds, open at login.</p></div>
-        <div class="tile card-plain"><Icon name="update" /><h3>Updates in place</h3><p>One click, and only if the update is signed by Slinky’s developer.</p></div>
-        <div class="tile card-plain"><Icon name="feather" /><h3>A {release.sizeMB} MB download</h3><p>Native Swift and Apple frameworks only. No web views, no dependencies.</p></div>
+        <Desktop><Demos which="lock" /></Desktop>
       </div>
     </section>
 
-    <section class="section wrap center" id="compare">
-      <p class="eyebrow">Compare</p>
-      <h2>Where Slinky fits</h2>
-      <p class="section__lede">Apple Passwords is great for logins. Slinky is for everything else you’re told to keep safe.</p>
+    <section class="section wrap" aria-labelledby="also-heading">
+      <div class="section-head"><p class="eyebrow">Features</p><h2 class="section-title" id="also-heading">Also in Slinky</h2></div>
+      <div class="features">
+        <div class="feature card-plain"><Icon name="import" class="feature-icon" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden or a CSV. Passwords stay behind.</p></div>
+        <div class="feature card-plain"><Icon name="gear" class="feature-icon" /><h3>Settings that matter</h3><p>When to lock, how long until the clipboard clears, sounds, open at login.</p></div>
+        <div class="feature card-plain"><Icon name="update" class="feature-icon" /><h3>Updates in place</h3><p>One click, and only if the update is signed by Slinky’s developer.</p></div>
+        <div class="feature card-plain"><Icon name="feather" class="feature-icon" /><h3>A {release.sizeMB} MB download</h3><p>Native Swift and Apple frameworks only. No web views, no dependencies.</p></div>
+        <div class="feature card-plain"><Icon name="key" class="feature-icon" /><h3>AI agents, next</h3><p>Coming in 1.1: tools like Claude Code run your app with the real keys while only ever seeing dots.</p></div>
+        <div class="feature card-plain"><Icon name="github" class="feature-icon" /><h3>Free and open source</h3><p>MIT licensed, made by Testament Made. Read every line on GitHub.</p></div>
+      </div>
+    </section>
+
+    <section class="section wrap" id="compare" aria-labelledby="compare-heading">
+      <div class="section-head"><p class="eyebrow">Compare</p><h2 class="section-title" id="compare-heading">Where Slinky fits</h2><p class="section-sub">Apple Passwords is great for logins. Slinky is for everything else you’re told to keep safe.</p></div>
       <div class="compare card-plain">
         <table>
           <thead><tr><th></th>{compare.cols.map((c, i) => <th class={i === 0 ? 'us' : ''} scope="col">{c}</th>)}</tr></thead>
@@ -202,64 +182,32 @@ const faq = [
       <p class="compare__note">As of October 2026. Corrections welcome at help@slinkyfiles.com.</p>
     </section>
 
-    <section class="section wrap center">
-      <p class="eyebrow">Coming in 1.1</p>
-      <h2>AI agents use your keys without seeing them</h2>
-      <div class="next card-plain" style="text-align:left">
-        <div class="next__term" aria-label="An example terminal session">
-          <div><span class="dim">$</span> slinky run -- npm run dev</div>
-          <div class="dim">Using 9 variables from harbor-app (Local)</div>
-          <div>Claude asked for STRIPE_SECRET_KEY. <span class="ok">Allowed once.</span></div>
-          <div><span class="ok">✓</span> Running. Claude sees ••••••••. Your app sees the key.</div>
-        </div>
-        <div>
-          <span class="badge">Coming in 1.1</span>
-          <p class="section__lede" style="margin-top:12px">A slinky command and an MCP connection let tools like Claude Code run your app with the real keys while only ever seeing dots. Slinky asks before anything sensitive is used, and keeps a record of what each agent used.</p>
-        </div>
-      </div>
+    <section class="cta-mid wrap">
+      <h2 class="section-title">Give your secrets a home.</h2>
+      <p class="cta-mid-sub">Free, about {release.sizeMB} MB, and nothing leaves your Mac.</p>
+      <a class="btn btn--primary" href={release.dmg} data-download><Icon name="download" /> Download for Mac</a>
     </section>
 
-    <section class="section wrap center" id="privacy">
-      <p class="eyebrow">Privacy</p>
-      <h2>Your things, in plain English</h2>
-      <div class="plain" style="text-align:left">
+    <section class="section wrap" id="privacy" aria-labelledby="privacy-heading">
+      <div class="section-head"><p class="eyebrow">Privacy</p><h2 class="section-title" id="privacy-heading">Your things, in plain English</h2></div>
+      <div class="plain">
         <div class="tile card-plain"><Icon name="shield" /><h3>Where they live</h3><ul><li>One encrypted file on your Mac.</li><li>Opened by your Mac’s Secure Enclave with Touch ID, or your printed Recovery Key.</li><li>Locked means the key isn’t in memory at all.</li></ul></div>
         <div class="tile card-plain"><Icon name="update" /><h3>What leaves your Mac</h3><ul><li>Nothing about you or your vault.</li><li>Once a day, a check with GitHub for a newer version. You can turn it off.</li><li>No account, no analytics in the app, no server.</li></ul></div>
       </div>
     </section>
 
-    <section class="section wrap center" id="faq">
-      <p class="eyebrow">Questions</p>
-      <h2>Good to know</h2>
-      <div class="faq" style="text-align:left">
+    <section class="section wrap" id="faq" aria-labelledby="faq-heading">
+      <div class="section-head"><p class="eyebrow">Questions</p><h2 class="section-title" id="faq-heading">Good to know</h2></div>
+      <div class="faq">
         {faq.map(([q, a]) => <details class="card-plain"><summary>{q}</summary><p>{a}</p></details>)}
       </div>
-    </section>
-
-    <section class="section wrap">
-      <div class="stairs" data-stairs aria-hidden="true">
-        {[0, 1, 2, 3, 4].map((i) => (
-          <div class="stairs__step card-plain" style={`left:${i * 110}px;top:${30 + i * 44}px;width:120px`}>{i === 4 && <span>.env</span>}</div>
-        ))}
-        <div class="stairs__pill card-plain">sk_live_••••4f2a</div>
-      </div>
-      <p class="stairs__caption">Go, Slinky, go. Every step but the last one.</p>
     </section>
   </main>
 
   <FamilyTabs current="slinky" />
 
-  <footer class="foot wrap">
-    <span>Made by <a href="https://testamentmade.com">Testament Made, LLC</a> · <a href="mailto:help@slinkyfiles.com">help@slinkyfiles.com</a></span>
-    <nav aria-label="Family">
-      <a class="family" href="https://dinkyfiles.com"><img src="/family/dinky.webp" alt="" width="24" height="24" /> Dinky makes files smaller.</a>
-      <a class="family" href="https://binkyfiles.com"><img src="/family/binky.webp" alt="" width="24" height="24" /> Binky sorts your files.</a>
-    </nav>
-    <nav aria-label="More">
-      <a href="https://github.com/heyderekj/slinky">GitHub</a>
-      <a href="https://github.com/heyderekj/slinky/releases">Releases</a>
-      <a href="https://github.com/heyderekj/slinky/blob/main/LICENSE">MIT License</a>
-    </nav>
+  <footer class="wrap">
+    <p>© 2026 <a href="https://testamentmade.com">Testament Made, LLC</a> · <a href="mailto:help@slinkyfiles.com">help@slinkyfiles.com</a> · <a href="https://github.com/heyderekj/slinky">GitHub</a> · MIT License</p>
   </footer>
 
   <div class="modal" data-install role="dialog" aria-modal="true" aria-labelledby="install-title">

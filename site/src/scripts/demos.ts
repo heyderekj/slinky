@@ -283,7 +283,7 @@ function stars() {
   const count = $('[data-star-count]', link);
   fetch('https://api.github.com/repos/heyderekj/slinky')
     .then((r) => (r.ok ? r.json() : null))
-    .then((d) => { if (d && count && typeof d.stargazers_count === 'number') count.textContent = d.stargazers_count.toLocaleString(); })
+    .then((d) => { if (d && typeof d.stargazers_count === 'number') $$('[data-star-count]').forEach((c) => { c.textContent = d.stargazers_count.toLocaleString(); }); })
     .catch(() => {});
   let last = 0;
   link.addEventListener('pointerenter', () => {
@@ -358,6 +358,14 @@ function clocks() {
   setInterval(tick, 15_000);
 }
 
+/** The nav waits until the hero's buttons are out of view, then slides down. */
+function navReveal() {
+  const nav = $('.nav');
+  const cta = $('.hero__actions');
+  if (!nav || !cta) { nav?.classList.remove('is-tucked'); return; }
+  new IntersectionObserver(([e]) => nav.classList.toggle('is-tucked', e.isIntersecting), { rootMargin: '-60px 0px 0px 0px' }).observe(cta);
+}
+
 export function startDemos() {
   reveals();
   copyButtons();
@@ -371,4 +379,5 @@ export function startDemos() {
   stars();
   dock();
   clocks();
+  navReveal();
 }
