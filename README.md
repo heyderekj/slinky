@@ -54,4 +54,4 @@ Apple frameworks only, no third-party dependencies. See `CLAUDE.md` for the secu
 
 ## About
 
-Made by [Derek Castelli](https://www.heyderekj.com) at Testament Made, LLC. Free and open source under the MIT License. Questions: help@slinkyfiles.com.
+Made by [Derek Castelli](https://www.heyderekj.com) at Testament Made, LLC. Free and open source under the MIT License. Questions: derek@testamentmade.com.

@@ -201,8 +201,8 @@ enum AboutPanel {
         credits.append(NSAttributedString(string: "slinkyfiles.com\n", attributes: site))
         var repo = link; repo[.link] = URL(string: "https://github.com/heyderekj/slinky")!
         credits.append(NSAttributedString(string: "github.com/heyderekj/slinky\n", attributes: repo))
-        var mail = link; mail[.link] = URL(string: "mailto:help@slinkyfiles.com")!
-        credits.append(NSAttributedString(string: "help@slinkyfiles.com", attributes: mail))
+        var mail = link; mail[.link] = URL(string: "mailto:derek@testamentmade.com")!
+        credits.append(NSAttributedString(string: "derek@testamentmade.com", attributes: mail))
         NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
         NSApp.activate()
     }

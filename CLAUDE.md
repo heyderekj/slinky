@@ -4,7 +4,7 @@
 
 ## Ownership
 - Slinky is made by **Testament Made, LLC**, the same as Dinky and Binky. Use it in `LICENSE` (MIT), the Info.plist copyright (`© 2026 Testament Made, LLC`), the About panel credits, and the site footer.
-- Support email: help@slinkyfiles.com (domain to be set up).
+- Support email: derek@testamentmade.com, shared by Slinky, Dinky and Binky (Testament Made).
 
 ## Security rules (non-negotiable)
 - Secret values never go into: UserDefaults/@AppStorage, logs, print(), notifications, crash reports, Spotlight, file names, URLs, or test fixtures that look real. Tests use obviously fake values (`EXAMPLE`).

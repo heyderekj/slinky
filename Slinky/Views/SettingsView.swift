@@ -285,7 +285,7 @@ private struct AboutPane: View {
             Section {
                 Link("slinkyfiles.com", destination: URL(string: "https://slinkyfiles.com")!)
                 Link("Source code on GitHub", destination: URL(string: "https://github.com/heyderekj/slinky")!)
-                Link("help@slinkyfiles.com", destination: URL(string: "mailto:help@slinkyfiles.com")!)
+                Link("derek@testamentmade.com", destination: URL(string: "mailto:derek@testamentmade.com")!)
             } footer: {
                 Text("Made by Testament Made, LLC. Free and open source under the MIT License.")
                     .font(.caption).foregroundStyle(.secondary)

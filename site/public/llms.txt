@@ -31,4 +31,4 @@ A `slinky` command and an MCP server so AI coding tools can run apps with real k
 
 - Dinky makes files smaller: https://dinkyfiles.com
 - Binky sorts your files: https://binkyfiles.com
-- Made by Testament Made, LLC: https://testamentmade.com · help@slinkyfiles.com
+- Made by Testament Made, LLC: https://testamentmade.com · derek@testamentmade.com

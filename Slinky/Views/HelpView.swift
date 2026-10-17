@@ -55,7 +55,7 @@ struct HelpView: View {
             "Time Machine backs the file up like any other. It stays encrypted, and only your Touch ID or your Recovery Key opens it.",
         ]),
         Topic(symbol: "envelope", title: "Questions", body: [
-            "Write to help@slinkyfiles.com. Slinky is free and open source, made by Testament Made, LLC.",
+            "Write to derek@testamentmade.com. Slinky is free and open source, made by Testament Made, LLC.",
         ]),
     ]
 

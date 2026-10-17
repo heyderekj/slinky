@@ -27,4 +27,4 @@ Needs Attention · Import from 1Password or CSV · Shortcuts actions · Settings
 
 AI agents use your keys without seeing them: a `slinky` command and an MCP connection, with approval and a record of what each agent used.
 
-Made by Testament Made, LLC · help@slinkyfiles.com · MIT License
+Made by Testament Made, LLC · derek@testamentmade.com · MIT License
