@@ -28,5 +28,15 @@
 | Recovery Key | Save your Recovery Key. You need this key to open your vault on another Mac, or if Touch ID stops working. |
 | Wallet phrase | This looks like a crypto wallet recovery phrase. For your safety, Slinky doesn't store these. |
 
+## Where quirk lives (2026-10-17)
+Like Dinky and Binky: labels, buttons, security copy, errors and the lock screen stay plain. Personality lives at the edges.
+- **All Items empty state:** a rotating heading, one per animation loop (`LibraryView.taglines`). The line under it stays plain and says what to do.
+  - "Everyone loves a Slinky. Nobody loves a leaked key."
+  - "Walks down stairs. Never into your files."
+  - "Secrets in. Asterisks out."
+- **Website:** the heading matches the family pattern (Dinky makes files smaller. Binky sorts your files.): **Slinky keeps secrets out of your files.** Lower on the page, a glass pill slinks down a staircase and stops one step short of a `.env` step, a nod to the toy (and a certain detective's monastery staircase), with "Go, Slinky, go." as a small caption.
+- **Never** quote the toy's jingle lyrics or use an actor's name, image or film title. "Slinky" is the toy's registered trademark; keep it a light nod and check trademarks before launch.
+- Later: honest stats ("Kept 23 secrets out of your files."), agent receipts ("Claude used STRIPE_SECRET_KEY. Never saw it."), family update alerts ("All caught up." / "Nice"), and system sounds with a toggle.
+
 ## Site and marketing
 The site can be a little warmer than the app, but follows the same rules: clear first, no puns. The tagline stays, since it says plainly what Slinky does.

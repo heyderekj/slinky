@@ -5,6 +5,16 @@ import SwiftUI
 struct LibraryView: View {
     @Environment(AppModel.self) private var model
     let filter: LibraryFilter
+    /// Which tagline the All Items empty state shows. Advances once per animation loop. Not a secret.
+    @AppStorage("emptyTaglineIndex") private var taglineIndex = 0
+
+    /// The family's quirk lives at the edges: the first empty state gets a rotating line, like Dinky's.
+    /// Labels and buttons stay plain. See VOICE.md, "Where quirk lives".
+    static let taglines = [
+        "Everyone loves a Slinky. Nobody loves a leaked key.",
+        "Walks down stairs. Never into your files.",
+        "Secrets in. Asterisks out.",
+    ]
 
     private let columns = [GridItem(.adaptive(minimum: 270, maximum: 420), spacing: 14, alignment: .top)]
 
@@ -66,8 +76,13 @@ struct LibraryView: View {
 
     private var empty: some View {
         VStack(spacing: 14) {
-            VaultIdleAnimation(samples: samples)
-            Text(emptyTitle).font(.title2.weight(.bold))
+            VaultIdleAnimation(samples: samples) {
+                if filter == .all { withAnimation(.smooth) { taglineIndex += 1 } }
+            }
+            Text(emptyTitle)
+                .font(.title2.weight(.bold))
+                .multilineTextAlignment(.center)
+                .contentTransition(.opacity)
             Text(emptyLine).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 330)
             Button {
                 model.tuckPrefill = ""
@@ -86,7 +101,7 @@ struct LibraryView: View {
 
     private var emptyTitle: String {
         switch filter {
-        case .all: "No items yet"
+        case .all: Self.taglines[((taglineIndex % Self.taglines.count) + Self.taglines.count) % Self.taglines.count]
         case .keys: "No keys or tokens yet"
         case .recovery: "No recovery codes or keys yet"
         }

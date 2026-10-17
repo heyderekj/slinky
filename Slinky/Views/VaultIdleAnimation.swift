@@ -17,6 +17,8 @@ struct VaultIdleAnimation: View {
     }
 
     var samples: [Sample] = VaultIdleAnimation.defaultSamples
+    /// Called each time the story plays, so the empty state can show its next tagline (like Dinky).
+    var onLoop: () -> Void = {}
 
     /// Everything Slinky holds: a key, a project's .env line, recovery codes and a recovery key.
     static let defaultSamples = [
@@ -154,6 +156,7 @@ struct VaultIdleAnimation: View {
     }
 
     private func play() async {
+        onLoop()
         if reduceMotion {
             restShown = restShown.map { _ in true }
             finished = true
