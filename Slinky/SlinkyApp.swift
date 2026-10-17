@@ -45,6 +45,9 @@ struct SlinkyApp: App {
             CommandGroup(replacing: .appSettings) {
                 SettingsCommand()
             }
+            CommandGroup(replacing: .help) {
+                WindowCommand(title: "Slinky Help", id: "help")
+            }
             CommandGroup(after: .appInfo) {
                 Button("Lock Slinky") { model.lockAnimated() }
                     .keyboardShortcut("l", modifiers: [.command, .control])
@@ -60,6 +63,14 @@ struct SlinkyApp: App {
         }
         .windowResizability(.contentSize)
         .windowToolbarStyle(.unified(showsTitle: false))
+        .restorationBehavior(.disabled)
+
+        Window("Slinky Help", id: "help") {
+            HelpView()
+                .background(TransparentTitlebar(autosaveName: "SlinkyHelpWindow"))
+                .containerBackground(for: .window) { WindowGlass() }
+        }
+        .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
 
         MenuBarExtra(isInserted: $prefs.showInMenuBar) {
@@ -102,6 +113,18 @@ struct SettingsCommand: View {
             NSApp.activate()
         }
         .keyboardShortcut(",")
+    }
+}
+
+struct WindowCommand: View {
+    let title: String
+    let id: String
+    @Environment(\.openWindow) private var openWindow
+    var body: some View {
+        Button(title) {
+            openWindow(id: id)
+            NSApp.activate()
+        }
     }
 }
 

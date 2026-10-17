@@ -59,6 +59,17 @@ struct ProjectView: View {
                     .help("Import a .env file or link the project folder")
                 }
                 ToolbarItem {
+                    Menu {
+                        Button("Copy \(env.title) as .env") { copyAsEnv(project) }
+                            .disabled(!project.variables.contains { $0.value(in: env) != nil })
+                        Button("Save .env.example…") { saveExample(project) }
+                            .disabled(project.variables.isEmpty)
+                    } label: {
+                        Label("Share", systemImage: "square.and.arrow.up")
+                    }
+                    .help("Copy this environment as .env lines, or save a .env.example with names only")
+                }
+                ToolbarItem {
                     Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
                 }
             }
@@ -255,6 +266,31 @@ struct ProjectView: View {
         model.tuckProject = projectID
         model.tuckPrefill = "\(name)="
         model.showTuck = true
+    }
+
+    /// KEY=value lines for one environment, on the clipboard the careful way (private, clears itself).
+    /// For pasting into a host's dashboard. Slinky doesn't write values into files.
+    private func copyAsEnv(_ p: Project) {
+        let lines = p.variables.compactMap { v in v.value(in: env).map { (v.name, $0) } }
+        model.copy(DotEnv.render(lines), label: "\(lines.count) \(env.title) variables from \(p.name)", remember: false)
+    }
+
+    /// Names only, empty values: safe to commit, and it tells the next person (or agent) what the project needs.
+    private func saveExample(_ p: Project) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = ".env.example"
+        panel.showsHiddenFiles = true
+        panel.message = "A .env.example lists the variable names with no values. It's safe to commit."
+        if let folder = p.folders.first { panel.directoryURL = URL(fileURLWithPath: folder) }
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        let names = p.variables.map(\.name)
+        let text = "# Variables this project needs. Values live in Slinky, not here.\n" + names.map { "\($0)=" }.joined(separator: "\n") + "\n"
+        do {
+            try text.write(to: url, atomically: true, encoding: .utf8)
+            model.show("Saved \(url.lastPathComponent) with \(names.count) names and no values.")
+        } catch {
+            model.show("Couldn't save \(url.lastPathComponent).", style: .info)
+        }
     }
 
     private func pickEnvFile(_ p: Project) {
