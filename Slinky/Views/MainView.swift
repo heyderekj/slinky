@@ -95,13 +95,7 @@ struct SidebarView: View {
                     projectRow(project)
                 }
             } header: {
-                HStack {
-                    Text("Projects")
-                    Spacer()
-                    Button { model.showNewProject = true } label: { Image(systemName: "plus") }
-                        .buttonStyle(.borderless)
-                        .help("New Project (⇧⌘N)")
-                }
+                Text("Projects")
             }
         }
         .listStyle(.sidebar)
@@ -154,34 +148,21 @@ struct SidebarView: View {
         return true
     }
 
+    /// One labeled action, like Notes' "New Folder". Items are added from the toolbar's Add Item.
     private var footer: some View {
-        HStack(spacing: 8) {
-            Menu {
-                Button("New Item…") {
-                    model.tuckPrefill = ""
-                    model.tuckProject = nil
-                    model.showTuck = true
-                }
-                Button("New Project…") { model.showNewProject = true }
+        HStack {
+            Button {
+                model.showNewProject = true
             } label: {
-                Image(systemName: "plus")
-                    .frame(width: 22, height: 22)
+                Label("New Project", systemImage: "plus.circle")
             }
-            .menuStyle(.borderlessButton)
-            .menuIndicator(.hidden)
-            .fixedSize()
-            .help("Add an item or a project")
+            .buttonStyle(.borderless)
+            .foregroundStyle(.secondary)
+            .help("New Project (⇧⌘N)")
             Spacer()
-            if model.hasVault {
-                Label("Encrypted on this Mac", systemImage: "lock.shield")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
-                    .labelStyle(.titleAndIcon)
-                    .help("Everything in Slinky is encrypted and stays on this Mac. It locks when you lock your screen, after 10 minutes away, or when you press ⌃⌘L.")
-            }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
     }
 
     private func count(_ filter: LibraryFilter) -> Int {
@@ -223,15 +204,7 @@ struct ProjectsEmptyCard: View {
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Button {
-                model.showNewProject = true
-            } label: {
-                Label("New Project…", systemImage: "folder.badge.plus")
-            }
-            .buttonStyle(.glass)
-            .controlSize(.small)
-
-            Text("Or drop a project folder or .env file here.")
+            Text("Drop a project folder or .env file here.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
         }
