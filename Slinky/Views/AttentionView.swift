@@ -74,7 +74,6 @@ struct AttentionView: View {
                 }
             }
         }
-        .background(IceBackdrop(intensity: 0.7))
         .navigationTitle("Needs Attention")
         .navigationSubtitle(items.isEmpty ? "" : "\(items.count) \(items.count == 1 ? "item" : "items")")
     }
@@ -138,7 +137,6 @@ struct SearchResultsView: View {
                 .scrollContentBackground(.hidden)
             }
         }
-        .background(IceBackdrop(intensity: 0.7))
         .navigationTitle("Search")
         .navigationSubtitle("\(results.count) \(results.count == 1 ? "result" : "results")")
     }

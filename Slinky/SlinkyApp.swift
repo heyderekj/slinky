@@ -16,7 +16,7 @@ struct SlinkyApp: App {
                 .background(WindowOpenerBridge())
                 .background(TransparentTitlebar())
                 .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                .containerBackground(for: .window) { IceBackdrop() }
+                .containerBackground(for: .window) { WindowGlass() }
                 .environment(model)
         }
         .windowToolbarStyle(.unified(showsTitle: true))

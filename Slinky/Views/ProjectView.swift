@@ -29,9 +29,14 @@ struct ProjectView: View {
                     .background(Color.orange.opacity(0.12), in: .rect(cornerRadius: 11))
                     .padding([.horizontal, .top], 14)
                 }
+                // Values stay on opaque paper: the .env is a sheet floating on the glass.
                 envFile(project)
+                    .background(Color.paper, in: .rect(cornerRadius: 16))
+                    .clipShape(.rect(cornerRadius: 16))
+                    .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.secondary.opacity(0.15), lineWidth: 0.5))
+                    .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
+                    .padding(14)
             }
-            .background(.paper)
             .navigationTitle(project.name)
             .navigationSubtitle(subtitle(project))
             .toolbar {

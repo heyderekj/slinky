@@ -100,7 +100,6 @@ struct LockView: View {
                 .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(IceBackdrop())
         .sheet(isPresented: $showRecovery) {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Unlock with your Recovery Key").font(.headline)

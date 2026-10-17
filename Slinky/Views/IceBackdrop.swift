@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// The Slinky ground: pale ice with a soft light from the upper left (smoky slate in dark mode).
@@ -21,6 +22,32 @@ struct IceBackdrop: View {
         .opacity(intensity)
         .ignoresSafeArea()
     }
+}
+
+/// The window's ground: the desktop shows through, blurred (behind-window vibrancy), with a light ice tint.
+/// macOS turns it solid on its own when Reduce Transparency is on.
+struct WindowGlass: View {
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        ZStack {
+            BehindWindowBlur()
+            IceBackdrop(intensity: scheme == .dark ? 0.45 : 0.4)
+        }
+        .ignoresSafeArea()
+    }
+}
+
+private struct BehindWindowBlur: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .underWindowBackground
+        view.blendingMode = .behindWindow
+        view.state = .active
+        return view
+    }
+
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }
 
 /// Opaque "paper" under values, slightly cool so white-on-white never washes out.
