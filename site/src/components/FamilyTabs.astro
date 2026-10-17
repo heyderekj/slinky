@@ -1,21 +1,21 @@
 ---
-// The family tab strip at the top of every Testament Made app site (Dinky, Binky, Slinky).
-// Same idea as Dinky's and Binky's site-tabs: one tab per app, the current one raised.
-// Each site's own navigation lives in its bottom bar, so this strip only ever switches apps.
+// The family switcher on every Testament Made app site: a mini Dock at the top.
+// Dinky, Binky and Slinky's icons in one glass capsule; a dot under the current app (like the macOS
+// Dock's open-app dot); icons magnify on hover and show their names. Each site's own links live in its
+// bottom bar, so this only ever switches apps.
 interface Props { current: 'dinky' | 'binky' | 'slinky' }
 const { current } = Astro.props;
 const sites = [
-  { id: 'dinky', name: 'Dinky', href: 'https://dinkyfiles.com', icon: '/family/dinky.webp' },
-  { id: 'binky', name: 'Binky', href: 'https://binkyfiles.com', icon: '/family/binky.webp' },
-  { id: 'slinky', name: 'Slinky', href: 'https://slinkyfiles.com', icon: '/icons/slinky-320.webp' },
+  { id: 'dinky', name: 'Dinky', line: 'Makes files smaller', href: 'https://dinkyfiles.com', icon: '/family/dinky.webp' },
+  { id: 'binky', name: 'Binky', line: 'Sorts your files', href: 'https://binkyfiles.com', icon: '/family/binky.webp' },
+  { id: 'slinky', name: 'Slinky', line: 'Keeps secrets out of files', href: 'https://slinkyfiles.com', icon: '/icons/slinky-320.webp' },
 ];
 ---
-<nav class="family-tabs" aria-label="Apps by Testament Made">
-  <div class="family-tabs__inner">
-    {sites.map((s) => (
-      <a class:list={['family-tab', { 'is-active': s.id === current }]} href={s.id === current ? '#top' : s.href} aria-current={s.id === current ? 'page' : undefined}>
-        <img src={s.icon} alt="" width="20" height="20" />{s.name}
-      </a>
-    ))}
-  </div>
+<nav class="dock float-glass" aria-label="Apps by Testament Made">
+  {sites.map((s) => (
+    <a class:list={['dock__app', { 'is-current': s.id === current }]} href={s.id === current ? '#top' : s.href} aria-current={s.id === current ? 'page' : undefined} aria-label={`${s.name}: ${s.line}`}>
+      <img src={s.icon} alt="" width="34" height="34" />
+      <span class="dock__name" aria-hidden="true"><b>{s.name}</b>{s.line}</span>
+    </a>
+  ))}
 </nav>
