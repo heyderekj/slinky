@@ -17,8 +17,8 @@
       <path d="M 11.64 6.44 L 10.36 15.56 M 7.38 8.17 L 14.62 13.83 M 6.73 12.72 L 15.27 9.28 M 33.64 28.44 L 32.36 37.56 M 29.38 30.17 L 36.62 35.83 M 28.73 34.72 L 37.27 31.28" fill="none" stroke="#FFFFFF" stroke-width="1.7" stroke-linecap="round"/>
     </pattern>
     <!-- Faded in the middle: clear where the icons and words are, the pattern showing toward the edges. -->
-    <radialGradient id="fade" cx="300.0" cy="198.0" r="360.0" gradientUnits="userSpaceOnUse"
-                    gradientTransform="translate(300.0 198.0) scale(1 0.7) translate(-300.0 -198.0)">
+    <radialGradient id="fade" cx="300.0" cy="190.0" r="360.0" gradientUnits="userSpaceOnUse"
+                    gradientTransform="translate(300.0 190.0) scale(1 0.7) translate(-300.0 -190.0)">
       <stop offset="0.6" stop-color="#000000"/>
       <stop offset="0.97" stop-color="#FFFFFF"/>
     </radialGradient>
@@ -37,15 +37,12 @@
   <rect width="600" height="380" fill="url(#stars)" opacity="0.3" mask="url(#edges)"/>
 
   <!-- Soft light under each icon -->
-  <ellipse cx="160" cy="172" rx="96" ry="84" fill="url(#pool)"/>
-  <ellipse cx="440" cy="172" rx="96" ry="84" fill="url(#pool)"/>
+  <ellipse cx="160" cy="178" rx="96" ry="84" fill="url(#pool)"/>
+  <ellipse cx="440" cy="178" rx="96" ry="84" fill="url(#pool)"/>
 
   <!-- The arrow: one easy arc, dotted like something on its way -->
-  <path d="M 242 166 C 280 126, 320 126, 356 166"
+  <path d="M 242 172 C 280 132, 320 132, 356 172"
         fill="none" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="2.6" stroke-linecap="round"
         stroke-dasharray="0.1 9" marker-end="url(#head)"/>
 
-  <!-- What to do -->
-  <text x="300.0" y="326" text-anchor="middle" font-family="SF Pro Display, SF Pro Text, Helvetica Neue, Helvetica, sans-serif"
-        font-size="14" font-weight="500" fill="#FFFFFF" fill-opacity="0.92" letter-spacing="0.1">Drag Slinky into Applications</text>
 </svg>
