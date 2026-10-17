@@ -235,10 +235,13 @@ STRIPE_SECRET_KEY=••••••••
       <p class="compare__note"><span class="compare__key"><span class="yes"><Icon name="checkc" /> Yes</span><span class="part"><Icon name="half" /> Partly</span><span class="no"><Icon name="dash" /> No</span></span> <span>As of October 2026.</span></p>
     </section>
 
-    <section class="cta-mid wrap">
-      <h2 class="section-title">Give your secrets a home.</h2>
-      <p class="cta-mid-sub">Free, about {release.sizeMB} MB, and nothing leaves your Mac.</p>
-      <a class="btn btn--primary" href={release.dmg} data-download><Icon name="download" /> Download for Mac</a>
+    {/* The download, as a quiet strip between hairlines: icon and words on the left, the button on the right. */}
+    <section class="get wrap" aria-labelledby="get-heading">
+      <div class="get__strip">
+        <img src="/icons/slinky-320.webp" alt="" width="64" height="64" />
+        <div class="get__copy"><h2 id="get-heading">Give your secrets a home.</h2><p>Free, about {release.sizeMB} MB, and nothing leaves your Mac.</p></div>
+        <div class="get__act"><a class="btn btn--primary" href={release.dmg} data-download><Icon name="download" /> Download for Mac</a><small>v{release.version} · {release.minOS} · Apple silicon</small></div>
+      </div>
     </section>
 
     <section class="section wrap" id="privacy" aria-labelledby="privacy-heading">
