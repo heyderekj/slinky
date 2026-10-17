@@ -83,7 +83,9 @@ export function startGlass() {
   };
 
   const ro = new ResizeObserver((entries) => entries.forEach((e) => build(e.target as HTMLElement)));
-  const watch = () => document.querySelectorAll<HTMLElement>('[data-glass]').forEach((el) => {
+  // Only small controls bend (as in Tahoe). Big surfaces are frosted material in CSS; a lens that strong
+  // on a large surface pulls in pixels from outside the page.
+  const watch = () => document.querySelectorAll<HTMLElement>('[data-glass="capsule"]').forEach((el) => {
     if (!el.dataset.glassId) { el.dataset.glassId = `lg${count++}`; ro.observe(el); }
   });
   watch();

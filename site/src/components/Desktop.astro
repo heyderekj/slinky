@@ -2,11 +2,11 @@
 // A little Mac screen: the mesh wallpaper inside a rounded frame, with a Tahoe menu bar along the top.
 // The menu bar is clear (no bar), text sits on the wallpaper, items get a rounded highlight on hover,
 // and the status items are in macOS's order: app extras, battery, Wi-Fi, Spotlight, Control Center, clock.
-interface Props { class?: string; app?: string }
-const { class: cls = '', app = 'Slinky' } = Astro.props;
+interface Props { class?: string; app?: string; menubar?: boolean }
+const { class: cls = '', app = 'Slinky', menubar = false } = Astro.props;
 ---
 <div class={`desktop ${cls}`} data-desktop>
-  <div class="menubar" aria-hidden="true">
+  {menubar && <div class="menubar" aria-hidden="true">
     <span class="mb-item mb-apple">&#xF8FF;</span>
     <span class="mb-item mb-app">{app}</span>
     <span class="mb-item">File</span><span class="mb-item">Edit</span><span class="mb-item">View</span>
@@ -29,6 +29,6 @@ const { class: cls = '', app = 'Slinky' } = Astro.props;
       </span>
       <span class="mb-item mb-clock" data-clock>Fri Oct 17&nbsp;&nbsp;9:41 AM</span>
     </span>
-  </div>
+  </div>}
   <div class="desktop__stage"><slot /></div>
 </div>
