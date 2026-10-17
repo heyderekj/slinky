@@ -103,14 +103,14 @@ struct MenuRow: View {
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .frame(width: 18)
-                    .foregroundStyle(hovering ? Color.white : Color.secondary)
+                    .foregroundStyle(hovering ? Color.onAccent : Color.secondary)
                 Text(title)
                 Spacer()
                 if let shortcut {
-                    Text(shortcut).foregroundStyle(hovering ? Color.white.opacity(0.85) : Color.secondary)
+                    Text(shortcut).foregroundStyle(hovering ? Color.onAccent.opacity(0.75) : Color.secondary)
                 }
             }
-            .foregroundStyle(hovering ? Color.white : Color.primary)
+            .foregroundStyle(hovering ? Color.onAccent : Color.primary)
             .padding(.horizontal, 10)
             .padding(.vertical, 5)
             .background(hovering && !disabled ? Color.accentColor : .clear, in: .rect(cornerRadius: 7))
@@ -137,10 +137,10 @@ struct RecentRow: View {
                     .lineLimit(1)
                 Spacer()
                 if hovering {
-                    Text("Copy").font(.caption).foregroundStyle(Color.white.opacity(0.85))
+                    Text("Copy").font(.caption).foregroundStyle(Color.onAccent.opacity(0.75))
                 }
             }
-            .foregroundStyle(hovering ? Color.white : Color.primary)
+            .foregroundStyle(hovering ? Color.onAccent : Color.primary)
             .padding(.horizontal, 10)
             .padding(.vertical, 4)
             .background(hovering ? Color.accentColor : .clear, in: .rect(cornerRadius: 7))
