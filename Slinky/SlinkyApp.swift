@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 @main
@@ -7,9 +8,13 @@ struct SlinkyApp: App {
     var body: some Scene {
         Window("Slinky", id: "main") {
             RootView()
-                .environment(model)
                 .frame(minWidth: 880, minHeight: 560)
-                .task { model.start() }
+                .task {
+                    model.start()
+                    QuickAccess.shared.configure(model)
+                }
+                .background(WindowOpenerBridge())
+                .environment(model)
         }
         .defaultSize(width: 1120, height: 720)
         .commands {
@@ -21,10 +26,32 @@ struct SlinkyApp: App {
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
             }
+            CommandGroup(after: .newItem) {
+                Button("Quick Access") { QuickAccess.shared.show() }
+                    .keyboardShortcut("k", modifiers: [.command, .option])
+            }
             CommandGroup(after: .appInfo) {
                 Button("Lock Slinky") { model.lock(reason: .manual) }
                     .keyboardShortcut("l", modifiers: [.command, .control])
                     .disabled(!model.isUnlocked)
+            }
+        }
+        MenuBarExtra("Slinky", systemImage: "asterisk") {
+            MenuBarStack().environment(model)
+        }
+        .menuBarExtraStyle(.window)
+    }
+}
+
+/// Lets non-SwiftUI code (Quick Access) bring the main window back.
+struct WindowOpenerBridge: View {
+    @Environment(AppModel.self) private var model
+    @Environment(\.openWindow) private var openWindow
+    var body: some View {
+        Color.clear.onAppear {
+            model.openMainWindow = {
+                openWindow(id: "main")
+                NSApp.activate()
             }
         }
     }

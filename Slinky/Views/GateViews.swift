@@ -7,7 +7,7 @@ struct WelcomeView: View {
 
     var body: some View {
         VStack(spacing: 18) {
-            KeyholeMark(size: 112)
+            KeyholeMark(size: 112).floating()
             Text("Slinky keeps secrets out of your files.")
                 .font(.system(size: 26, weight: .bold))
                 .multilineTextAlignment(.center)
@@ -27,9 +27,7 @@ struct WelcomeView: View {
                 Text(error).font(.callout).foregroundStyle(.red).frame(maxWidth: 440)
             }
         }
-        .padding(40)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.background)
+        .gateCard()
     }
 }
 
@@ -71,9 +69,7 @@ struct RecoveryKeyView: View {
                 .disabled(!saved)
                 .keyboardShortcut(.defaultAction)
         }
-        .padding(40)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.background)
+        .gateCard()
     }
 }
 
@@ -100,7 +96,7 @@ struct LockView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            KeyholeMark(size: 96)
+            KeyholeMark(size: 96).floating()
             Text("Locked. Touch ID to peek.")
                 .font(.system(size: 22, weight: .bold))
             if let note = model.lockNote {
@@ -122,9 +118,7 @@ struct LockView: View {
                 .buttonStyle(.link)
                 .font(.callout)
         }
-        .padding(40)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(.background)
+        .gateCard()
         .sheet(isPresented: $showRecovery) {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Unlock with your Recovery Key").font(.headline)

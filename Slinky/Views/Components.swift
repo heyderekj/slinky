@@ -118,20 +118,20 @@ struct KeyholeMark: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.225, style: .continuous)
-                .fill(LinearGradient(colors: [Color(red: 0.97, green: 0.99, blue: 1), Color(red: 0.84, green: 0.91, blue: 0.96)],
+                .fill(LinearGradient(colors: [Color(red: 0.55, green: 0.80, blue: 0.95), Color(red: 0.20, green: 0.52, blue: 0.78)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
             AsteriskShape()
                 .stroke(Color.white, style: StrokeStyle(lineWidth: size * 0.146, lineCap: .round))
-                .shadow(color: Color(red: 0.31, green: 0.46, blue: 0.6).opacity(0.35), radius: size * 0.04, x: size * 0.012, y: size * 0.018)
+                .shadow(color: Color(red: 0.05, green: 0.2, blue: 0.35).opacity(0.45), radius: size * 0.04, x: size * 0.012, y: size * 0.018)
                 .rotationEffect(.degrees(-8))
                 .padding(size * 0.21)
             Capsule()
-                .fill(LinearGradient(colors: [Color(red: 0.12, green: 0.25, blue: 0.37), Color(red: 0.31, green: 0.5, blue: 0.66)],
+                .fill(LinearGradient(colors: [Color(red: 0.06, green: 0.16, blue: 0.27), Color(red: 0.14, green: 0.30, blue: 0.45)],
                                      startPoint: .top, endPoint: .bottom))
                 .frame(width: size * 0.053, height: size * 0.15)
                 .offset(y: size * 0.03)
                 .overlay(Circle()
-                    .fill(Color(red: 0.12, green: 0.25, blue: 0.37))
+                    .fill(Color(red: 0.06, green: 0.16, blue: 0.27))
                     .frame(width: size * 0.12)
                     .offset(y: -size * 0.07))
                 .rotationEffect(.degrees(-8))

@@ -25,7 +25,7 @@ struct LibraryView: View {
                 }
             }
         }
-        .background(Color(nsColor: .underPageBackgroundColor).opacity(0.5))
+        .background(IceBackdrop(intensity: 0.7))
         .navigationTitle(filter.title)
         .navigationSubtitle(subtitle)
     }

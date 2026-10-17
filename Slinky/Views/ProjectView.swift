@@ -31,7 +31,7 @@ struct ProjectView: View {
                 }
                 envFile(project)
             }
-            .background(Color(nsColor: .textBackgroundColor))
+            .background(.paper)
             .navigationTitle(project.name)
             .navigationSubtitle(subtitle(project))
             .toolbar {

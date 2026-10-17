@@ -67,6 +67,8 @@ final class AppModel {
     var errorMessage: String?
     var lockNote: String?
     var busy = false
+    var quickAccessToken = UUID()
+    @ObservationIgnored var openMainWindow: (() -> Void)?
 
     @ObservationIgnored private var session: VaultSession?
     @ObservationIgnored private let enclave = EnclaveWrapper()
