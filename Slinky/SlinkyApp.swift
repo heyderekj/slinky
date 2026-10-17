@@ -14,8 +14,12 @@ struct SlinkyApp: App {
                     QuickAccess.shared.configure(model)
                 }
                 .background(WindowOpenerBridge())
+                .background(TransparentTitlebar())
+                .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+                .containerBackground(for: .window) { IceBackdrop() }
                 .environment(model)
         }
+        .windowToolbarStyle(.unified(showsTitle: true))
         .defaultSize(width: 1120, height: 720)
         .commands {
             CommandGroup(replacing: .newItem) {
@@ -40,6 +44,26 @@ struct SlinkyApp: App {
             MenuBarStack().environment(model)
         }
         .menuBarExtraStyle(.window)
+    }
+}
+
+/// Content runs under a see-through title bar, Tahoe style (same idea as Binky's TransparentWindow).
+struct TransparentTitlebar: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async { Self.apply(view.window) }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) { Self.apply(nsView.window) }
+
+    private static func apply(_ window: NSWindow?) {
+        guard let window else { return }
+        window.titlebarAppearsTransparent = true
+        window.styleMask.insert(.fullSizeContentView)
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.setFrameAutosaveName("SlinkyMainWindow")
     }
 }
 
