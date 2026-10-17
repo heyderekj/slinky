@@ -26,6 +26,7 @@ enum LibraryFilter: String, CaseIterable, Hashable {
 
 enum SidebarItem: Hashable {
     case library(LibraryFilter)
+    case attention
     case project(UUID)
 }
 
@@ -90,6 +91,9 @@ final class AppModel {
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var idleTimer: Timer?
     @ObservationIgnored private var undoSnapshot: VaultDocument?
+
+    /// The sidebar search field. Cleared on lock.
+    var searchText = ""
 
     var isUnlocked: Bool { phase == .unlocked }
 
@@ -181,6 +185,7 @@ final class AppModel {
         session = nil
         document = VaultDocument()
         recent = []
+        searchText = ""
         undoSnapshot = nil
         showTuck = false
         showNewProject = false
