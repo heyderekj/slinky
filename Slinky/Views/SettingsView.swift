@@ -28,29 +28,72 @@ struct SettingsView: View {
         }
     }
 
-    @State private var pane: Pane? = .general
+    // Back and forward, like Dinky's Settings.
+    @State private var history: [Pane] = [.general]
+    @State private var index = 0
+
+    private var pane: Pane { history[index] }
 
     var body: some View {
         NavigationSplitView {
-            List(Pane.allCases, selection: $pane) { pane in
-                Label(pane.title, systemImage: pane.symbol).tag(pane)
-            }
-            .navigationSplitViewColumnWidth(190)
-            .toolbar(removing: .sidebarToggle)
-        } detail: {
-            Group {
-                switch pane ?? .general {
-                case .general: GeneralPane()
-                case .security: SecurityPane()
-                case .recovery: RecoveryKeyPane()
-                case .about: AboutPane()
+            List(selection: Binding(get: { pane }, set: { select($0) })) {
+                Section("Settings") {
+                    ForEach([Pane.general, .security, .recovery]) { row($0) }
+                }
+                Section("Slinky") {
+                    row(.about)
                 }
             }
-            .formStyle(.grouped)
-            .scrollContentBackground(.hidden)
-            .navigationTitle((pane ?? .general).title)
+            .listStyle(.sidebar)
+            .navigationTitle("")
+            .toolbar(removing: .sidebarToggle)
+            .toolbarBackground(.clear, for: .automatic)
+            .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 260)
+        } detail: {
+            NavigationStack {
+                Group {
+                    switch pane {
+                    case .general: GeneralPane()
+                    case .security: SecurityPane()
+                    case .recovery: RecoveryKeyPane()
+                    case .about: AboutPane()
+                    }
+                }
+                .formStyle(.grouped)
+                .scrollContentBackground(.hidden)
+                .frame(minWidth: 480, maxWidth: .infinity, maxHeight: .infinity)
+                .navigationTitle(pane.title)
+                .toolbar {
+                    ToolbarItem(placement: .navigation) {
+                        Button { index -= 1 } label: { Image(systemName: "chevron.backward") }
+                            .buttonStyle(.bordered)
+                            .help("Back")
+                            .disabled(index == 0)
+                    }
+                    ToolbarItem(placement: .navigation) {
+                        Button { index += 1 } label: { Image(systemName: "chevron.forward") }
+                            .buttonStyle(.bordered)
+                            .help("Forward")
+                            .disabled(index >= history.count - 1)
+                    }
+                    ToolbarSpacer(.flexible)
+                }
+            }
         }
-        .frame(width: 700, height: 500)
+        .navigationSplitViewStyle(.balanced)
+        .toolbarBackground(.clear, for: .windowToolbar)
+        .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
+        .frame(minWidth: 760, minHeight: 560)
+    }
+
+    private func row(_ pane: Pane) -> some View {
+        Label(pane.title, systemImage: pane.symbol).tag(pane)
+    }
+
+    private func select(_ new: Pane) {
+        guard new != pane else { return }
+        history = Array(history.prefix(index + 1)) + [new]
+        index = history.count - 1
     }
 }
 

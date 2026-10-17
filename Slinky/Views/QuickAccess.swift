@@ -45,7 +45,7 @@ final class QuickAccess {
         panel.hasShadow = true
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.isMovableByWindowBackground = true
-        let host = NSHostingView(rootView: QuickAccessView().environment(model))
+        let host = NSHostingView(rootView: QuickAccessView().symbolVariant(.fill).environment(model))
         host.sizingOptions = []
         panel.contentView = host
         return panel

@@ -393,9 +393,7 @@ struct AddItemPanel: View {
 
     private var footer: some View {
         HStack(spacing: 10) {
-            Label("Encrypted on this Mac", systemImage: "lock.shield")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            EncryptedNote()
             Spacer()
             Button("Cancel", action: close)
                 .keyboardShortcut(.cancelAction)
@@ -592,6 +590,15 @@ struct AddItemPanel: View {
 }
 
 // MARK: Small parts
+
+/// The reassurance in every panel footer. Readable, not fine print.
+struct EncryptedNote: View {
+    var body: some View {
+        Label("Encrypted on this Mac", systemImage: "lock.shield")
+            .font(.callout)
+            .foregroundStyle(.secondary)
+    }
+}
 
 struct Keycap: View {
     let text: String

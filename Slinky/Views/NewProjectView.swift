@@ -85,9 +85,9 @@ struct NewProjectPanel: View {
     private var header: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
-                Monogram(text: name.isEmpty ? "?" : name, size: 42)
+                Monogram(text: name, size: 42)
                 TextField("", text: Binding(get: { name }, set: { name = $0; nameTouched = true }),
-                          prompt: Text("Project name, like harvous"))
+                          prompt: Text("Project name, like Slinky"))
                     .textFieldStyle(.plain)
                     .font(.system(size: 20, weight: .semibold))
                     .focused($nameFocused)
@@ -239,9 +239,7 @@ struct NewProjectPanel: View {
 
     private var footer: some View {
         HStack(spacing: 10) {
-            Label("Encrypted on this Mac", systemImage: "lock.shield")
-                .font(.caption)
-                .foregroundStyle(.tertiary)
+            EncryptedNote()
             Spacer()
             Button("Cancel", action: close)
                 .keyboardShortcut(.cancelAction)

@@ -23,7 +23,7 @@
 | Empty Recovery | No recovery codes or keys yet. For backup codes and recovery keys that get you back into your accounts. |
 | Detection | Looks like a Stripe live key. |
 | Saved | Saved to Recovery. |
-| Import | Imported 9 variables to harvous. |
+| Import | Imported 9 variables to Slinky. |
 | Copy | Copied STRIPE_SECRET_KEY. The clipboard clears in 60 seconds. |
 | Code used | Copied and marked as used. 7 left. |
 | Low codes | Only 3 codes left. Consider generating new ones. |

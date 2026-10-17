@@ -29,9 +29,11 @@ struct LockSwitch: View {
                 }
             }
             .frame(width: 60, height: 28)
+            .padding(3)
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
+        .glassEffect(.regular.interactive(), in: .capsule)
         .animation(.spring(response: 0.38, dampingFraction: 0.72), value: locked)
         .help(!model.hasVault ? "Slinky can lock once you've saved your first item" : locked ? "Unlock Slinky" : "Lock Slinky (⌃⌘L)")
         .accessibilityLabel("Lock")
@@ -44,6 +46,39 @@ struct LockSwitch: View {
             .font(.system(size: 11.5, weight: .semibold))
             .foregroundStyle(active ? Color.onAccent : Color.secondary)
             .frame(width: 26, height: 26)
+    }
+}
+
+/// Pins the lock switch to the right end of the title bar with an NSTitlebarAccessoryViewController.
+/// Toolbar items can be pushed into the overflow (») menu while the sidebar animates; this can't.
+struct LockSwitchAccessory: NSViewRepresentable {
+    let model: AppModel
+    private static let id = NSUserInterfaceItemIdentifier("slinky.lockSwitch")
+
+    func makeNSView(context: Context) -> NSView {
+        let view = NSView()
+        DispatchQueue.main.async { Self.install(in: view.window, model: model) }
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        Self.install(in: nsView.window, model: model)
+    }
+
+    private static func install(in window: NSWindow?, model: AppModel) {
+        guard let window, !window.titlebarAccessoryViewControllers.contains(where: { $0.identifier == id }) else { return }
+        let host = NSHostingView(rootView:
+            LockSwitch()
+                .symbolVariant(.fill)
+                .environment(model)
+                .frame(maxHeight: .infinity)
+                .padding(.trailing, 14))
+        host.frame = NSRect(x: 0, y: 0, width: 94, height: 52)
+        let accessory = NSTitlebarAccessoryViewController()
+        accessory.identifier = id
+        accessory.view = host
+        accessory.layoutAttribute = .trailing
+        window.addTitlebarAccessoryViewController(accessory)
     }
 }
 
@@ -66,7 +101,7 @@ struct LockCurtain: View {
         GeometryReader { geo in
             let size = geo.size
             let reach = hypot(size.width, size.height) * 1.05
-            let origin = CGPoint(x: size.width - 48, y: 26)   // the lock switch, top right
+            let origin = CGPoint(x: size.width - 47, y: 26)   // the lock switch, top right
             let middle = CGPoint(x: size.width / 2, y: size.height / 2)
             ZStack {
                 IceBackdrop()

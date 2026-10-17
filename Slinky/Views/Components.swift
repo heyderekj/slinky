@@ -2,27 +2,65 @@ import SlinkyCoreShared
 import SwiftUI
 
 /// Provider initials on a soft tinted square. No brand logos, no network.
+/// A small Mac-app-icon tile for a service, project or account: a continuous squircle with a vibrant gradient,
+/// a soft top sheen, a hairline rim and a white letter. Colors come from a short curated palette that sits
+/// well next to Slinky's glacier blue. With no name yet, it shows Slinky's own asterisk on glacier blue.
 struct Monogram: View {
     var text: String
     var size: CGFloat = 30
 
+    /// (top, bottom) gradient stops. Glacier first: it's Slinky's own color.
+    private static let palette: [(Color, Color)] = [
+        (Color(red: 0.55, green: 0.80, blue: 0.96), Color(red: 0.18, green: 0.50, blue: 0.80)),   // glacier
+        (Color(red: 0.42, green: 0.88, blue: 0.86), Color(red: 0.05, green: 0.56, blue: 0.62)),   // teal
+        (Color(red: 0.56, green: 0.92, blue: 0.66), Color(red: 0.12, green: 0.62, blue: 0.40)),   // mint
+        (Color(red: 0.62, green: 0.66, blue: 1.00), Color(red: 0.30, green: 0.30, blue: 0.86)),   // indigo
+        (Color(red: 0.80, green: 0.64, blue: 1.00), Color(red: 0.50, green: 0.28, blue: 0.86)),   // violet
+        (Color(red: 1.00, green: 0.64, blue: 0.80), Color(red: 0.86, green: 0.28, blue: 0.54)),   // pink
+        (Color(red: 1.00, green: 0.70, blue: 0.56), Color(red: 0.92, green: 0.36, blue: 0.28)),   // coral
+        (Color(red: 1.00, green: 0.84, blue: 0.46), Color(red: 0.94, green: 0.56, blue: 0.14)),   // amber
+    ]
+
+    private var trimmed: String { text.trimmingCharacters(in: .whitespaces) }
+
+    /// "GITHUB_TOKEN" → "GT", "Slinky" → "S", "Apple Account" → "AA".
     private var initials: String {
-        let letters = text.filter { $0.isLetter || $0.isNumber }
-        return String(letters.prefix(2)).capitalized
+        let words = trimmed.split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+        if words.count >= 2 { return String(words.prefix(2).compactMap(\.first)).uppercased() }
+        return trimmed.first.map { String($0).uppercased() } ?? ""
     }
 
-    private var hue: Double {
-        let sum = text.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0xFFFF }
-        return Double(sum % 360) / 360
+    private var colors: (Color, Color) {
+        guard !initials.isEmpty else { return Self.palette[0] }
+        let sum = trimmed.lowercased().unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) & 0xFFFF }
+        return Self.palette[sum % Self.palette.count]
     }
 
     var body: some View {
-        Text(initials.isEmpty ? "•" : initials)
-            .font(.system(size: size * 0.38, weight: .bold, design: .rounded))
-            .foregroundStyle(Color(hue: hue, saturation: 0.45, brightness: 0.45))
-            .frame(width: size, height: size)
-            .background(Color(hue: hue, saturation: 0.25, brightness: 0.96), in: .rect(cornerRadius: size * 0.27))
-            .accessibilityHidden(true)
+        let shape = RoundedRectangle(cornerRadius: size * 0.26, style: .continuous)
+        let (top, bottom) = colors
+        ZStack {
+            shape.fill(LinearGradient(colors: [top, bottom], startPoint: .top, endPoint: .bottom))
+            // The sheen: light from above, like the app icon.
+            shape.fill(LinearGradient(colors: [.white.opacity(0.32), .white.opacity(0)], startPoint: .top, endPoint: .center))
+            if initials.isEmpty {
+                AsteriskShape()
+                    .stroke(Color.white, style: StrokeStyle(lineWidth: size * 0.12, lineCap: .round))
+                    .frame(width: size * 0.56, height: size * 0.56)
+                    .rotationEffect(.degrees(-8))
+            } else {
+                Text(initials)
+                    .font(.system(size: size * (initials.count > 1 ? 0.38 : 0.48), weight: .bold, design: .rounded))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.18), radius: size * 0.02, y: size * 0.02)
+                    .minimumScaleFactor(0.5)
+            }
+        }
+        .frame(width: size, height: size)
+        .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.45), .black.opacity(0.12)], startPoint: .top, endPoint: .bottom),
+                                    lineWidth: max(0.5, size * 0.02)))
+        .shadow(color: bottom.opacity(0.35), radius: size * 0.1, y: size * 0.05)
+        .accessibilityHidden(true)
     }
 }
 

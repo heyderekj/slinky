@@ -45,7 +45,7 @@ private struct EditPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
-                Monogram(text: name.isEmpty ? "?" : name, size: 34)
+                Monogram(text: name, size: 34)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title).font(.headline)
                     Text(kindLabel).font(.caption).foregroundStyle(.secondary)
@@ -155,7 +155,7 @@ private struct EditPanel: View {
                 }
             }
         case .project:
-            FieldRow("Name") { plainField($name, prompt: "harvous") }
+            FieldRow("Name") { plainField($name, prompt: "Slinky") }
             FieldRow("Folders", last: true) {
                 VStack(alignment: .leading, spacing: 6) {
                     if folders.isEmpty {

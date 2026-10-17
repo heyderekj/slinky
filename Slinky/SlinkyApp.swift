@@ -9,6 +9,7 @@ struct SlinkyApp: App {
     var body: some Scene {
         Window("Slinky", id: "main") {
             RootView()
+                .symbolVariant(.fill)   // filled SF Symbols everywhere (Derek, 2026-10-17)
                 .frame(minWidth: 880, minHeight: 560)
                 .task {
                     model.start()
@@ -56,17 +57,21 @@ struct SlinkyApp: App {
         }
         Window("Slinky Settings", id: "settings") {
             SettingsView()
+                .symbolVariant(.fill)
                 .environment(model)
                 .environment(prefs)
                 .background(TransparentTitlebar(autosaveName: "SlinkySettingsWindow"))
                 .containerBackground(for: .window) { WindowGlass() }
         }
-        .windowResizability(.contentSize)
-        .windowToolbarStyle(.unified(showsTitle: false))
+        // Same chrome as Dinky's Settings: a Window scene with a unified title bar showing the pane's name.
+        .windowToolbarStyle(.unified(showsTitle: true))
+        .defaultSize(width: 760, height: 560)
+        .windowResizability(.contentMinSize)
         .restorationBehavior(.disabled)
 
         Window("Slinky Help", id: "help") {
             HelpView()
+                .symbolVariant(.fill)
                 .background(TransparentTitlebar(autosaveName: "SlinkyHelpWindow"))
                 .containerBackground(for: .window) { WindowGlass() }
         }
@@ -74,7 +79,7 @@ struct SlinkyApp: App {
         .restorationBehavior(.disabled)
 
         MenuBarExtra(isInserted: $prefs.showInMenuBar) {
-            MenuBarStack().environment(model)
+            MenuBarStack().symbolVariant(.fill).environment(model)
         } label: {
             Image(nsImage: MenuBarIcon.image)
         }
@@ -156,10 +161,8 @@ struct RootView: View {
         .overlay { LockCurtain() }
         // While unlocked, toasts live over the detail column (MainView) so they center on the content.
         .overlay(alignment: .bottom) { if model.phase != .unlocked { ToastView() } }
-        .toolbar {
-            if model.phase != .loading {
-                ToolbarItem(placement: .primaryAction) { LockSwitch() }
-            }
-        }
+        // The lock switch lives in the title bar, not the toolbar, so it never slides into the
+        // toolbar's overflow menu while the sidebar opens or closes.
+        .background(LockSwitchAccessory(model: model))
     }
 }
