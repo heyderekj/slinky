@@ -84,12 +84,13 @@ p { margin: 0; text-wrap: pretty; }
 .menubar {
   --mb-ink: rgb(0 0 0 / 0.85);
   position: relative; z-index: 3; display: flex; align-items: center; height: 26px; padding: 0 6px;
-  font-family: var(--app-font); font-size: 13px; line-height: 1; letter-spacing: -0.005em; color: var(--mb-ink);
+  font-family: var(--app-font); font-size: 13px; font-weight: 500; line-height: 1; letter-spacing: -0.005em; color: var(--mb-ink);
   -webkit-font-smoothing: antialiased; user-select: none;
 }
 .mb-item { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 6px; white-space: nowrap; transition: background 0.12s; }
 .mb-item:hover { background: rgb(0 0 0 / 0.1); }
-.mb-apple { font-size: 15px; padding: 0 10px 0 9px; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif; }
+.mb-apple { padding: 0 10px 0 9px; }
+.mb-apple svg { display: block; }
 .mb-app { font-weight: 700; }
 .mb-right { margin-left: auto; display: flex; align-items: center; }
 .mb-icon { padding: 0 7px; }
