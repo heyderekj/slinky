@@ -93,7 +93,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     `Voice: ${site.voice || 'plain and friendly'}`,
     `If the question has nothing to do with ${app}, reply with one short, playful line (a light joke is welcome) that steers back to what ${app} does.`,
     'Never ask for, repeat or store keys, passwords or recovery codes.',
-    `\nCONTEXT\n\nFAQ:\n${faqText}\n\nHOMEPAGE:\n${home}\n\nMORE:\n${llms}`,
+    `\nCONTEXT\n\nFAQ:\n${faqText}\n\nHOMEPAGE:\n${home}\n\nMORE:\n${llms}${site.more ? `\n\nHELP:\n${site.more}` : ''}`,
   ].join('\n');
 
   let ai;

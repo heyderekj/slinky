@@ -127,7 +127,7 @@
         const label = h.previousElementSibling?.matches('.eyebrow, [class*="eyebrow"], [class*="label"]') ? clean(h.previousElementSibling.textContent) : '';
         return { el: host, text: words(h), find: `${label} ${words(h)}` };
       }),
-      ...$$('main summary').filter((q) => !q.closest('.desktop')).map((q) => ({ el: q.closest('details') || q, text: clean(q.textContent), find: clean(q.textContent) })),
+      ...$$('main summary, main .faq-q').filter((q) => !q.closest('.desktop')).map((q) => ({ el: q.closest('details, .faq-item') || q, text: clean(q.textContent), find: clean(q.textContent) })),
     ];
     // Tahoe's Spotlight: a large glass, large placeholder, and the four modes (Applications, Files, Actions, Clipboard) on the right.
     const modes = [

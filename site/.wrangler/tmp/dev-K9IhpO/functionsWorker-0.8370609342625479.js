@@ -1021,7 +1021,10 @@ HOMEPAGE:
 ${home}
 
 MORE:
-${llms}`
+${llms}${site.more ? `
+
+HELP:
+${site.more}` : ""}`
   ].join("\n");
   let ai;
   try {
