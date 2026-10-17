@@ -17,9 +17,17 @@ struct HelpView: View {
             "Passwords belong in Apple Passwords. Slinky doesn't store crypto wallet recovery phrases, for your safety.",
         ]),
         Topic(symbol: "plus", title: "Adding things", body: [
-            "Press ⌘N and paste. Slinky turns the value into dots straight away, says what it looks like, and suggests where it goes. Change anything with the chips, then press Return.",
+            "Press ⌘N or the + button and paste. Slinky turns the value into dots straight away, says what it looks like, and suggests where it goes. Change anything with the chips, then press Return.",
+            "You can also press ⌘V anywhere in the window (when you're not typing in a field), or drop text on it. In a project, adding puts a variable in that project.",
+            "Closed Add Item by accident? It keeps what you typed until you save, discard it, or Slinky locks. Locking clears it.",
             "Drop a project folder or a .env file on the sidebar to make a project. Slinky reads the .env files, guesses each file's environment, and tells you if git could commit them.",
             "If you paste something that's already saved, Slinky tells you where. You can still save it again.",
+        ]),
+        Topic(symbol: "note.text", title: "Notes, links and icons", body: [
+            "Add a note or a link with the chips under the value, or later with Edit. Links open in your browser with Open in the details on the right.",
+            "Slinky shows each service's icon: its Mac app if you have it, otherwise its logo, otherwise initials. It works this out from the name, the website and the link, never the value. On Macs with Apple Intelligence, it can also ask the on-device model about names it doesn't know.",
+            "Choose a different icon by clicking the icon in the details, or with Choose Icon… in an item's menu: any app on your Mac, any service Slinky knows, or initials.",
+            "Load icons from websites, in Settings › General, is off until you turn it on. With it on, Slinky asks an item's website for its icon. With it off, you can still load one item's icon from its details.",
         ]),
         Topic(symbol: "square.and.arrow.down.on.square", title: "Importing", body: [
             "Bring keys over from another app with File › Import… (⇧⌘I). Slinky reads a .1pux export from 1Password, or a CSV from Apple Passwords, Bitwarden or a spreadsheet of keys.",
@@ -35,6 +43,10 @@ struct HelpView: View {
             "Press ⌥⌘K anywhere for Quick Access. Type to find something, then press Return to copy it.",
             "What Slinky copies is marked private, so clipboard history apps skip it and it doesn't go to your other devices. The clipboard clears after 60 seconds, or the time you choose in Settings, if you haven't copied anything else.",
             "Copying a recovery code crosses it off, since each code works once.",
+        ]),
+        Topic(symbol: "trash", title: "Recently Deleted", body: [
+            "Deleting moves things to Recently Deleted, with Undo straight away. They stay there for 30 days, then they're deleted for good.",
+            "Restore puts something back where it was. Delete Now and Empty delete for good, after you confirm.",
         ]),
         Topic(symbol: "lock", title: "Locking", body: [
             "Slinky opens with Touch ID. It locks when your screen locks, when your Mac sleeps, after 10 minutes away, and after 12 hours. Change these in Settings › Security.",
@@ -53,6 +65,7 @@ struct HelpView: View {
             "In one encrypted file on this Mac. There's no account and nothing goes to a server.",
             "Slinky goes online for two things: a daily check with GitHub for a newer version, and, only if you turn on Load icons from websites, a request to each saved website for its icon. Both are in Settings › General.",
             "Time Machine backs the file up like any other. It stays encrypted, and only your Touch ID or your Recovery Key opens it.",
+            "File › Export Backup… saves your whole vault as one encrypted file to keep somewhere else. It opens only with the Recovery Key you have when you make it. Restore it with File › Restore from Backup…, which replaces the vault on this Mac.",
         ]),
         Topic(symbol: "envelope", title: "Questions", body: [
             "Write to derek@testamentmade.com. Slinky is free and open source, made by Testament Made, LLC.",

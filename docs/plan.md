@@ -308,4 +308,6 @@ While Slinky is busy, the keyhole is absorbed into the asterisk (it scales and f
 ## v1.0.0 status (2026-10-17)
 Built: vault with Touch ID and Recovery Key (and making a new one), Keys & Tokens, Recovery, Projects with folder scan/.gitignore check/.env.example, Add Item and New Project panels, editing everything, Needs Attention, search, Quick Access ⌥⌘K, menu bar, Shortcuts actions, Settings (lock timing, clipboard timing, menu bar, open at login, sounds), Help, project export (Copy as .env, Save .env.example), release script, DMG/zip, Homebrew cask.
 Before publishing: Derek's real-use test (his recovery key, personal token and .env secret), a light-mode pass, and a GitHub remote.
-Next milestone (v1.1): the agents work (slinky CLI with masking, socket broker, approval cards, receipts, MCP, Connect for Claude Code), then Raycast.
+Built in the 1.1 app pass (2026-10-17): add from anywhere (toolbar +, ⌘V, drop), drafts that survive closing, notes and links on every item, the compact library list with a details pane, real service icons (installed apps, bundled logos, Apple Intelligence matching, website icons only when turned on), Recently Deleted, and backup export and restore.
+
+Next milestone (1.2, its own plan): the agents work (slinky CLI with masking, socket broker, approval cards, receipts, MCP, Connect for Claude Code), then Raycast.

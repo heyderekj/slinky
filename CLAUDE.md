@@ -14,6 +14,8 @@
 - Nothing in an MCP/CLI response may contain or be derived from a value (no hashes, lengths, prefixes beyond `Peek`).
 - Shortcuts (`Slinky/Intents/`): no intent returns a value. Items are exposed by name only, and only while unlocked. "Copy from Slinky" asks for Touch ID every time (any app can run a shortcut) and copies through `Clipboard.copy`. "Add to Slinky" opens Add Item for the person to check; it never saves on its own.
 - Copy that promises safety must stay honest and plain. Never overclaim what Slinky protects against.
+- Network: only the update check (can be turned off) and website icons (off unless turned on; `WebsiteIcons`: https only, straight to the site, no cookies, icons stored in the vault). Any new request needs Derek's OK and honest copy everywhere Slinky says what goes online.
+- Icons and Apple Intelligence matching get names, "from" and link sites only, never values. Icon caches and Add Item drafts are memory only and clear on lock.
 
 ## Size and dependencies (from the family rules)
 - Apple frameworks only. No SPM or CocoaPods dependencies without Derek's approval and a size justification. No web views, no Electron.
