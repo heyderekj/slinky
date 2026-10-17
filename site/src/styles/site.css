@@ -429,7 +429,7 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 .compare thead .us { border-radius: 14px 14px 0 0; }
 .compare tbody tr:last-child .us { border-radius: 0 0 14px 14px; }
-.compare__note { margin-top: 12px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.compare__note { margin-top: 14px; font-size: 13px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; justify-content: center; }
 .compare__key { display: inline-flex; gap: 14px; }
 .compare__key > span { display: inline-flex; align-items: center; gap: 5px; }
 .compare__key .icon { width: 15px; height: 15px; }
