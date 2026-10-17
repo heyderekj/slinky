@@ -11,6 +11,16 @@ extension Detection.Destination {
         }
     }
 
+    /// One short line under the name on the starter tiles.
+    var hint: String {
+        switch self {
+        case .key: "API keys and access tokens"
+        case .project: "Lines from a .env file"
+        case .codes: "Backup codes for two-step sign-in"
+        case .kept: "Keys that get you back into an account"
+        }
+    }
+
     /// Where it ends up, in the sidebar's words.
     var place: String {
         switch self {
@@ -101,8 +111,8 @@ struct AddItemPanel: View {
 
             footer.padding(.top, 18)
         }
-        .padding(20)
-        .frame(width: 580)
+        .padding(24)
+        .frame(width: 720)
         .glassEffect(.regular, in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)
         .scaleEffect(appeared ? 1 : 0.95)
@@ -121,16 +131,17 @@ struct AddItemPanel: View {
     // MARK: Empty: the field
 
     private var input: some View {
-        TextField("", text: $text, prompt: Text("Paste a key, recovery codes or .env lines").font(.system(size: 17)), axis: .vertical)
+        TextField("", text: $text, prompt: Text("Paste a key, recovery codes or .env lines"), axis: .vertical)
             .textFieldStyle(.plain)
-            .font(.system(size: 16, weight: .medium, design: .monospaced))
+            // The prompt reads as a sentence; what you type reads as code.
+            .font(text.isEmpty ? .system(size: 19, weight: .regular) : .system(size: 17, weight: .medium, design: .monospaced))
             .lineLimit(1...5)
             .focused($focus, equals: .input)
             .onSubmit(capture)
-            .padding(.horizontal, 18)
-            .padding(.top, 18)
-            .padding(.bottom, 44)
-            .frame(maxWidth: .infinity, minHeight: 128, alignment: .topLeading)
+            .padding(.horizontal, 20)
+            .padding(.top, 20)
+            .padding(.bottom, 48)
+            .frame(maxWidth: .infinity, minHeight: 170, alignment: .topLeading)
             .background(Color.paper, in: .rect(cornerRadius: 18))
             .overlay {
                 RoundedRectangle(cornerRadius: 18)
@@ -147,19 +158,32 @@ struct AddItemPanel: View {
             .accessibilityLabel("Value to save")
     }
 
-    /// For typing a value Slinky can't recognize: pick what it is first.
+    /// For typing a value Slinky can't recognize: pick what it is first. Two lines each, by design.
     private var starters: some View {
-        HStack(spacing: 8) {
-            Text("Or start with").font(.callout).foregroundStyle(.secondary)
-            ForEach(Detection.Destination.allCases, id: \.self) { d in
-                Button {
-                    destination = d
-                    destinationTouched = true
-                    focus = .input
-                } label: {
-                    Label(d.title, systemImage: d.symbol)
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Or choose what you're adding").font(.callout).foregroundStyle(.secondary)
+            HStack(spacing: 10) {
+                ForEach(Detection.Destination.allCases, id: \.self) { d in
+                    Button {
+                        destination = d
+                        destinationTouched = true
+                        focus = .input
+                    } label: {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Image(systemName: d.symbol)
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundStyle(.tint)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(d.title).font(.callout.weight(.semibold)).lineLimit(1)
+                                Text(d.hint).font(.caption).foregroundStyle(.secondary)
+                                    .lineLimit(2, reservesSpace: true)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(TileButtonStyle(selected: destinationTouched && destination == d))
                 }
-                .buttonStyle(ChipButtonStyle(selected: destinationTouched && destination == d))
             }
         }
     }
@@ -580,6 +604,28 @@ private struct ChipLabel: View {
             Text(text)
             if menu { Image(systemName: "chevron.down").font(.system(size: 8.5, weight: .bold)).opacity(0.6) }
         }
+    }
+}
+
+/// A starter tile: quiet until hovered, tinted when chosen.
+struct TileButtonStyle: ButtonStyle {
+    var selected: Bool
+    @State private var hovering = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .foregroundStyle(Color.primary)
+            .padding(12)
+            .background(fill(configuration.isPressed), in: .rect(cornerRadius: 14))
+            .overlay(RoundedRectangle(cornerRadius: 14)
+                .strokeBorder(selected ? Color.accentColor.opacity(0.5) : Color.secondary.opacity(hovering ? 0.3 : 0.18), lineWidth: 1))
+            .contentShape(.rect(cornerRadius: 14))
+            .onHover { hovering = $0 }
+    }
+
+    private func fill(_ pressed: Bool) -> Color {
+        if selected { return Color.accentColor.opacity(pressed ? 0.24 : 0.15) }
+        return Color.secondary.opacity(pressed ? 0.14 : hovering ? 0.09 : 0.05)
     }
 }
 

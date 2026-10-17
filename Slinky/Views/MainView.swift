@@ -17,6 +17,8 @@ struct MainView: View {
             }
         }
         .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search")
+        // Add Item floats on its own: the window behind it softens.
+        .blur(radius: model.showTuck ? 10 : 0)
         .overlay {
             if model.showTuck { AddItemOverlay().transition(.opacity) }
         }
