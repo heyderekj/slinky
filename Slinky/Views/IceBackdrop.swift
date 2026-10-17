@@ -58,13 +58,10 @@ extension ShapeStyle where Self == Color {
             : NSColor(red: 0.985, green: 0.99, blue: 1.0, alpha: 1)
     }) }
 
-    /// Text on an accent-colored highlight. White on the deep light-mode accent (about 4.6:1);
-    /// deep navy on the pale dark-mode accent (about 10:1). White there was only 1.8:1.
-    static var onAccent: Color { Color(nsColor: NSColor(name: nil) { appearance in
-        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-            ? NSColor(red: 0.055, green: 0.133, blue: 0.2, alpha: 1)
-            : .white
-    }) }
+    /// Text on an accent-colored highlight. White in both modes: the accent (#4a7aa3, light and dark)
+    /// is deep enough for it, about 4.6:1. The old pale dark-mode accent wasn't.
+    static var onAccent: Color { .white }
+
 }
 
 /// A gentle float for the mark on welcome and lock screens. Off with Reduce Motion.

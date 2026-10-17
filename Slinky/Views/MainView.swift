@@ -19,7 +19,6 @@ struct MainView: View {
             }
             .overlay(alignment: .bottom) { ToastView() }
         }
-        .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search")
         .overlay {
             if model.showTuck {
                 AddItemOverlay().transition(.opacity)
@@ -56,6 +55,7 @@ struct MainView: View {
 struct SidebarView: View {
     @Environment(AppModel.self) private var model
     @State private var dropTarget: UUID?
+    @FocusState private var searchFocused: Bool
 
     var body: some View {
         @Bindable var model = model
@@ -94,6 +94,21 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
+        // Our own search field. The built-in one moves into the toolbar when the sidebar hides,
+        // and overflows (») while the sidebar animates.
+        .safeAreaInset(edge: .top, spacing: 0) {
+            SidebarSearchField(text: $model.searchText, focused: $searchFocused)
+                .padding(.horizontal, 10)
+                .padding(.top, 2)
+                .padding(.bottom, 6)
+        }
+        .background {
+            Button("Find") { searchFocused = true }
+                .keyboardShortcut("f")
+                .opacity(0)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
         .animation(.smooth, value: attention.isEmpty)
         .safeAreaInset(edge: .bottom, spacing: 0) { footer }
     }
@@ -168,6 +183,38 @@ struct SidebarView: View {
         case .keys: model.document.keys.count
         case .recovery: model.document.codeSets.count + model.document.kept.count
         }
+    }
+}
+
+/// Looks like the system search field: a capsule with a magnifying glass, a clear button, Esc to clear.
+struct SidebarSearchField: View {
+    @Binding var text: String
+    var focused: FocusState<Bool>.Binding
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+            TextField("", text: $text, prompt: Text("Search"))
+                .textFieldStyle(.plain)
+                .focused(focused)
+                .onExitCommand { text = "" }
+            if !text.isEmpty {
+                Button { text = "" } label: {
+                    Image(systemName: "xmark.circle")
+                        .foregroundStyle(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Clear search")
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(height: 30)
+        .background(Color.primary.opacity(0.07), in: Capsule())
+        .overlay(Capsule().strokeBorder(focused.wrappedValue ? Color.accentColor.opacity(0.6) : .clear, lineWidth: 1.5))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Search Slinky")
     }
 }
 
