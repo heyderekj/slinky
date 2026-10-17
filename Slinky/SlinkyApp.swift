@@ -34,14 +34,19 @@ struct SlinkyApp: App {
                 Button("Quick Access") { QuickAccess.shared.show() }
                     .keyboardShortcut("k", modifiers: [.command, .option])
             }
+            CommandGroup(replacing: .appInfo) {
+                Button("About Slinky") { AboutPanel.show() }
+            }
             CommandGroup(after: .appInfo) {
                 Button("Lock Slinky") { model.lock(reason: .manual) }
                     .keyboardShortcut("l", modifiers: [.command, .control])
                     .disabled(!model.isUnlocked)
             }
         }
-        MenuBarExtra("Slinky", systemImage: "asterisk") {
+        MenuBarExtra {
             MenuBarStack().environment(model)
+        } label: {
+            Image(nsImage: MenuBarIcon.image)
         }
         .menuBarExtraStyle(.window)
     }

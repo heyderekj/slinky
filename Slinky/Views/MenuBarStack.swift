@@ -1,88 +1,86 @@
+import AppKit
 import SlinkyCoreShared
 import SwiftUI
 
-/// Layout F: the menu bar as a stack of small glass cards.
+/// The menu bar menu: a header with status and a lock toggle, then native-feeling rows.
 struct MenuBarStack: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        VStack(spacing: 8) {
-            card {
-                HStack(spacing: 10) {
-                    Circle().fill(model.isUnlocked ? Color.green : Color.orange).frame(width: 9, height: 9)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text(model.isUnlocked ? "Unlocked" : "Locked").font(.headline)
-                        Text(model.isUnlocked ? "Locks after 10 minutes of inactivity" : "Unlock with Touch ID")
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    if model.isUnlocked {
-                        Button("Lock") { model.lock(reason: .manual) }.buttonStyle(.glass).controlSize(.small)
-                    } else {
-                        Button("Unlock…") { model.unlock() }.buttonStyle(.glassProminent).controlSize(.small)
-                    }
-                }
-            }
-            card {
-                Button {
+        VStack(alignment: .leading, spacing: 0) {
+            header
+            Divider().padding(.horizontal, 12)
+            VStack(spacing: 2) {
+                MenuRow(icon: "magnifyingglass", title: "Quick Access", shortcut: "⌥⌘K") {
                     QuickAccess.shared.show()
-                } label: {
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                        Text("Quick Access")
-                        Spacer()
-                        Text("⌥⌘K").foregroundStyle(.secondary)
-                    }
-                    .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
-                Divider().opacity(0.5)
-                Button {
+                MenuRow(icon: "plus", title: "Add Item…", shortcut: "⌘N", disabled: !model.isUnlocked) {
                     open()
                     model.tuckPrefill = ""
                     model.tuckProject = nil
                     model.showTuck = true
-                } label: {
-                    HStack {
-                        Image(systemName: "plus")
-                        Text("Add Item…")
-                        Spacer()
-                        Text("⌘N").foregroundStyle(.secondary)
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .disabled(!model.isUnlocked)
-            }
-            if model.isUnlocked, !model.document.projects.isEmpty {
-                card {
-                    Text("Projects").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    FlowChips(items: model.document.projects.map { ($0.id, $0.name) }) { id in
-                        model.selection = .project(id)
-                        open()
-                    }
                 }
             }
-            HStack {
-                Button("Open Slinky") { open() }
-                Spacer()
-                Button("Quit") { NSApp.terminate(nil) }
+            .padding(6)
+            if model.isUnlocked, !model.recent.isEmpty {
+                Divider().padding(.horizontal, 12)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Recently Copied")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.top, 4)
+                    ForEach(model.recent) { item in
+                        RecentRow(item: item) { model.copy(item.value, label: item.title, provider: item.provider) }
+                    }
+                }
+                .padding(6)
             }
-            .buttonStyle(.plain)
-            .font(.caption)
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 6)
+            Divider().padding(.horizontal, 12)
+            VStack(spacing: 2) {
+                MenuRow(icon: "macwindow", title: "Open Slinky") { open() }
+                MenuRow(icon: "info.circle", title: "About Slinky") { AboutPanel.show() }
+                MenuRow(icon: "power", title: "Quit Slinky", shortcut: "⌘Q") { NSApp.terminate(nil) }
+            }
+            .padding(6)
         }
-        .padding(10)
-        .frame(width: 320)
+        .frame(width: 300)
     }
 
-    private func card<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 8) { content() }
-            .padding(12)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glassEffect(.regular, in: .rect(cornerRadius: 16))
+    private var header: some View {
+        HStack(spacing: 10) {
+            KeyholeMark(size: 30)
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Slinky").font(.headline)
+                HStack(spacing: 5) {
+                    Circle()
+                        .fill(model.isUnlocked ? Color.green : Color.orange)
+                        .frame(width: 6, height: 6)
+                    Text(status).font(.caption).foregroundStyle(.secondary)
+                }
+            }
+            Spacer()
+            if model.hasVault {
+                Button {
+                    if model.isUnlocked { model.lock(reason: .manual) } else { model.unlock() }
+                } label: {
+                    Image(systemName: model.isUnlocked ? "lock.open.fill" : "lock.fill")
+                        .contentTransition(.symbolEffect(.replace))
+                        .frame(width: 18, height: 18)
+                }
+                .buttonStyle(.glass)
+                .buttonBorderShape(.circle)
+                .help(model.isUnlocked ? "Lock Slinky" : "Unlock Slinky")
+            }
+        }
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
+    }
+
+    private var status: String {
+        if !model.hasVault { return "No vault yet" }
+        return model.isUnlocked ? "Unlocked" : "Locked"
     }
 
     private func open() {
@@ -91,45 +89,130 @@ struct MenuBarStack: View {
     }
 }
 
-/// Wrapping row of pill buttons.
-struct FlowChips: View {
-    let items: [(UUID, String)]
-    let action: (UUID) -> Void
+/// A row that looks and behaves like a Tahoe menu item: icon, title, shortcut, highlight on hover.
+struct MenuRow: View {
+    let icon: String
+    let title: String
+    var shortcut: String?
+    var disabled = false
+    let action: () -> Void
+    @State private var hovering = false
 
     var body: some View {
-        FlowLayout(spacing: 6) {
-            ForEach(items, id: \.0) { id, name in
-                Button(name) { action(id) }
-                    .buttonStyle(.glass)
-                    .controlSize(.small)
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .frame(width: 18)
+                    .foregroundStyle(hovering ? Color.white : Color.secondary)
+                Text(title)
+                Spacer()
+                if let shortcut {
+                    Text(shortcut).foregroundStyle(hovering ? Color.white.opacity(0.85) : Color.secondary)
+                }
             }
+            .foregroundStyle(hovering ? Color.white : Color.primary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(hovering && !disabled ? Color.accentColor : .clear, in: .rect(cornerRadius: 7))
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
+        .disabled(disabled)
+        .opacity(disabled ? 0.4 : 1)
+        .onHover { hovering = $0 }
     }
 }
 
-struct FlowLayout: Layout {
-    var spacing: CGFloat = 6
+struct RecentRow: View {
+    let item: RecentItem
+    let action: () -> Void
+    @State private var hovering = false
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
-        let width = proposal.width ?? 300
-        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
-        for view in subviews {
-            let size = view.sizeThatFits(.unspecified)
-            if x + size.width > width, x > 0 { x = 0; y += rowHeight + spacing; rowHeight = 0 }
-            x += size.width + spacing
-            rowHeight = max(rowHeight, size.height)
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 9) {
+                Monogram(text: item.provider ?? item.title, size: 22)
+                Text(item.title)
+                    .font(.system(size: 12, weight: .medium, design: item.mono ? .monospaced : .default))
+                    .lineLimit(1)
+                Spacer()
+                if hovering {
+                    Text("Copy").font(.caption).foregroundStyle(Color.white.opacity(0.85))
+                }
+            }
+            .foregroundStyle(hovering ? Color.white : Color.primary)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 4)
+            .background(hovering ? Color.accentColor : .clear, in: .rect(cornerRadius: 7))
+            .contentShape(Rectangle())
         }
-        return CGSize(width: width, height: y + rowHeight)
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+    }
+}
+
+/// Slinky's own menu bar glyph: the asterisk with the keyhole cut out, as a template image.
+enum MenuBarIcon {
+    static let image: NSImage = {
+        let size = NSSize(width: 18, height: 18)
+        let image = NSImage(size: size, flipped: false) { rect in
+            guard let ctx = NSGraphicsContext.current?.cgContext else { return false }
+            let c = CGPoint(x: rect.midX, y: rect.midY)
+            let r: CGFloat = 7.6
+            ctx.setLineCap(.round)
+            ctx.setLineWidth(3.6)
+            ctx.setStrokeColor(NSColor.black.cgColor)
+            for i in 0..<3 {
+                let a = (CGFloat(90 + i * 60) - 8) * .pi / 180
+                ctx.move(to: CGPoint(x: c.x + r * cos(a), y: c.y + r * sin(a)))
+                ctx.addLine(to: CGPoint(x: c.x - r * cos(a), y: c.y - r * sin(a)))
+            }
+            ctx.strokePath()
+            // Keyhole cut-out.
+            ctx.setBlendMode(.clear)
+            ctx.fillEllipse(in: CGRect(x: c.x - 1.35, y: c.y - 0.2, width: 2.7, height: 2.7))
+            ctx.fill(CGRect(x: c.x - 0.6, y: c.y - 2.6, width: 1.2, height: 2.8))
+            return true
+        }
+        image.isTemplate = true
+        image.accessibilityDescription = "Slinky"
+        return image
+    }()
+}
+
+/// The standard About panel with Dinky-style credits underneath.
+enum AboutPanel {
+    static func show() {
+        let paragraph = NSMutableParagraphStyle()
+        paragraph.alignment = .center
+        paragraph.lineSpacing = 2
+        let base: [NSAttributedString.Key: Any] = [.font: NSFont.systemFont(ofSize: 11),
+                                                   .foregroundColor: NSColor.secondaryLabelColor,
+                                                   .paragraphStyle: paragraph]
+        var link = base
+        link.removeValue(forKey: .foregroundColor)
+        let credits = NSMutableAttributedString()
+        credits.append(NSAttributedString(string: "\(bundleSize()) · Made by Testament Made, LLC\n", attributes: base))
+        var site = link; site[.link] = URL(string: "https://slinkyfiles.com")!
+        credits.append(NSAttributedString(string: "slinkyfiles.com\n", attributes: site))
+        var repo = link; repo[.link] = URL(string: "https://github.com/heyderekj/slinky")!
+        credits.append(NSAttributedString(string: "github.com/heyderekj/slinky\n", attributes: repo))
+        var mail = link; mail[.link] = URL(string: "mailto:help@slinkyfiles.com")!
+        credits.append(NSAttributedString(string: "help@slinkyfiles.com", attributes: mail))
+        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+        NSApp.activate()
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
-        var x = bounds.minX, y = bounds.minY, rowHeight: CGFloat = 0
-        for view in subviews {
-            let size = view.sizeThatFits(.unspecified)
-            if x + size.width > bounds.maxX, x > bounds.minX { x = bounds.minX; y += rowHeight + spacing; rowHeight = 0 }
-            view.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
-            x += size.width + spacing
-            rowHeight = max(rowHeight, size.height)
+    /// The installed size, like Finder shows it, so "small and native" stays honest.
+    private static func bundleSize() -> String {
+        let url = Bundle.main.bundleURL
+        var total: Int64 = 0
+        if let e = FileManager.default.enumerator(at: url, includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey]) {
+            for case let file as URL in e {
+                let values = try? file.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
+                if values?.isRegularFile == true { total += Int64(values?.fileSize ?? 0) }
+            }
         }
+        return ByteCountFormatter.string(fromByteCount: total, countStyle: .file)
     }
 }

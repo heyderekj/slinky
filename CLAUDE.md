@@ -2,6 +2,10 @@
 
 **Slinky keeps secrets out of your files.** The third app in Derek Castelli's family (Dinky makes files smaller, Binky sorts your files). Native macOS 26+ app for developer secrets: API keys, project .env variables, 2FA recovery codes, and anything a website says to store somewhere safe. Agents use secrets without seeing them (CLI and MCP land in the agents milestone).
 
+## Ownership
+- Slinky is made by **Testament Made, LLC**, the same as Dinky and Binky. Use it in `LICENSE` (MIT), the Info.plist copyright (`© 2026 Testament Made, LLC`), the About panel credits, and the site footer.
+- Support email: help@slinkyfiles.com (domain to be set up).
+
 ## Security rules (non-negotiable)
 - Secret values never go into: UserDefaults/@AppStorage, logs, print(), notifications, crash reports, Spotlight, file names, URLs, or test fixtures that look real. Tests use obviously fake values (`EXAMPLE`).
 - Only `SlinkyCoreVault` touches crypto and the keychain. Never use `/usr/bin/security`. Never fall back silently to weaker storage.

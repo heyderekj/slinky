@@ -45,6 +45,14 @@ enum LockReason {
     }
 }
 
+struct RecentItem: Identifiable, Equatable {
+    var id: String { title }
+    let title: String
+    let provider: String?
+    let value: String
+    var mono: Bool { title.allSatisfy { $0.isUppercase || $0 == "_" || $0.isNumber } }
+}
+
 struct Toast: Identifiable, Equatable {
     let id = UUID()
     var text: String
@@ -73,6 +81,8 @@ final class AppModel {
     var recoveryKeyToShow: String?
     var hasVault = false
     var quickAccessToken = UUID()
+    /// The last few things copied, for the menu bar. Memory only; cleared on lock.
+    var recent: [RecentItem] = []
     @ObservationIgnored var openMainWindow: (() -> Void)?
 
     @ObservationIgnored private var session: VaultSession?
@@ -172,6 +182,7 @@ final class AppModel {
         guard phase == .unlocked, hasVault else { return }
         session = nil
         document = VaultDocument()
+        recent = []
         undoSnapshot = nil
         showTuck = false
         showNewProject = false
@@ -319,8 +330,13 @@ final class AppModel {
         }
     }
 
-    func copy(_ value: String, label: String) {
+    func copy(_ value: String, label: String, provider: String? = nil, remember: Bool = true) {
         Clipboard.copy(value)
+        if remember {
+            recent.removeAll { $0.title == label }
+            recent.insert(RecentItem(title: label, provider: provider, value: value), at: 0)
+            recent = Array(recent.prefix(3))
+        }
         show("Copied \(label). The clipboard clears in 60 seconds.")
     }
 

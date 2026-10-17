@@ -30,7 +30,7 @@ struct RecoveryKeySheet: View {
                 .fixedSize(horizontal: false, vertical: true)
             HStack {
                 Button("Print…") { RecoveryPrinter.print(key) }
-                Button("Copy") { model.copy(key, label: "your Recovery Key") }
+                Button("Copy") { model.copy(key, label: "your Recovery Key", remember: false) }
                 Spacer()
             }
             .buttonStyle(.glass)
