@@ -1,8 +1,7 @@
 ---
-// The family switcher on every Testament Made app site: a mini Dock at the top.
-// Dinky, Binky and Slinky's icons in one glass capsule; a dot under the current app (like the macOS
-// Dock's open-app dot); icons magnify on hover and show their names. Each site's own links live in its
-// bottom bar, so this only ever switches apps.
+// The family switcher on every Testament Made app site: a Dock along the bottom, like the macOS Dock.
+// Dinky, Binky and Slinky's icons on one glass shelf; a dot under the current app; icons magnify toward
+// the pointer and show their names above. Each site's own links live in its nav at the top.
 interface Props { current: 'dinky' | 'binky' | 'slinky' }
 const { current } = Astro.props;
 const sites = [
@@ -14,7 +13,7 @@ const sites = [
 <nav class="dock float-glass" aria-label="Apps by Testament Made">
   {sites.map((s) => (
     <a class:list={['dock__app', { 'is-current': s.id === current }]} href={s.id === current ? '#top' : s.href} aria-current={s.id === current ? 'page' : undefined} aria-label={`${s.name}: ${s.line}`}>
-      <img src={s.icon} alt="" width="34" height="34" />
+      <img src={s.icon} alt="" width="54" height="54" />
       <span class="dock__name" aria-hidden="true"><b>{s.name}</b>{s.line}</span>
     </a>
   ))}

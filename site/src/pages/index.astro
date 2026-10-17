@@ -44,7 +44,15 @@ const faq = [
 ];
 ---
 <Layout title={`Slinky · ${title}`} description={description}>
-  <FamilyTabs current="slinky" />
+  <nav class="nav float-glass" aria-label="Slinky">
+    <a class="nav__home" href="#top"><img src="/icons/slinky-320.webp" alt="" width="26" height="26" /> Slinky</a>
+    <a class="nav__link" href="#features">Features</a>
+    <a class="nav__link" href="#compare">Compare</a>
+    <a class="nav__link" href="#privacy">Privacy</a>
+    <a class="nav__link" href="#faq">FAQ</a>
+    <a class="btn btn--quiet btn--small" href="https://github.com/heyderekj/slinky" data-stars><Icon name="github" /><span data-star-count>GitHub</span></a>
+    <a class="btn btn--primary btn--small" href={release.dmg} data-download>Download</a>
+  </nav>
 
   <main id="top">
     <header class="hero wrap">
@@ -234,15 +242,7 @@ const faq = [
     </section>
   </main>
 
-  <nav class="bar float-glass" aria-label="Slinky">
-    <a class="bar__home" href="#top"><img src="/icons/slinky-320.webp" alt="" width="26" height="26" /> Slinky</a>
-    <a class="bar__link" href="#features">Features</a>
-    <a class="bar__link" href="#compare">Compare</a>
-    <a class="bar__link" href="#privacy">Privacy</a>
-    <a class="bar__link" href="#faq">FAQ</a>
-    <a class="btn btn--quiet btn--small" href="https://github.com/heyderekj/slinky" data-stars><Icon name="github" /><span data-star-count>GitHub</span></a>
-    <a class="btn btn--primary btn--small" href={release.dmg} data-download>Download</a>
-  </nav>
+  <FamilyTabs current="slinky" />
 
   <footer class="foot wrap">
     <span>Made by <a href="https://testamentmade.com">Testament Made, LLC</a> · <a href="mailto:help@slinkyfiles.com">help@slinkyfiles.com</a></span>

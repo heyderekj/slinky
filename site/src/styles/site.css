@@ -67,46 +67,47 @@ html.no-gl [data-glass] {
 
 .wrap { width: min(1140px, 100% - 2 * var(--gutter)); margin-inline: auto; }
 
-/* ---------- The family Dock (top) ----------
-   Every Testament Made app site has the same mini Dock at the top: Dinky, Binky, Slinky. A dot marks the
-   app you're on; icons magnify toward the pointer and show their names, like the macOS Dock. */
+/* ---------- The family Dock (bottom) ----------
+   Every Testament Made app site ends with the same Dock along the bottom edge: Dinky, Binky, Slinky.
+   Big app icons on a glass shelf, a dot under the app you're on, magnification toward the pointer and a
+   name label above, like the macOS Dock. */
 .dock {
-  position: fixed; z-index: 45; top: 12px; left: 50%; translate: -50% 0;
-  display: flex; align-items: flex-end; gap: 6px; padding: 6px 8px 8px; border-radius: 20px;
+  position: fixed; z-index: 45; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); translate: -50% 0;
+  display: flex; align-items: flex-end; gap: 10px; padding: 9px 12px 11px; border-radius: 26px;
 }
 .dock__app { position: relative; display: grid; justify-items: center; text-decoration: none; }
 .dock__app img {
-  width: 34px; height: 34px; border-radius: 23%; transform-origin: 50% 100%;
-  transition: scale 0.22s var(--ease), translate 0.22s var(--ease);
-  box-shadow: 0 4px 10px -4px rgb(10 40 80 / 0.35);
+  width: 54px; height: 54px; border-radius: 23%; transform-origin: 50% 100%;
+  transition: scale 0.25s var(--ease), translate 0.25s var(--ease);
+  box-shadow: 0 6px 14px -6px rgb(10 40 80 / 0.4);
 }
-.dock__app.is-current::after { content: ''; position: absolute; bottom: -6px; width: 4px; height: 4px; border-radius: 50%; background: var(--ink-soft); }
+.dock__app.is-current::after { content: ''; position: absolute; bottom: -8px; width: 5px; height: 5px; border-radius: 50%; background: var(--ink-soft); }
 @media (hover: hover) {
-  .dock__app:hover img { scale: 1.32; translate: 0 -3px; }
-  .dock__app:hover + .dock__app img, .dock__app:has(+ .dock__app:hover) img { scale: 1.12; translate: 0 -1px; }
+  .dock__app:hover img { scale: 1.45; translate: 0 -8px; }
+  .dock__app:hover + .dock__app img, .dock__app:has(+ .dock__app:hover) img { scale: 1.18; translate: 0 -3px; }
 }
 .dock__name {
-  position: absolute; top: calc(100% + 14px); left: 50%; translate: -50% -4px; opacity: 0; pointer-events: none;
-  display: grid; justify-items: center; gap: 1px; padding: 6px 10px; border-radius: 10px; white-space: nowrap;
+  position: absolute; bottom: calc(100% + 30px); left: 50%; translate: -50% 4px; opacity: 0; pointer-events: none;
+  display: grid; justify-items: center; gap: 1px; padding: 6px 12px; border-radius: 10px; white-space: nowrap;
   font-size: 12px; color: var(--ink-soft); background: var(--card); box-shadow: var(--shadow-lift);
   transition: opacity var(--t-ui) var(--ease), translate var(--t-ui) var(--ease);
 }
-.dock__name b { font-size: 13px; color: var(--ink); }
+.dock__name b { font-size: 13.5px; color: var(--ink); }
 .dock__app:hover .dock__name, .dock__app:focus-visible .dock__name { opacity: 1; translate: -50% 0; }
+@media (max-width: 640px) { .dock__app img { width: 46px; height: 46px; } }
+body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
 
-/* ---------- Slinky's own nav: a glass bar at the bottom (heyderekj.com's pattern) ---------- */
-.bar {
-  position: fixed; z-index: 40; left: 50%; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); translate: -50% 0;
+/* ---------- Slinky's own nav: a glass capsule at the top ---------- */
+.nav {
+  position: fixed; z-index: 40; top: 14px; left: 50%; translate: -50% 0;
   display: flex; align-items: center; gap: 2px; padding: 5px; border-radius: 999px;
   width: max-content; max-width: calc(100vw - 24px);
-  transition: translate var(--t-move) var(--ease), opacity var(--t-move) var(--ease);
 }
-.bar__home { display: flex; align-items: center; gap: 8px; padding: 0 12px 0 6px; height: 36px; border-radius: 999px; text-decoration: none; font-weight: 600; letter-spacing: -0.01em; }
-.bar__home img { width: 26px; height: 26px; border-radius: 26%; }
-.bar a.bar__link { display: grid; place-items: center; height: 36px; padding: 0 12px; border-radius: 999px; text-decoration: none; font-size: 15px; font-weight: 500; color: var(--ink-soft); transition: background var(--t-ui) var(--ease); }
-.bar a.bar__link:hover, .bar__home:hover { background: color-mix(in oklch, var(--ink) 8%, transparent); color: var(--ink); }
-@media (max-width: 640px) { .bar a.bar__link { display: none; } }
-body { padding-bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+.nav__home { display: flex; align-items: center; gap: 8px; padding: 0 12px 0 6px; height: 36px; border-radius: 999px; text-decoration: none; font-weight: 600; letter-spacing: -0.01em; }
+.nav__home img { width: 26px; height: 26px; border-radius: 26%; }
+.nav a.nav__link { display: grid; place-items: center; height: 36px; padding: 0 12px; border-radius: 999px; text-decoration: none; font-size: 15px; font-weight: 500; color: var(--ink-soft); transition: background var(--t-ui) var(--ease); }
+.nav a.nav__link:hover, .nav__home:hover { background: color-mix(in oklch, var(--ink) 8%, transparent); color: var(--ink); }
+@media (max-width: 640px) { .nav a.nav__link { display: none; } }
 
 /* ---------- Buttons: 44px pills ---------- */
 .btn {
