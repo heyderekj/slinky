@@ -1,0 +1,21 @@
+---
+// The family tab strip at the top of every Testament Made app site (Dinky, Binky, Slinky).
+// Same idea as Dinky's and Binky's site-tabs: one tab per app, the current one raised.
+// Each site's own navigation lives in its bottom bar, so this strip only ever switches apps.
+interface Props { current: 'dinky' | 'binky' | 'slinky' }
+const { current } = Astro.props;
+const sites = [
+  { id: 'dinky', name: 'Dinky', href: 'https://dinkyfiles.com', icon: '/family/dinky.webp' },
+  { id: 'binky', name: 'Binky', href: 'https://binkyfiles.com', icon: '/family/binky.webp' },
+  { id: 'slinky', name: 'Slinky', href: 'https://slinkyfiles.com', icon: '/icons/slinky-320.webp' },
+];
+---
+<nav class="family-tabs" aria-label="Apps by Testament Made">
+  <div class="family-tabs__inner">
+    {sites.map((s) => (
+      <a class:list={['family-tab', { 'is-active': s.id === current }]} href={s.id === current ? '#top' : s.href} aria-current={s.id === current ? 'page' : undefined}>
+        <img src={s.icon} alt="" width="20" height="20" />{s.name}
+      </a>
+    ))}
+  </div>
+</nav>

@@ -1,0 +1,126 @@
+---
+// The live demos for each feature row. Behaviour lives in scripts/demos.ts.
+import Icon from './Icon.astro';
+import Monogram from './Monogram.astro';
+import MacWindow from './MacWindow.astro';
+interface Props { which: 'additem' | 'env' | 'quick' | 'lock' | 'kinds' }
+const { which } = Astro.props;
+const envRows = [
+  { k: 'DATABASE_URL', on: [1, 1, 1] },
+  { k: 'STRIPE_SECRET_KEY', on: [1, 1, 1] },
+  { k: 'NEXT_PUBLIC_STRIPE_KEY', on: [1, 1, 1], plain: true },
+  { k: 'RESEND_API_KEY', on: [1, 0, 1] },
+  { k: 'OPENAI_API_KEY', on: [1, 1, 0] },
+  { k: 'POSTHOG_KEY', missing: true },
+  { k: 'SENTRY_DSN', missing: true },
+];
+const quick = [
+  { name: 'STRIPE_SECRET_KEY', sub: 'Stripe · live', mono: true, by: 'Stripe' },
+  { name: 'GITHUB_TOKEN', sub: 'GitHub', mono: true, by: 'GitHub' },
+  { name: 'GitHub recovery codes', sub: '8 left · copies the next unused code', by: 'GitHub' },
+  { name: 'OPENAI_API_KEY', sub: 'Slinky · Local', mono: true, by: 'OpenAI' },
+  { name: 'Apple Account recovery key', sub: 'Recovery key · Apple', by: 'Apple Account' },
+  { name: 'DATABASE_URL', sub: 'harbor-app · Production', mono: true, by: 'Database' },
+];
+---
+{which === 'additem' && (
+  <div class="demo-col">
+    <div class="additem" data-glass="panel" data-additem>
+      <div class="additem__top">Add Item <span class="keycap">esc</span></div>
+      <div class="slab is-empty" data-slab>
+        <span data-placeholder>Paste a key, recovery codes or .env lines</span>
+        <div data-filled hidden style="display:flex;gap:13px;align-items:flex-start">
+          <Monogram text="OpenAI" size={38} />
+          <div><div class="slab__name">OPENAI_API_KEY</div><div class="slab__value" data-value>sk-proj-EXAMPLEa81Fq7Zp3Lm9Tx4c2Vb</div></div>
+        </div>
+      </div>
+      <div class="detect fade-step" data-step="1"><Icon name="sparkle" style="width:14px;height:14px" /> Looks like an OpenAI key.</div>
+      <div class="chips fade-step" data-step="2">
+        <span class="pchip"><Icon name="key" /> Key or Token</span>
+        <span class="pchip pchip--add"><Icon name="calendar" /> Add expiry date</span>
+      </div>
+      <div class="additem__foot"><Icon name="shield" style="width:14px;height:14px" /> Encrypted on this Mac <span class="save">Save to Keys &amp; Tokens ↵</span></div>
+    </div>
+    <button class="replay" data-replay type="button">Play again</button>
+  </div>
+)}
+
+{which === 'env' && (
+  <MacWindow title="harbor-app" subtitle="12 variables · 2 missing" selected="harbor-app" class="mac--env" sidebar={false}>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div class="envpick"><span class="on">Local</span><span>Preview</span><span>Production</span></div>
+    </div>
+    <div class="env__banner"><Icon name="attention" style="width:14px;height:14px;color:var(--orange)" /> <span><b>.env.example</b> lists 2 variables that aren't saved in Slinky yet.</span></div>
+    <div class="env">
+      {envRows.map((r, i) => (
+        <div class={`env__row ${r.missing ? 'is-missing' : ''}`}>
+          <span class="n">{i + 1}</span>
+          <span class="k"><b>{r.k}</b><span class="v">{r.missing ? '  missing' : r.plain ? '=pk_live_…9a2c' : '=••••••••'}</span>{r.plain && <span class="chip chip--plain" style="margin-left:8px">public</span>}</span>
+          {r.missing ? <span class="copy" style="height:22px">Add</span> : <span class="dots">{r.on!.map((o) => <i class={o ? 'on' : ''}></i>)}</span>}
+        </div>
+      ))}
+    </div>
+  </MacWindow>
+)}
+
+{which === 'quick' && (
+  <div class="qa" data-glass="panel" data-quick>
+    <label class="qa__field"><Icon name="search" /><input type="text" placeholder="Search Slinky" aria-label="Search the demo items" autocomplete="off" spellcheck="false" data-quick-input /></label>
+    <div class="qa__body">
+      <div class="qa__list" role="listbox" aria-label="Items">
+        {quick.map((q, i) => (
+          <div class={`qa__item ${i === 0 ? 'is-on' : ''}`} role="option" data-quick-item data-name={q.name.toLowerCase() + ' ' + q.sub.toLowerCase()}>
+            <Monogram text={q.by} size={28} />
+            <div><div class={q.mono ? 'mono' : ''} style={q.mono ? '' : 'font-weight:600;font-size:13px'}>{q.name}</div><div class="card__sub">{q.sub}</div></div>
+          </div>
+        ))}
+      </div>
+      <div class="qa__preview" data-quick-preview>
+        <Monogram text="Stripe" size={38} />
+        <b class="mono" style="font-family:var(--mono);font-size:12.5px" data-preview-name>STRIPE_SECRET_KEY</b>
+        <div class="card__value" style="height:28px"><span>sk_live_••••••••4f2a</span></div>
+        <p><b style="color:var(--app-text)">Return copies this item.</b> The clipboard clears in 60 seconds.</p>
+      </div>
+    </div>
+    <div class="qa__keys"><span>↵ Copy</span><span>⌘↵ Copy as KEY=value</span><span>esc Close</span></div>
+    <div class="toast float-glass" data-toast><Icon name="checkc" /><span data-toast-text>Copied.</span></div>
+  </div>
+)}
+
+{which === 'lock' && (
+  <div class="lockdemo" data-lockdemo>
+    <MacWindow title="All Items" subtitle="6 items" sidebar={false}>
+      <div class="cards" style="grid-template-columns:1fr 1fr">
+        <div class="card"><div class="card__head"><Monogram text="Resend" /><div><div class="card__kind">KEY OR TOKEN</div><div class="card__name mono">RESEND_API_KEY</div></div></div><div class="card__value"><span>re_••••••••7d0e</span></div></div>
+        <div class="card"><div class="card__head"><Monogram text="Anthropic" /><div><div class="card__kind">KEY OR TOKEN</div><div class="card__name mono">ANTHROPIC_API_KEY</div></div></div><div class="card__value"><span>sk-ant-••••••••3b9f</span></div></div>
+        <div class="card"><div class="card__head"><Monogram text="Vercel" /><div><div class="card__kind">RECOVERY CODES</div><div class="card__name">Vercel</div></div><div class="left is-low"><b>3</b><small>left</small></div></div></div>
+        <div class="card"><div class="card__head"><Monogram text="FileVault" /><div><div class="card__kind">RECOVERY KEY</div><div class="card__name">FileVault recovery key</div></div></div></div>
+      </div>
+      <div slot="over" class="curtain" aria-hidden="true">
+        <div class="curtain__inner">
+          <span class="curtain__lock" data-curtain-icon><Icon name="lock" /></span>
+          <h4>Slinky is locked</h4>
+          <button class="touchid" data-unlock type="button"><Icon name="touchid" /> Unlock with Touch ID</button>
+        </div>
+      </div>
+    </MacWindow>
+    <p class="replay" style="text-align:center">Click the lock switch at the top right.</p>
+  </div>
+)}
+
+{which === 'kinds' && (
+  <div class="kinds" data-kinds aria-hidden="true">
+    <div style="display:grid;justify-items:center">
+      <picture class="kinds__icon">
+        <source srcset="/icons/slinky-320-dark.webp" media="(prefers-color-scheme: dark)" />
+        <img src="/icons/slinky-320.webp" alt="" width="96" height="96" />
+      </picture>
+    </div>
+    <div class="pill" data-glass="capsule" data-pill style="opacity:0"><Icon name="key" /><span><small>API key</small><b data-pill-value>sk_live_EXAMPLE4f2a</b></span></div>
+  </div>
+)}
+
+<style>
+  .demo-col { display: grid; justify-items: center; width: 100%; }
+  :global(.mac--env) { height: auto; }
+</style>

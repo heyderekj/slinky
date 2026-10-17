@@ -67,14 +67,27 @@ sed -i '' "s/version \".*\"/version \"$VERSION\"/" Casks/slinky.rb
 sed -i '' "s/sha256 \".*\"/sha256 \"$SHA\"/" Casks/slinky.rb
 echo "→ Casks/slinky.rb updated (sha256 $SHA)"
 
+# 5. The website reads its version and download links from one file.
+SIZE_MB=$(( ( $(stat -f%z "dist/Slinky-$VERSION.dmg") + 524288 ) / 1048576 ))   # the download size, which is what the site shows
+cat > site/src/release.json <<JSON
+{
+  "version": "$VERSION",
+  "dmg": "https://github.com/heyderekj/slinky/releases/download/v$VERSION/Slinky-$VERSION.dmg",
+  "zip": "https://github.com/heyderekj/slinky/releases/download/v$VERSION/Slinky-$VERSION.zip",
+  "sizeMB": $SIZE_MB,
+  "minOS": "macOS 26 Tahoe"
+}
+JSON
+echo "→ site/src/release.json updated (v$VERSION, ${SIZE_MB} MB). Pushing main deploys the site."
+
 if [ "$PUBLISH" = false ]; then
   echo ""
   echo "✓ Built. Nothing was pushed. To publish: commit the version bump, then run ./release.sh $VERSION --publish"
   exit 0
 fi
 
-# 5. Publish
-git add Slinky.xcodeproj/project.pbxproj Casks/slinky.rb
+# 6. Publish
+git add Slinky.xcodeproj/project.pbxproj Casks/slinky.rb site/src/release.json
 git commit -m "Release v$VERSION"
 git tag "v$VERSION"
 git push && git push --tags

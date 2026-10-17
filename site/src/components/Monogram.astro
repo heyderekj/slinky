@@ -1,0 +1,24 @@
+---
+// The app's monogram tiles: a squircle with a vibrant gradient and white initials,
+// same palette and initials rule as Monogram in Slinky/Views/Components.swift.
+interface Props { text: string; size?: number }
+const { text, size = 30 } = Astro.props;
+const palette: [string, string][] = [
+  ['#8cccf5', '#2e80cc'], // glacier
+  ['#6be0db', '#0d8f9e'], // teal
+  ['#8feba8', '#1f9e66'], // mint
+  ['#9ea8ff', '#4d4ddb'], // indigo
+  ['#cca3ff', '#8047db'], // violet
+  ['#ffa3cc', '#db478a'], // pink
+  ['#ffb38f', '#eb5c47'], // coral
+  ['#ffd675', '#f08f24'], // amber
+];
+const trimmed = text.trim();
+const words = trimmed.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
+const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : (trimmed[0] ?? '').toUpperCase();
+let sum = 0;
+for (const ch of trimmed.toLowerCase()) sum = (Math.imul(sum, 31) + ch.codePointAt(0)!) & 0xffff;
+const [top, bottom] = initials ? palette[sum % palette.length] : palette[0];
+const font = initials.length > 1 ? 0.38 : 0.48;
+---
+<span class="mono-tile" style={`--s:${size}px;background:linear-gradient(${top},${bottom});--mono-shadow:${bottom}66;font-size:${(size * font).toFixed(1)}px`} aria-hidden="true">{initials}</span>

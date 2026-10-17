@@ -1,0 +1,63 @@
+---
+import '../styles/tokens.css';
+import '../styles/site.css';
+import release from '../release.json';
+interface Props { title: string; description: string }
+const { title, description } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const og = new URL('/og.png', Astro.site).toString();
+const ld = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Slinky',
+  description,
+  applicationCategory: 'DeveloperApplication',
+  operatingSystem: release.minOS,
+  softwareVersion: release.version,
+  downloadUrl: release.dmg,
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  license: 'https://github.com/heyderekj/slinky/blob/main/LICENSE',
+  author: { '@type': 'Organization', name: 'Testament Made, LLC', url: 'https://testamentmade.com' },
+  url: 'https://slinkyfiles.com',
+};
+---
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="theme-color" content="#d7ecfa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f2a44" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Slinky" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={og} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Slinky's window floating on an icy blue gradient, with the line: Slinky keeps secrets out of files." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="alternate" type="text/markdown" href="/homepage.md" title="This page as Markdown" />
+    <link rel="help" href="/llms.txt" />
+    <script type="application/ld+json" set:html={JSON.stringify(ld)} />
+  </head>
+  <body>
+    <canvas id="wallpaper" aria-hidden="true"></canvas>
+    <slot />
+    <script>
+      import { startGlass } from '../scripts/glass';
+      import { startDemos } from '../scripts/demos';
+      startGlass(document.getElementById('wallpaper') as HTMLCanvasElement);
+      startDemos();
+    </script>
+  </body>
+</html>

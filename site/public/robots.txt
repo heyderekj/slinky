@@ -1,0 +1,44 @@
+# https://www.rfc-editor.org/rfc/rfc9309
+# Content-Signals: https://contentsignals.org/
+
+User-agent: *
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+User-agent: GPTBot
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+User-agent: OAI-SearchBot
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+User-agent: Claude-Web
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+User-agent: Google-Extended
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+User-agent: Amazonbot
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+User-agent: anthropic-ai
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+User-agent: Bytespider
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+User-agent: CCBot
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+User-agent: Applebot-Extended
+Allow: /
+Content-Signal: ai-train=no, search=yes, ai-input=no
+
+Sitemap: https://slinkyfiles.com/sitemap.xml

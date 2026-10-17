@@ -1,0 +1,77 @@
+/* ============================================================
+   Tokens. The paper, ink and curve are the family's (heyderekj.com /
+   testamentmade.com, 2026 redesign), so the sites feel related.
+   Colour comes from Slinky's own mesh: glacier, ice and a cool periwinkle.
+   ============================================================ */
+:root {
+  --paper: #faf9f7;
+  --card: #fdfcfa;
+  --ink: #161513;
+  --ink-soft: #3d3a35;
+  --muted: #6c6760;
+  --hair: #e3e0da;
+  --glass: rgb(253 252 250 / 0.86);
+  --shadow: 0 1px 2px rgb(22 21 19 / 0.05), 0 10px 28px -14px rgb(22 21 19 / 0.22);
+  --shadow-lift: 0 2px 4px rgb(22 21 19 / 0.06), 0 18px 40px -18px rgb(22 21 19 / 0.3);
+  --font: 'Figtree', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* The recreated app UI uses the Mac's own font, so it looks like Slinky does. */
+  --app-font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Helvetica Neue', system-ui, sans-serif;
+  --mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, monospace;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-ui: 180ms;
+  --t-move: 360ms;
+  --gutter: max(20px, env(safe-area-inset-left, 0px));
+
+  /* Slinky's mesh (the "desktop wallpaper"). Five points, same format as the testamentmade app cards. */
+  --c1: #3b8ed6;   /* deep glacier */
+  --c2: #f3f9fe;   /* ice, nearly white */
+  --c3: #7cc6f0;   /* sky, the icon's lighter blue */
+  --c4: #aeb6fa;   /* cool periwinkle */
+  --c5: #dcefFB;   /* pale ice */
+  --brand: #4a7aa3; /* the app's accent: carries white text at about 4.6:1 */
+  --brand-ink: #1f5f93;
+  --glow: rgb(30 100 170 / 0.45);
+
+  /* Inside the recreated app: Slinky's paper under values, and Tahoe-ish greys. */
+  --app-paper: #fbfcfe;
+  --app-text: #1d1d1f;
+  --app-secondary: rgb(60 60 67 / 0.62);
+  --app-tertiary: rgb(60 60 67 / 0.36);
+  --app-fill: rgb(120 120 128 / 0.12);
+  --app-sep: rgb(60 60 67 / 0.16);
+  --green: #34c759;
+  --orange: #ff9500;
+  --red: #ff3b30;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #191816; --card: #23211e; --ink: #f6f4f0; --ink-soft: #d9d4cc; --muted: #a29c93; --hair: #34312c;
+    --glass: rgb(35 33 30 / 0.86);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 10px 28px -14px rgb(0 0 0 / 0.6);
+    --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.3), 0 18px 40px -18px rgb(0 0 0 / 0.7);
+    color-scheme: dark;
+
+    --c1: #2068a8;
+    --c2: #08182a;
+    --c3: #2f86c4;
+    --c4: #2c2f86;
+    --c5: #0f2c4a;
+    --brand-ink: #9fd0f2;
+    --glow: rgb(20 90 160 / 0.55);
+
+    --app-paper: #16171a;
+    --app-text: #f5f5f7;
+    --app-secondary: rgb(235 235 245 / 0.6);
+    --app-tertiary: rgb(235 235 245 / 0.32);
+    --app-fill: rgb(120 120 128 / 0.24);
+    --app-sep: rgb(84 84 88 / 0.6);
+    --green: #30d158;
+    --orange: #ff9f0a;
+  }
+}
+
+/* Squircles on everything that has a corner (the family's rule). */
+.sq { border-radius: var(--r, 14px); }
+@supports (corner-shape: squircle) { .sq { corner-shape: squircle; border-radius: calc(var(--r, 14px) * 1.7); } }
+[hidden] { display: none !important; }

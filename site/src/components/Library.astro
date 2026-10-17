@@ -1,0 +1,45 @@
+---
+// The All Items view: key cards, a recovery code set and a recovery key. Values are fake.
+import Icon from './Icon.astro';
+import Monogram from './Monogram.astro';
+const codes = ['a7k2m-9xq4p', 'r3t8w-2bn6c', 'h5v1z-8dj3e', 'q9m4k-6tf2s', 'w2p7x-4gh8n', 'k6c3r-1zv9m', 'e8n5t-7qw2b', 'j4s9d-3xk6v'];
+---
+<div class="lib-section">Keys &amp; Tokens</div>
+<div class="cards">
+  <div class="card">
+    <div class="card__head">
+      <Monogram text="Stripe" />
+      <div><div class="card__kind">KEY OR TOKEN</div><div class="card__name mono">STRIPE_SECRET_KEY</div><div class="card__sub">Stripe</div></div>
+      <span class="chip chip--live" style="margin-left:auto">Live</span>
+    </div>
+    <div class="card__value"><span class="hidden">sk_live_••••••••4f2a</span><span class="shown">sk_live_EXAMPLE0000004f2a</span><small>Hover to show</small></div>
+    <div class="card__foot"><span class="chip chip--plain">Never leaves</span><button class="copy" data-copy="STRIPE_SECRET_KEY"><Icon name="copy" /> Copy</button></div>
+  </div>
+  <div class="card">
+    <div class="card__head">
+      <Monogram text="GitHub" />
+      <div><div class="card__kind">KEY OR TOKEN</div><div class="card__name mono">GITHUB_TOKEN</div><div class="card__sub">GitHub</div></div>
+    </div>
+    <div class="card__value"><span class="hidden">ghp_••••••••8c1d</span><span class="shown">ghp_EXAMPLE00000000008c1d</span><small>Hover to show</small></div>
+    <div class="card__foot"><span class="chip chip--warn">Expires in 5 days</span><button class="copy" data-copy="GITHUB_TOKEN"><Icon name="copy" /> Copy</button></div>
+  </div>
+</div>
+<div class="lib-section" style="margin-top:16px">Recovery Codes</div>
+<div class="cards">
+  <div class="card" data-codeset>
+    <div class="card__head">
+      <Monogram text="GitHub" />
+      <div><div class="card__kind">RECOVERY CODES</div><div class="card__name">GitHub</div><div class="card__sub">@harbor</div></div>
+      <div class="left"><b data-left>8</b><small>left</small></div>
+    </div>
+    <div class="codes">{codes.slice(0, 6).map((c) => <button class="code" data-code>{c}</button>)}</div>
+  </div>
+  <div class="card">
+    <div class="card__head">
+      <Monogram text="Apple Account" />
+      <div><div class="card__kind">RECOVERY KEY</div><div class="card__name">Apple Account recovery key</div><div class="card__sub">From Apple</div></div>
+    </div>
+    <div class="card__value"><span class="hidden">R7KQ-••••-••••-••••</span><span class="shown">R7KQ-EXAM-PLE0-0000</span><small>Hover to show</small></div>
+    <div class="card__foot"><span class="chip chip--plain">Printed</span><button class="copy" data-copy="your recovery key"><Icon name="copy" /> Copy</button></div>
+  </div>
+</div>
