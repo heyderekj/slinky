@@ -35,6 +35,19 @@ enum EditTarget: Hashable {
     case key(UUID), kept(UUID), codes(UUID), project(UUID)
 }
 
+/// One row in the library list.
+enum LibraryRef: Hashable {
+    case key(UUID), codes(UUID), kept(UUID)
+
+    var editTarget: EditTarget {
+        switch self {
+        case let .key(id): .key(id)
+        case let .codes(id): .codes(id)
+        case let .kept(id): .kept(id)
+        }
+    }
+}
+
 enum LockReason {
     case manual, screenLocked, sleep, idle, timeLimit
 
@@ -88,6 +101,8 @@ final class AppModel {
     var showNewProject = false
     /// The item open in the Edit panel, if any.
     var editing: EditTarget?
+    /// The selected library row, so search can jump to an item and the detail pane can follow it.
+    var librarySelection: LibraryRef?
     /// What an import file contained, while the import panel is open.
     var importing: Importer.Result?
     var importSource: URL?

@@ -41,7 +41,9 @@ struct MainView: View {
             }
             // Drop a key or some .env lines anywhere on the content to add them.
             .dropDestination(for: String.self) { items, _ in
-                guard let text = items.first, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, canAdd else { return false }
+                // A file dragged from Finder also arrives as its path. Files aren't items, so leave those alone.
+                guard let text = items.first, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+                      !text.hasPrefix("/"), !text.hasPrefix("file://"), canAdd else { return false }
                 addHere(prefill: text)
                 return true
             }

@@ -1,48 +1,112 @@
 import SlinkyCoreShared
 import SwiftUI
 
-/// Layout B: the shelf. Cards shaped like what they hold.
+/// Layout B: the library. A compact list (one line per item, Copy always in reach) with the details on the right.
 struct LibraryView: View {
     @Environment(AppModel.self) private var model
     let filter: LibraryFilter
     /// The All Items heading follows the animation: what Slinky does with each example, then the tagline.
     @State private var playing: Int?
-
-    private let columns = [GridItem(.adaptive(minimum: 270, maximum: 420), spacing: 14, alignment: .top)]
+    // Only whether the pane is open. Nothing about any item.
+    @AppStorage("libraryInspector") private var showInspector = true
 
     var body: some View {
+        @Bindable var model = model
         Group {
             if isEmpty {
                 empty
             } else {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 22) {
-                        if filter != .recovery, !model.document.keys.isEmpty {
-                            section(filter == .all ? "Keys & Tokens" : nil) { ForEach(model.document.keys) { KeyCard(key: $0) } }
-                        }
-                        if filter != .keys, !model.document.codeSets.isEmpty {
-                            section("Recovery Codes") { ForEach(model.document.codeSets) { CodeSetCard(set: $0) } }
-                        }
-                        if filter != .keys, !model.document.kept.isEmpty {
-                            section("Recovery Keys") { ForEach(model.document.kept) { KeptCard(item: $0) } }
-                        }
-                    }
-                    .padding(18)
-                }
+                list
             }
         }
         .navigationTitle(filter.title)
         .navigationSubtitle(subtitle)
+        .toolbar {
+            if !isEmpty {
+                ToolbarItem {
+                    Button { showInspector.toggle() } label: { Label("Details", systemImage: "sidebar.right") }
+                        .help(showInspector ? "Hide details" : "Show details")
+                }
+            }
+        }
+        .inspector(isPresented: Binding(get: { showInspector && !isEmpty }, set: { showInspector = $0 })) {
+            Group {
+                if let ref = visibleSelection {
+                    ItemDetail(ref: ref).id(ref)
+                } else {
+                    ContentUnavailableView("No Item Selected", systemImage: "sidebar.right",
+                                           description: Text("Pick an item to see its details."))
+                }
+            }
+            .inspectorColumnWidth(min: 270, ideal: 300, max: 380)
+        }
     }
 
-    @ViewBuilder
-    private func section<Content: View>(_ title: String?, @ViewBuilder _ content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if let title {
-                Text(title).font(.headline).foregroundStyle(.secondary).padding(.leading, 2)
-            }
-            LazyVGrid(columns: columns, alignment: .leading, spacing: 14) { content() }
+    private var showKeys: Bool { filter != .recovery && !model.document.keys.isEmpty }
+    private var showCodes: Bool { filter != .keys && !model.document.codeSets.isEmpty }
+    private var showKept: Bool { filter != .keys && !model.document.kept.isEmpty }
+
+    /// The selection, if it's in this view (another view's pick stays put but isn't shown here).
+    private var visibleSelection: LibraryRef? {
+        switch model.librarySelection {
+        case let .key(id)? where showKeys: model.document.keys.contains { $0.id == id } ? .key(id) : nil
+        case let .codes(id)? where showCodes: model.document.codeSets.contains { $0.id == id } ? .codes(id) : nil
+        case let .kept(id)? where showKept: model.document.kept.contains { $0.id == id } ? .kept(id) : nil
+        default: nil
         }
+    }
+
+    private var list: some View {
+        @Bindable var model = model
+        return List(selection: $model.librarySelection) {
+            if showKeys {
+                Section {
+                    ForEach(model.document.keys) { KeyRow(key: $0).tag(LibraryRef.key($0.id)) }
+                } header: {
+                    if filter == .all { Text("Keys & Tokens") }
+                }
+            }
+            if showCodes {
+                Section("Recovery Codes") {
+                    ForEach(model.document.codeSets) { CodeSetRow(set: $0).tag(LibraryRef.codes($0.id)) }
+                }
+            }
+            if showKept {
+                Section("Recovery Keys") {
+                    ForEach(model.document.kept) { KeptRow(item: $0).tag(LibraryRef.kept($0.id)) }
+                }
+            }
+        }
+        .listStyle(.inset)
+        .contextMenu(forSelectionType: LibraryRef.self) { refs in
+            if refs.count == 1, let ref = refs.first {
+                ItemActions(ref: ref)
+            } else if !refs.isEmpty {
+                Button("Delete \(refs.count) Items", role: .destructive) { refs.forEach(delete) }
+            }
+        } primaryAction: { refs in
+            // Double-click edits.
+            if refs.count == 1, let ref = refs.first { model.editing = ref.editTarget }
+        }
+        // ⌘C (and Edit › Copy) copies the selected item. Return opens the details; Delete moves it to Recently Deleted.
+        .onCommand(#selector(NSText.copy(_:))) { visibleSelection.map(copy) }
+        .onDeleteCommand { visibleSelection.map(delete) }
+        .onKeyPress(.return) {
+            guard visibleSelection != nil else { return .ignored }
+            showInspector = true
+            return .handled
+        }
+    }
+
+    private func copy(_ ref: LibraryRef) { ItemActions.copy(ref, model: model) }
+
+    private func delete(_ ref: LibraryRef) {
+        switch ref {
+        case let .key(id): model.deleteKey(id)
+        case let .codes(id): model.deleteCodeSet(id)
+        case let .kept(id): model.deleteKept(id)
+        }
+        if model.librarySelection == ref { model.librarySelection = nil }
     }
 
     private var isEmpty: Bool {
@@ -125,164 +189,3 @@ struct LibraryView: View {
     }
 }
 
-private struct CardChrome<Content: View>: View {
-    @ViewBuilder var content: Content
-    var body: some View {
-        VStack(alignment: .leading, spacing: 10) { content }
-            .contentShape(.rect(cornerRadius: 18))
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.background, in: .rect(cornerRadius: 18))
-            .overlay(RoundedRectangle(cornerRadius: 18).strokeBorder(.separator.opacity(0.5), lineWidth: 0.5))
-            .shadow(color: .black.opacity(0.06), radius: 10, y: 6)
-    }
-}
-
-struct CodeSetCard: View {
-    @Environment(AppModel.self) private var model
-    let set: CodeSet
-
-    var body: some View {
-        CardChrome {
-            HStack(alignment: .top, spacing: 10) {
-                Monogram(text: set.account)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("RECOVERY CODES").font(.system(size: 9.5, weight: .bold)).tracking(0.5).foregroundStyle(.tertiary)
-                    Text(set.account).font(.headline)
-                    if let user = set.username { Text(user).font(.caption).foregroundStyle(.secondary) }
-                }
-                Spacer()
-                VStack(alignment: .trailing, spacing: 0) {
-                    Text("\(set.remaining)").font(.system(size: 22, weight: .semibold, design: .rounded)).monospacedDigit()
-                        .foregroundStyle(set.isLow ? Color.orange : Color.primary)
-                    Text("left").font(.caption2).foregroundStyle(.secondary)
-                }
-            }
-            if set.isLow {
-                Label("Only \(set.remaining) codes left. Consider generating new ones.", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption).foregroundStyle(.orange)
-            }
-            LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {
-                ForEach(Array(set.codes.enumerated()), id: \.offset) { index, code in
-                    let used = set.used.contains(index)
-                    Button {
-                        model.useCode(index, in: set.id)
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(code)
-                                .font(.system(size: 12, design: .monospaced))
-                                .strikethrough(used)
-                                .foregroundStyle(used ? Color.secondary.opacity(0.6) : Color.primary)
-                            if used {
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundStyle(.secondary)
-                                    .drawOnTransition()
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                            .padding(.vertical, 6)
-                            .background(.background.secondary, in: .rect(cornerRadius: 7))
-                    }
-                    .buttonStyle(.plain)
-                    .disabled(used)
-                    .help(used ? "Used" : "Copy and cross off")
-                    .accessibilityLabel(used ? "\(code), used" : "Copy code \(code)")
-                }
-            }
-            HStack {
-                if let date = set.regenerated {
-                    Text("Added \(date.formatted(date: .abbreviated, time: .omitted))").font(.caption2).foregroundStyle(.tertiary)
-                }
-                Spacer()
-                Menu {
-                    Button("Edit…") { model.editing = .codes(set.id) }
-                    Divider()
-                    Button("Delete", role: .destructive) { model.deleteCodeSet(set.id) }
-                } label: { Image(systemName: "ellipsis") }
-                    .menuStyle(.borderlessButton).fixedSize()
-            }
-        .contextMenu { Button("Edit…") { model.editing = .codes(set.id) } }
-        }
-    }
-}
-
-struct KeptCard: View {
-    @Environment(AppModel.self) private var model
-    let item: KeptItem
-
-    var body: some View {
-        CardChrome {
-            HStack(alignment: .top, spacing: 10) {
-                Monogram(text: item.from ?? item.label)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.kind.title.uppercased()).font(.system(size: 9.5, weight: .bold)).tracking(0.5).foregroundStyle(.tertiary)
-                    Text(item.label).font(.headline)
-                    if let from = item.from { Text("From \(from)").font(.caption).foregroundStyle(.secondary) }
-                }
-                Spacer()
-            }
-            RevealField(value: item.value)
-            HStack {
-                CopyButton { model.copy(item.value, label: item.label) }
-                    .glassButton().controlSize(.small)
-                if item.kind == .recoveryKey {
-                    if item.printedCopy {
-                        Label("Printed", systemImage: "checkmark").font(.caption).foregroundStyle(.secondary)
-                    } else {
-                        Button("Print…") {
-                            RecoveryPrinter.print(item.value, title: item.label)
-                            model.markPrinted(item.id)
-                        }
-                        .glassButton().controlSize(.small)
-                    }
-                }
-                Spacer()
-                Menu {
-                    Button("Edit…") { model.editing = .kept(item.id) }
-                    Divider()
-                    Button("Delete", role: .destructive) { model.deleteKept(item.id) }
-                } label: { Image(systemName: "ellipsis") }
-                    .menuStyle(.borderlessButton).fixedSize()
-            }
-        .contextMenu { Button("Edit…") { model.editing = .kept(item.id) } }
-        }
-    }
-}
-
-struct KeyCard: View {
-    @Environment(AppModel.self) private var model
-    let key: Key
-
-    var body: some View {
-        CardChrome {
-            HStack(alignment: .top, spacing: 10) {
-                Monogram(text: key.provider ?? key.name)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("KEY OR TOKEN").font(.system(size: 9.5, weight: .bold)).tracking(0.5).foregroundStyle(.tertiary)
-                    Text(key.name).font(.system(size: 13, weight: .semibold, design: .monospaced))
-                    if let provider = key.provider { Text(provider).font(.caption).foregroundStyle(.secondary) }
-                }
-                Spacer()
-                if key.isLive { Chip(text: "live", style: .live) }
-            }
-            RevealField(value: key.value)
-            HStack(spacing: 6) {
-                if let expires = key.expires {
-                    Chip(text: expires < .now ? "expired" : "expires \(expires.formatted(.relative(presentation: .named)))", style: .warn)
-                }
-                Chip(text: key.agentPolicy.title, style: .plain)
-                Spacer()
-                CopyButton { model.copy(key.value, label: key.name) }
-                    .glassButton().controlSize(.small)
-                Menu {
-                    Button("Edit…") { model.editing = .key(key.id) }
-                    Divider()
-                    Button("Delete", role: .destructive) { model.deleteKey(key.id) }
-                } label: { Image(systemName: "ellipsis") }
-                    .menuStyle(.borderlessButton).fixedSize()
-            }
-        .contextMenu { Button("Edit…") { model.editing = .key(key.id) } }
-        }
-    }
-}

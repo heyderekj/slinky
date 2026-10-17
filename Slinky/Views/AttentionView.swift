@@ -172,8 +172,15 @@ struct SearchResultsView: View {
     private func show(_ item: QuickItem) {
         switch item.kind {
         case let .variable(project, _): model.selection = .project(project)
-        case .key: model.selection = .library(.keys)
-        case .kept, .codes: model.selection = .library(.recovery)
+        case .key:
+            model.selection = .library(.keys)
+            model.librarySelection = UUID(uuidString: item.id).map(LibraryRef.key)
+        case .kept:
+            model.selection = .library(.recovery)
+            model.librarySelection = UUID(uuidString: item.id).map(LibraryRef.kept)
+        case let .codes(id):
+            model.selection = .library(.recovery)
+            model.librarySelection = .codes(id)
         }
         model.searchText = ""
     }
