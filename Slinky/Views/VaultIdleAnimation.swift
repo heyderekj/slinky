@@ -28,12 +28,26 @@ struct VaultIdleAnimation: View {
 
     private static let iconY: CGFloat = -50
     /// A smile under the icon (the icon is the nose), made of the same pills that play the story.
-    /// Outer pills sit higher, inner pills lower. Pills stay level: rotated glass draws oversized.
-    /// `edge` pins the pill's trailing (-1), center (0) or leading (1) edge to `x`, so pills of
-    /// different widths still meet neatly in the middle.
-    private static let fan: [(x: CGFloat, y: CGFloat, edge: Int)] = [
-        (-196, 26, 0), (-7, 82, -1), (7, 82, 1), (196, 26, 0),
-    ]
+    /// The inner pair sits low and centered as a pair; the outer pills sit higher and reach the same
+    /// distance past it on each side. Pills stay level: rotated glass draws oversized.
+    /// Slots: 0 outer left, 1 inner left, 2 inner right, 3 outer right.
+    private static let innerY: CGFloat = 80
+    private static let outerY: CGFloat = 26
+    private static let innerGap: CGFloat = 7
+    private static let outerReach: CGFloat = 40
+
+    private func restCenter(_ slot: Int) -> CGSize {
+        let w = widths
+        let shift = (w[1] - w[2]) / 2
+        let half = (w[1] + w[2]) / 2 + Self.innerGap
+        switch slot {
+        case 0: return CGSize(width: -(half + Self.outerReach) + w[0] / 2, height: Self.outerY)
+        case 1: return CGSize(width: shift - Self.innerGap - w[1] / 2, height: Self.innerY)
+        case 2: return CGSize(width: shift + Self.innerGap + w[2] / 2, height: Self.innerY)
+        default: return CGSize(width: half + Self.outerReach - w[3] / 2, height: Self.outerY)
+        }
+    }
+
     /// Inner pills draw on top; the inner pair comes out first, then the ends.
     private static let drawOrder = [0, 3, 1, 2]
     private static let revealOrder = [1, 2, 0, 3]
@@ -51,6 +65,8 @@ struct VaultIdleAnimation: View {
     @State private var showCheck = false
     @State private var checkFade = false
     @State private var restShown: [Bool] = Array(repeating: false, count: 4)
+    /// Measured pill widths by slot, so the smile stays symmetric whatever the text.
+    @State private var widths: [CGFloat] = Array(repeating: 160, count: 4)
 
     private var sample: Sample { samples[index % samples.count] }
 
@@ -59,11 +75,10 @@ struct VaultIdleAnimation: View {
             // The resting collection, drawn behind the moving pill.
             ForEach(Self.drawOrder, id: \.self) { slot in
                 if let i = samples.firstIndex(where: { $0.slot == slot }) {
-                    let spot = Self.fan[slot]
                     pill(samples[i], text: samples[i].rest)
+                        .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { widths[slot] = $0 }
                         .scaleEffect(restShown[i] ? 1 : 0.4)
-                        .frame(width: 1, alignment: spot.edge < 0 ? .trailing : spot.edge > 0 ? .leading : .center)
-                        .offset(restShown[i] ? CGSize(width: spot.x, height: spot.y) : CGSize(width: 0, height: Self.iconY))
+                        .offset(restShown[i] ? restCenter(slot) : CGSize(width: 0, height: Self.iconY))
                         .opacity(restShown[i] ? 1 : 0)
                 }
             }

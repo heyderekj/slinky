@@ -199,14 +199,18 @@ struct ProjectsEmptyCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(Color.paper.opacity(0.6), in: .rect(cornerRadius: 8))
 
+            // Sidebar rows default to one line; these need to wrap.
             Text("Keep each app's .env variables together, out of the project folder.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
+                .lineLimit(nil)
                 .fixedSize(horizontal: false, vertical: true)
 
             Text("Drop a project folder or .env file here.")
                 .font(.caption)
                 .foregroundStyle(.tertiary)
+                .lineLimit(nil)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(12)
         .background {
