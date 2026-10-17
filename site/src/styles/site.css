@@ -338,7 +338,12 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .additem.is-ready .additem__foot .save { opacity: 1; }
 .fade-step { opacity: 0; transform: translateY(6px); transition: opacity 0.4s var(--ease), transform 0.4s var(--ease); }
 .is-step .fade-step, .fade-step.is-in { opacity: 1; transform: none; }
-.replay { margin-top: 14px; font-size: 14px; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+/* A small frosted pill under a demo: "Play again", or a hint for what to try. */
+.replay { justify-self: center; display: flex; align-items: center; gap: 7px; margin: 16px auto 0; padding: 7px 14px 7px 12px; border-radius: 999px; font-size: 13px; font-weight: 500; color: var(--ink-soft); width: fit-content; }
+.replay .icon { width: 13px; height: 13px; color: var(--brand-ink); }
+button.replay { cursor: pointer; transition: transform var(--t-ui), color var(--t-ui); }
+button.replay:hover { color: var(--ink); }
+button.replay:active { transform: scale(0.97); }
 
 /* ---------- Project .env sheet ---------- */
 .env { font-family: var(--mono); font-size: 12px; background: var(--app-paper); border-radius: 14px; box-shadow: 0 0 0 0.5px var(--app-sep), 0 10px 26px -14px rgb(0 0 0 / 0.3); overflow: hidden; }
