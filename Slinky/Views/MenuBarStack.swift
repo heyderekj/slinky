@@ -162,9 +162,11 @@ enum MenuBarIcon {
         let image = NSImage(size: size, flipped: false) { rect in
             guard let ctx = NSGraphicsContext.current?.cgContext else { return false }
             let c = CGPoint(x: rect.midX, y: rect.midY)
-            let r: CGFloat = 6.4   // matches the visual size of system menu bar icons
+            // About 12.5 × 13pt of ink, measured against the system's own items (Wi-Fi 15 × 11,
+            // Spotlight 14 × 13, Control Center 12 × 12). Larger reads heavier than everything beside it.
+            let r: CGFloat = 5.2
             ctx.setLineCap(.round)
-            ctx.setLineWidth(3.0)
+            ctx.setLineWidth(2.6)
             ctx.setStrokeColor(NSColor.black.cgColor)
             for i in 0..<3 {
                 let a = (CGFloat(90 + i * 60) - 8) * .pi / 180
@@ -174,8 +176,8 @@ enum MenuBarIcon {
             ctx.strokePath()
             // Keyhole cut-out.
             ctx.setBlendMode(.clear)
-            ctx.fillEllipse(in: CGRect(x: c.x - 1.15, y: c.y - 0.15, width: 2.3, height: 2.3))
-            ctx.fill(CGRect(x: c.x - 0.5, y: c.y - 2.2, width: 1.0, height: 2.4))
+            ctx.fillEllipse(in: CGRect(x: c.x - 0.93, y: c.y - 0.12, width: 1.86, height: 1.86))
+            ctx.fill(CGRect(x: c.x - 0.425, y: c.y - 1.79, width: 0.85, height: 1.95))
             return true
         }
         image.isTemplate = true
