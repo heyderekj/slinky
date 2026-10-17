@@ -76,10 +76,19 @@ const faq = [
       <p class="hero__meta">{versionLine} · <button type="button" data-open-install>How to install</button></p>
 
       <Desktop class="desktop--hero" menubar>
-        <MacWindow title="All Items" subtitle="6 items" selected="all" id="hero-window">
-          <Library />
-          <div slot="over" class="toast float-glass" data-toast><Icon name="checkc" /><span data-toast-text>Copied.</span></div>
-        </MacWindow>
+        <div class="lockdemo" data-lockdemo data-mb-window>
+          <MacWindow title="All Items" subtitle="6 items" selected="all" id="hero-window">
+            <Library />
+            <div slot="over" class="toast float-glass" data-toast><Icon name="checkc" /><span data-toast-text>Copied.</span></div>
+            <div slot="over" class="curtain" aria-hidden="true">
+              <div class="curtain__inner">
+                <span class="curtain__lock" data-curtain-icon><Icon name="lock" /></span>
+                <h4>Slinky is locked</h4>
+                <button class="touchid" data-unlock type="button"><Icon name="touchid" /> Unlock with Touch ID</button>
+              </div>
+            </div>
+          </MacWindow>
+        </div>
       </Desktop>
       <div class="ss-trio">
         <div class="ss-card card-plain"><Icon name="key" class="feature-icon" /><h3>Keys &amp; Tokens</h3><p>API keys and access tokens your software and AI tools use, with expiry dates and live-key warnings.</p></div>

@@ -465,6 +465,27 @@ function navReveal() {
   new IntersectionObserver(([e]) => nav.classList.toggle('is-tucked', e.isIntersecting), { rootMargin: '-60px 0px 0px 0px' }).observe(cta);
 }
 
+/** What the hero menu bar (public/family-menubar.js) asks Slinky's page to do. */
+function menubarActions() {
+  const hero = $('#hero-window');
+  const toggleSidebar = () => hero?.classList.toggle('mac--nosb');
+  if (hero) $$('.mac__sbtoggle, .mac__toolbar .sb', hero).forEach((b) => b.addEventListener('click', toggleSidebar));
+  const smooth = (el: Element | null) => el?.scrollIntoView({ behavior: still() ? 'auto' : 'smooth', block: 'center' });
+  document.addEventListener('menubar:action', (e) => {
+    const action = (e as CustomEvent<{ action: string }>).detail.action;
+    if (action === 'lock') {
+      const demo = $('[data-mb-window]');
+      const sw = demo && $<HTMLButtonElement>('[data-lock-switch]', demo);
+      if (demo && sw && !demo.classList.contains('is-locked')) sw.click();
+    }
+    if (action === 'toggle-sidebar') toggleSidebar();
+    if (action === 'add-item') { const r = $('[data-guided]'); smooth(r); $<HTMLButtonElement>('[data-step]', r!)?.click(); }
+    if (action === 'new-project') smooth($$('.e-row')[0] ?? null);
+    if (action === 'quick-access') { smooth($('[data-quick]')); setTimeout(() => $<HTMLInputElement>('[data-quick-input]')?.focus({ preventScroll: true }), 500); }
+    if (action === 'import') smooth($('#also-heading'));
+  });
+}
+
 export function startDemos() {
   reveals();
   guided();
@@ -480,4 +501,5 @@ export function startDemos() {
   dock();
   clocks();
   navReveal();
+  menubarActions();
 }

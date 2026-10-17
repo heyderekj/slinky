@@ -29,7 +29,8 @@
   --c3: #a8ebf2;   /* meltwater */
   --c4: #def6f9;   /* frost */
   --c5: #ecfafc;   /* pale ice */
-  --brand: #0b7f8f; /* the app's accent, glacier cyan: carries white text at about 4.7:1 */
+  --brand: #0b7f8f;
+  --fmb-accent: #0b7f8f; /* menu highlight in the hero menu bar */ /* the app's accent, glacier cyan: carries white text at about 4.7:1 */
   --brand-ink: #0a6b78;
   --glow: rgb(10 150 170 / 0.45);
 

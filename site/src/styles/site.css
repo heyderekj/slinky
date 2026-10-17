@@ -298,6 +298,12 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
   overflow: hidden; padding: 8px;
 }
 .mac--small { width: min(620px, 100%); height: 400px; grid-template-columns: 1fr; }
+/* View › Show Sidebar, or either sidebar button, folds the hero window's sidebar away. */
+.mac.mac--nosb { grid-template-columns: 1fr; }
+.mac--nosb .mac__sidebar { display: none; }
+.mac--nosb .mac__toolbar .sb { display: grid; }
+.mac__sbtoggle, .mac__toolbar .sb { cursor: default; }
+[data-mb-window] { width: min(980px, 100%); }
 /* The sidebar is a second layer of glass inside the window. Backdrop filters can't see through another
    glass layer, so it carries its own light frosted fill and the same crisp edge. */
 .mac__sidebar { background: rgb(255 255 255 / 0.5) !important; }
