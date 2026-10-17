@@ -3,7 +3,7 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.usefathom.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://cdn.usefathom.com; connect-src 'self' https://api.github.com https://cdn.usefathom.com; frame-ancestors 'none'; base-uri 'self'
+  Content-Security-Policy: default-src 'self' https://dinkyfiles.com https://binkyfiles.com; script-src 'self' 'unsafe-inline' https://cdn.usefathom.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: https://cdn.usefathom.com; connect-src 'self' https://api.github.com https://cdn.usefathom.com; frame-ancestors 'none'; base-uri 'self'
 
 /
   Link: </llms.txt>; rel="describedby", </homepage.md>; rel="alternate"; type="text/markdown"
