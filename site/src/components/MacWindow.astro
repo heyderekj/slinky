@@ -34,7 +34,11 @@ const projects = [
   <div class="mac__main">
     <header class="mac__toolbar">
       {!sidebar && <div class="mac__lights" style="padding:0 6px 0 2px"><i></i><i></i><i></i></div>}
-      {sidebar && <span class="sb"><Icon name="sidebar" /></span>}
+      {sidebar && (
+        // Tahoe draws toolbar buttons as glass circles. The glyph is SF Symbols' sidebar.left: an outline
+        // window, a divider a third of the way in, and three short lines in the left pane.
+        <span class="sb" data-glass="capsule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" aria-hidden="true"><rect x="2.8" y="4.6" width="18.4" height="14.8" rx="3.4"/><path d="M9.3 4.8v14.4M5.3 8.4h1.6M5.3 10.9h1.6M5.3 13.4h1.6"/></svg></span>
+      )}
       <div class="mac__title"><b>{title}</b>{subtitle && <span>{subtitle}</span>}</div>
       <button class="lock-switch" data-glass="capsule" data-lock-switch aria-label="Lock Slinky (demo)" type="button">
         <i class="knob"></i>

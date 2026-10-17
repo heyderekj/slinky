@@ -261,11 +261,14 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mac__foot { margin-top: auto; display: flex; align-items: center; gap: 6px; padding: 8px; color: var(--app-secondary); }
 .mac__foot svg { width: 16px; height: 16px; }
 .mac__main { display: flex; flex-direction: column; min-width: 0; padding: 4px 6px 0 14px; }
-.mac__toolbar { display: flex; align-items: center; gap: 10px; height: 44px; flex: none; }
-.mac__toolbar .sb { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: var(--app-secondary); }
-.mac__toolbar .sb svg { width: 18px; height: 18px; }
-.mac__title b { display: block; font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
-.mac__title span { display: block; font-size: 11.5px; color: var(--app-secondary); margin-top: -1px; }
+.mac__toolbar { display: flex; align-items: center; gap: 12px; height: 46px; flex: none; }
+/* Same glass and height as the lock switch, like every Tahoe toolbar button. */
+.mac__toolbar .sb { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%; color: var(--app-text); }
+.mac__toolbar .sb svg { width: 17px; height: 17px; }
+/* navigationTitle and navigationSubtitle: 15pt semibold over 11pt secondary, set tight. */
+.mac__title { display: grid; gap: 1px; line-height: 1.12; }
+.mac__title b { display: block; font-size: 15px; font-weight: 650; letter-spacing: -0.012em; }
+.mac__title span { display: block; font-size: 11.5px; font-weight: 500; color: var(--app-secondary); }
 .mac__detail { flex: 1; min-height: 0; overflow: hidden; padding: 6px 4px 14px; position: relative; }
 
 /* The lock switch, top right */
