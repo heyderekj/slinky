@@ -10,6 +10,7 @@ import Guided from '../components/Guided.astro';
 import Editorial from '../components/Editorial.astro';
 import Monogram from '../components/Monogram.astro';
 import release from '../release.json';
+import { faq, faqId } from '../data/faq';
 
 const title = 'Slinky keeps secrets out of files.';
 const description = 'A free, native Mac app for API keys, .env variables and recovery codes. Encrypted on your Mac and opened with Touch ID.';
@@ -36,18 +37,7 @@ const mark = (v: string) => {
   return { cls: 'text', icon: '', label: '', note: v };
 };
 
-const faq = [
-  ['Is Slinky free?', 'Yes. Slinky is free and open source under the MIT License, made by Testament Made, LLC, the same people behind Dinky and Binky.'],
-  ['Where are my things stored?', 'In one encrypted file on your Mac. The key that opens it is protected by your Mac’s Secure Enclave and opened with Touch ID. A printed Recovery Key is the backup.'],
-  ['Is there an account or sync?', 'No account, no server and no sync. The only time Slinky goes online is a daily check with GitHub for a newer version, which you can turn off. Time Machine backs up the encrypted file like any other.'],
-  ['What if I lose my Mac?', 'Restore your backup on a new Mac and open Slinky with your Recovery Key. Slinky then sets up Touch ID on that Mac.'],
-  ['Why does macOS say it can’t check Slinky?', 'Slinky is signed but not notarized yet. The first time, open System Settings › Privacy & Security and click Open Anyway. You only do this once; updates install without asking again.'],
-  ['Should I keep passwords in Slinky?', 'No. Website passwords belong in Apple Passwords. Slinky is for the other things: API keys, tokens, .env variables, backup codes and recovery keys.'],
-  ['Does Slinky change my project files?', 'No. It reads your .env files and .gitignore to set things up. It only writes a file when you choose Save .env.example, which has names and no values.'],
-  ['What about clipboard history apps?', 'Everything Slinky copies is marked private, so Raycast, Paste, Maccy and others skip it, and the clipboard clears itself after 60 seconds.'],
-  ['Can I bring my keys from another app?', 'Yes. Import a 1Password export or a CSV from Apple Passwords, Bitwarden or a spreadsheet. Slinky picks out keys, tokens and codes, and leaves passwords behind.'],
-  ['Will it work with AI coding tools?', 'That’s next. Slinky 1.1 adds a slinky command and an MCP connection, so tools like Claude Code can run your app with the real keys while only ever seeing dots.'],
-];
+
 ---
 <Layout title={`Slinky · ${title}`} description={description}>
   <nav class="nav float-glass is-tucked" aria-label="Slinky">
@@ -254,8 +244,13 @@ STRIPE_SECRET_KEY=••••••••
 
     <section class="section wrap" id="faq" aria-labelledby="faq-heading">
       <div class="section-head"><p class="eyebrow">Questions</p><h2 class="section-title" id="faq-heading">Good to know</h2></div>
+      {/* Ask anything: answered from this page's own words (public/family-ask.js → functions/api/ask.js). */}
+      <form class="fask" data-ask role="search">
+        <label class="fask__field"><span class="fmb-orb" aria-hidden="true"></span><input name="q" type="text" placeholder="Ask a question about Slinky" aria-label="Ask a question about Slinky" maxlength="280" autocomplete="off" spellcheck="false" /></label>
+      </form>
+      <div class="fask__answer" data-ask-answer hidden><span class="fmb-orb" aria-hidden="true"></span><div><p data-ask-text aria-live="polite"></p><p data-ask-src hidden></p></div></div>
       <div class="faq">
-        {faq.map(([q, a]) => <details class="card-plain"><summary>{q}</summary><p>{a}</p></details>)}
+        {faq.map(([q, a]) => <details class="card-plain" id={faqId(q)}><summary>{q}</summary><p>{a}</p></details>)}
       </div>
     </section>
   </main>
