@@ -274,11 +274,16 @@ struct AddItemPanel: View {
     private var icon: some View {
         if isSeed {
             symbolTile("hand.raised.fill", tint: .orange)
-        } else if let provider = detection?.provider {
-            Monogram(text: provider, size: 38)
+        } else if detection?.provider != nil || IconResolver.shared.service(for: iconSubject) != nil {
+            ServiceIcon(subject: iconSubject, size: 38)
         } else {
             symbolTile(destination.symbol, tint: .accentColor)
         }
+    }
+
+    /// The icon follows what's typed: the detected service, the name, the link.
+    private var iconSubject: IconSubject {
+        IconSubject(name: name, provider: detection?.provider, link: link.isEmpty ? nil : link)
     }
 
     private func symbolTile(_ symbol: String, tint: Color) -> some View {

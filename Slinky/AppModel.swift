@@ -103,6 +103,8 @@ final class AppModel {
     var editing: EditTarget?
     /// The selected library row, so search can jump to an item and the detail pane can follow it.
     var librarySelection: LibraryRef?
+    /// The item whose icon is being chosen (Choose Icon…).
+    var choosingIcon: LibraryRef?
     /// What an import file contained, while the import panel is open.
     var importing: Importer.Result?
     var importSource: URL?
@@ -456,6 +458,25 @@ final class AppModel {
     }
 
     // MARK: Edits
+
+    /// nil goes back to automatic.
+    func setIcon(_ choice: IconChoice?, for ref: LibraryRef) {
+        change { doc in
+            switch ref {
+            case let .key(id): if let i = doc.keys.firstIndex(where: { $0.id == id }) { doc.keys[i].icon = choice }
+            case let .codes(id): if let i = doc.codeSets.firstIndex(where: { $0.id == id }) { doc.codeSets[i].icon = choice }
+            case let .kept(id): if let i = doc.kept.firstIndex(where: { $0.id == id }) { doc.kept[i].icon = choice }
+            }
+        }
+    }
+
+    func iconSubject(_ ref: LibraryRef) -> IconSubject? {
+        switch ref {
+        case let .key(id): document.keys.first { $0.id == id }?.iconSubject
+        case let .codes(id): document.codeSets.first { $0.id == id }?.iconSubject
+        case let .kept(id): document.kept.first { $0.id == id }?.iconSubject
+        }
+    }
 
     func update(_ key: Key) {
         guard let i = document.keys.firstIndex(where: { $0.id == key.id }) else { return }

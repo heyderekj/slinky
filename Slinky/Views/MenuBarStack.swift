@@ -133,7 +133,7 @@ struct RecentRow: View {
     var body: some View {
         Button(action: action) {
             HStack(spacing: 9) {
-                Monogram(text: item.provider ?? item.title, size: 22)
+                ServiceIcon(subject: IconSubject(name: item.title, provider: item.provider), size: 22)
                 Text(item.title)
                     .font(.system(size: 12, weight: .medium, design: item.mono ? .monospaced : .default))
                     .lineLimit(1)

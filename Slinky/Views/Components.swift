@@ -1,7 +1,7 @@
 import SlinkyCoreShared
 import SwiftUI
 
-/// Provider initials on a soft tinted square. No brand logos, no network.
+/// Initials on a soft tinted square: the last fallback for ServiceIcon when there is no app icon or logo.
 /// A small Mac-app-icon tile for a service, project or account: a continuous squircle with a vibrant gradient,
 /// a soft top sheen, a hairline rim and a white letter. Colors come from a short curated palette that sits
 /// well next to Slinky's glacier cyan. With no name yet, it shows Slinky's own asterisk on glacier cyan.

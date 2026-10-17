@@ -70,6 +70,7 @@ struct QuickItem: Identifiable, Hashable {
     let provider: String?
     let isLive: Bool
     let mono: Bool
+    var icon: IconSubject
 }
 
 extension AppModel {
@@ -77,7 +78,7 @@ extension AppModel {
         var items: [QuickItem] = []
         for key in document.keys {
             items.append(QuickItem(id: key.id.uuidString, kind: .key, title: key.name, subtitle: key.provider ?? "Key",
-                                   value: key.value, provider: key.provider, isLive: key.isLive, mono: true))
+                                   value: key.value, provider: key.provider, isLive: key.isLive, mono: true, icon: key.iconSubject))
         }
         for project in document.projects {
             for variable in project.variables {
@@ -86,19 +87,20 @@ extension AppModel {
                     items.append(QuickItem(id: "\(variable.id)-\(env.rawValue)", kind: .variable(project: project.id, env: env),
                                            title: variable.name, subtitle: "\(project.name) · \(env.title)",
                                            value: value, provider: variable.provider,
-                                           isLive: Detector.detect(value)?.isLive ?? false, mono: true))
+                                           isLive: Detector.detect(value)?.isLive ?? false, mono: true,
+                                           icon: variable.iconSubject))
                 }
             }
         }
         for item in document.kept {
             items.append(QuickItem(id: item.id.uuidString, kind: .kept, title: item.label, subtitle: item.from.map { "\(item.kind.title) · \($0)" } ?? item.kind.title,
-                                   value: item.value, provider: item.from, isLive: false, mono: false))
+                                   value: item.value, provider: item.from, isLive: false, mono: false, icon: item.iconSubject))
         }
         for set in document.codeSets {
             guard let next = set.nextUnused else { continue }
             items.append(QuickItem(id: set.id.uuidString, kind: .codes(set.id), title: "\(set.account) recovery codes",
                                    subtitle: "\(set.remaining) left · copies the next unused code",
-                                   value: set.codes[next], provider: set.account, isLive: false, mono: false))
+                                   value: set.codes[next], provider: set.account, isLive: false, mono: false, icon: set.iconSubject))
         }
         return items
     }
@@ -201,7 +203,7 @@ struct QuickAccessView: View {
 
     private func row(_ item: QuickItem, on: Bool) -> some View {
         HStack(spacing: 10) {
-            Monogram(text: item.provider ?? item.title, size: 28)
+            ServiceIcon(subject: item.icon, size: 28)
             VStack(alignment: .leading, spacing: 1) {
                 Text(item.title)
                     .font(.system(size: 12.5, weight: .semibold, design: item.mono ? .monospaced : .default))
@@ -222,7 +224,7 @@ struct QuickAccessView: View {
         if let item {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(spacing: 10) {
-                    Monogram(text: item.provider ?? item.title, size: 38)
+                    ServiceIcon(subject: item.icon, size: 38)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.title).font(.system(size: 15, weight: .semibold, design: item.mono ? .monospaced : .default))
                         Text(item.subtitle).font(.callout).foregroundStyle(.secondary)

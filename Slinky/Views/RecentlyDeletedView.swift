@@ -55,7 +55,7 @@ struct RecentlyDeletedView: View {
 
     private func row(_ entry: TrashEntry) -> some View {
         HStack(spacing: 12) {
-            Monogram(text: monogramText(entry.item), size: 28)
+            ServiceIcon(subject: subject(entry.item), size: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.item.title).font(.system(size: 13, weight: .semibold))
                 Text("\(kind(entry.item)) · Deleted \(entry.deletedAt.formatted(.relative(presentation: .named)))")
@@ -85,13 +85,13 @@ struct RecentlyDeletedView: View {
         }
     }
 
-    private func monogramText(_ item: TrashedItem) -> String {
+    private func subject(_ item: TrashedItem) -> IconSubject {
         switch item {
-        case .key(let k): k.provider ?? k.name
-        case .codes(let c): c.account
-        case .kept(let k): k.from ?? k.label
-        case .variable(let v, _, _): v.provider ?? v.name
-        case .project(let p): p.name
+        case .key(let k): k.iconSubject
+        case .codes(let c): c.iconSubject
+        case .kept(let k): k.iconSubject
+        case .variable(let v, _, _): v.iconSubject
+        case .project(let p): IconSubject(name: p.name, choice: .monogram)
         }
     }
 }

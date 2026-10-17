@@ -162,7 +162,7 @@ private struct ImportPanel: View {
             Toggle("", isOn: Binding(get: { on }, set: { if $0 { chosen.insert(item.id) } else { chosen.remove(item.id) } }))
                 .toggleStyle(.checkbox)
                 .labelsHidden()
-            Monogram(text: provider(item) ?? item.name, size: 30)
+            ServiceIcon(subject: IconSubject(name: item.name, provider: provider(item)), size: 30)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
                     Text(item.name)

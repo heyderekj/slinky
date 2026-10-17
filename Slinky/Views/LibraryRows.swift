@@ -6,7 +6,7 @@ import SwiftUI
 
 /// One line per item: icon, name, a quiet second line, the short peek, and Copy always in reach.
 struct ItemRowLayout<Tags: View, Action: View>: View {
-    var icon: String
+    var icon: IconSubject
     var title: String
     var mono = false
     var subtitle: String
@@ -16,7 +16,7 @@ struct ItemRowLayout<Tags: View, Action: View>: View {
 
     var body: some View {
         HStack(spacing: 10) {
-            Monogram(text: icon, size: 28)
+            ServiceIcon(subject: icon, size: 28)
             VStack(alignment: .leading, spacing: 1) {
                 Text(title)
                     .font(.system(size: 13, weight: .medium, design: mono ? .monospaced : .default))
@@ -47,7 +47,7 @@ struct KeyRow: View {
     let key: Key
 
     var body: some View {
-        ItemRowLayout(icon: key.provider ?? key.name, title: key.name, mono: true,
+        ItemRowLayout(icon: key.iconSubject, title: key.name, mono: true,
                       subtitle: [key.provider ?? "Key or token", Links.host(of: key.link)].compactMap { $0 }.joined(separator: " · "),
                       peek: Peek.of(key.value)) {
             if key.isLive { Chip(text: "live", style: .live) }
@@ -63,7 +63,7 @@ struct CodeSetRow: View {
     let set: CodeSet
 
     var body: some View {
-        ItemRowLayout(icon: set.account, title: set.account,
+        ItemRowLayout(icon: set.iconSubject, title: set.account,
                       subtitle: set.username ?? "Recovery codes", peek: nil) {
             Text("\(set.remaining) of \(set.codes.count) left")
                 .font(.caption.monospacedDigit())
@@ -83,7 +83,7 @@ struct KeptRow: View {
     let item: KeptItem
 
     var body: some View {
-        ItemRowLayout(icon: item.from ?? item.label, title: item.label,
+        ItemRowLayout(icon: item.iconSubject, title: item.label,
                       subtitle: [item.kind.title, item.from.map { "From \($0)" }].compactMap { $0 }.joined(separator: " · "),
                       peek: Peek.of(item.value)) {
             EmptyView()
@@ -132,6 +132,7 @@ struct ItemActions: View {
         }
         Divider()
         Button("Edit…") { model.editing = ref.editTarget }
+        Button("Choose Icon…") { model.choosingIcon = ref }
         Button("Delete", role: .destructive) {
             switch ref {
             case let .key(id): model.deleteKey(id)
@@ -184,7 +185,7 @@ struct ItemDetail: View {
     }
 
     private func keyDetail(_ key: Key) -> some View {
-        DetailScaffold(icon: key.provider ?? key.name, title: key.name, mono: true, kind: key.provider ?? "Key or token", ref: ref) {
+        DetailScaffold(icon: key.iconSubject, title: key.name, mono: true, kind: key.provider ?? "Key or token", ref: ref) {
             Section {
                 RevealField(value: key.value)
                 HStack {
@@ -206,7 +207,7 @@ struct ItemDetail: View {
     }
 
     private func codesDetail(_ set: CodeSet) -> some View {
-        DetailScaffold(icon: set.account, title: set.account, kind: set.username ?? "Recovery codes", ref: ref) {
+        DetailScaffold(icon: set.iconSubject, title: set.account, kind: set.username ?? "Recovery codes", ref: ref) {
             Section {
                 if set.isLow {
                     Label("Only \(set.remaining) left. Consider making new ones.", systemImage: "exclamationmark.triangle.fill")
@@ -222,7 +223,7 @@ struct ItemDetail: View {
     }
 
     private func keptDetail(_ item: KeptItem) -> some View {
-        DetailScaffold(icon: item.from ?? item.label, title: item.label,
+        DetailScaffold(icon: item.iconSubject, title: item.label,
                        kind: [item.kind.title, item.from.map { "From \($0)" }].compactMap { $0 }.joined(separator: " · "), ref: ref) {
             Section {
                 RevealField(value: item.value)
@@ -251,7 +252,7 @@ struct ItemDetail: View {
 /// Header, a grouped form for the sections, then Edit and Delete at the bottom.
 private struct DetailScaffold<Content: View>: View {
     @Environment(AppModel.self) private var model
-    var icon: String
+    var icon: IconSubject
     var title: String
     var mono = false
     var kind: String
@@ -261,7 +262,9 @@ private struct DetailScaffold<Content: View>: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 12) {
-                Monogram(text: icon, size: 44)
+                Button { model.choosingIcon = ref } label: { ServiceIcon(subject: icon, size: 44) }
+                    .buttonStyle(.plain)
+                    .help("Choose Icon…")
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.system(size: 15, weight: .semibold, design: mono ? .monospaced : .default))

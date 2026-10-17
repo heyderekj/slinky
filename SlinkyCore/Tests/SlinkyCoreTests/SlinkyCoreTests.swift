@@ -342,3 +342,32 @@ struct LinkTests {
         #expect(Links.host(of: "https://www.GitHub.com/x") == "github.com")
     }
 }
+
+@Suite("Services")
+struct ServiceTests {
+    @Test func namesPickTheService() {
+        #expect(ServiceCatalog.match(name: "GITHUB_TOKEN")?.id == "github")
+        #expect(ServiceCatalog.match(name: "GitHubToken")?.id == "github")
+        #expect(ServiceCatalog.match(name: "STRIPE_SECRET_KEY")?.id == "stripe")
+        #expect(ServiceCatalog.match(name: "HF_TOKEN")?.id == "huggingface")
+        #expect(ServiceCatalog.match(name: "Hugging Face")?.id == "huggingface")
+        #expect(ServiceCatalog.match(name: "Google Cloud key")?.id == "googlecloud")
+        #expect(ServiceCatalog.match(name: "Apple Account recovery key")?.id == "apple")
+        #expect(ServiceCatalog.match(name: "Acme deploy key") == nil)
+        #expect(ServiceCatalog.match(name: "PINEAPPLE_KEY") == nil)
+    }
+
+    @Test func providersAndLinksWin() {
+        #expect(ServiceCatalog.match(name: "DEPLOY_KEY", provider: "AWS")?.id == "aws")
+        #expect(ServiceCatalog.match(name: "TOKEN", link: "https://dash.cloudflare.com/profile")?.id == "cloudflare")
+        #expect(ServiceCatalog.match(name: "GITHUB_TOKEN", link: "https://vercel.com/account")?.id == "vercel")
+        #expect(ServiceCatalog.match(name: "Codes", from: "gitlab.com")?.id == "gitlab")
+        #expect(ServiceCatalog.match(name: "Key", note: "Made at console.anthropic.com for the bot")?.id == "anthropic")
+    }
+
+    @Test func catalogIsConsistent() {
+        #expect(Set(ServiceCatalog.all.map(\.id)).count == ServiceCatalog.all.count)
+        #expect(ServiceCatalog.service(forHost: "gist.github.com")?.id == "github")
+        #expect(ServiceCatalog.all.filter(\.hasLogo).allSatisfy { $0.color != nil })
+    }
+}

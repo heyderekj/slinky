@@ -50,7 +50,7 @@ private struct EditPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
-                Monogram(text: name, size: 34)
+                ServiceIcon(subject: iconSubject, size: 34)
                 VStack(alignment: .leading, spacing: 1) {
                     Text(title).font(.headline)
                     Text(kindLabel).font(.caption).foregroundStyle(.secondary)
@@ -315,6 +315,21 @@ private struct EditPanel: View {
 
     /// The link as saved: https only. Something that isn't a web address is dropped rather than stored.
     private var savedLink: String? { Links.normalized(link) }
+
+    /// The header icon follows the edits as they're typed, keeping the person's own icon choice.
+    private var iconSubject: IconSubject {
+        let doc = model.document
+        var subject = IconSubject(name: name, from: from.isEmpty ? nil : from, link: link.isEmpty ? nil : link)
+        switch target {
+        case let .key(id):
+            subject.provider = doc.keys.first { $0.id == id }?.provider
+            subject.choice = doc.keys.first { $0.id == id }?.icon
+        case let .kept(id): subject.choice = doc.kept.first { $0.id == id }?.icon
+        case let .codes(id): subject.choice = doc.codeSets.first { $0.id == id }?.icon
+        case .project: subject.choice = .monogram
+        }
+        return subject
+    }
 
     private var parsedCodes: [String] { RecoveryCodes.extract(newCodes) }
 

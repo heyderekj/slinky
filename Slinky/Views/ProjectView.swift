@@ -323,7 +323,7 @@ struct VariableInspector: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 HStack(spacing: 10) {
-                    Monogram(text: variable.provider ?? variable.name, size: 36)
+                    ServiceIcon(subject: variable.iconSubject, size: 36)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(variable.name).font(.system(size: 13, weight: .semibold, design: .monospaced)).textSelection(.enabled)
                         Text([variable.provider, env.title].compactMap { $0 }.joined(separator: " · "))

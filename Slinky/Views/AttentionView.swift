@@ -140,7 +140,7 @@ struct SearchResultsView: View {
             } else {
                 List(results) { item in
                     HStack(spacing: 10) {
-                        Monogram(text: item.provider ?? item.title, size: 26)
+                        ServiceIcon(subject: item.icon, size: 26)
                         VStack(alignment: .leading, spacing: 1) {
                             Text(item.title)
                                 .font(.system(size: 13, weight: .medium, design: item.mono ? .monospaced : .default))

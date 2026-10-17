@@ -1,0 +1,151 @@
+# id | name | simple-icons slug (- for none) | domains | Mac app bundle IDs | aliases
+# Run: python3 design/services/make_services.py <path to simple-icons package>
+github | GitHub | github | github.com,githubusercontent.com | com.github.GitHubClient | gh,github_pat
+gitlab | GitLab | gitlab | gitlab.com | - | glpat
+bitbucket | Bitbucket | bitbucket | bitbucket.org | - |
+cloudflare | Cloudflare | cloudflare | cloudflare.com,workers.dev,pages.dev | com.cloudflare.1dot1dot1dot1.macos | cf,wrangler
+vercel | Vercel | vercel | vercel.com,vercel.app | - |
+netlify | Netlify | netlify | netlify.com,netlify.app | - |
+stripe | Stripe | stripe | stripe.com | - |
+openai | OpenAI | openai | openai.com,chatgpt.com | com.openai.chat | chatgpt,gpt
+anthropic | Anthropic | anthropic | anthropic.com,claude.ai,claude.com | com.anthropic.claudefordesktop | claude
+aws | AWS | amazonwebservices | aws.amazon.com,amazonaws.com | - | amazon web services,s3,iam
+googlecloud | Google Cloud | googlecloud | cloud.google.com,console.cloud.google.com | - | gcp,gcloud
+google | Google | google | google.com,accounts.google.com | - | gmail
+gemini | Gemini | googlegemini | gemini.google.com,aistudio.google.com,ai.google.dev | - | google ai studio
+firebase | Firebase | firebase | firebase.google.com,firebaseio.com | - |
+supabase | Supabase | supabase | supabase.com,supabase.co | - |
+figma | Figma | figma | figma.com | com.figma.Desktop |
+slack | Slack | slack | slack.com | com.tinyspeck.slackmacgap |
+linear | Linear | linear | linear.app | com.linear |
+notion | Notion | notion | notion.so,notion.com | notion.id |
+discord | Discord | discord | discord.com,discord.gg | com.hnc.Discord |
+twilio | Twilio | twilio | twilio.com | - |
+sendgrid | SendGrid | sendgrid | sendgrid.com | - |
+mailgun | Mailgun | mailgun | mailgun.com | - |
+resend | Resend | resend | resend.com | - |
+postmark | Postmark | - | postmarkapp.com | - |
+heroku | Heroku | heroku | heroku.com,herokuapp.com | - |
+digitalocean | DigitalOcean | digitalocean | digitalocean.com | - | do
+render | Render | render | render.com | - |
+railway | Railway | railway | railway.app,railway.com | - |
+fly | Fly.io | flydotio | fly.io | - | flyctl
+docker | Docker | docker | docker.com,hub.docker.com | com.docker.docker | dockerhub
+npm | npm | npm | npmjs.com,npmjs.org | - | npmjs
+pypi | PyPI | pypi | pypi.org | - |
+sentry | Sentry | sentry | sentry.io | - |
+datadog | Datadog | datadog | datadoghq.com | - | dd
+newrelic | New Relic | newrelic | newrelic.com | - |
+algolia | Algolia | algolia | algolia.com | - |
+mongodb | MongoDB | mongodb | mongodb.com | - | mongo,atlas
+postgresql | PostgreSQL | postgresql | postgresql.org | - | postgres
+planetscale | PlanetScale | planetscale | planetscale.com | - |
+neon | Neon | - | neon.tech,neon.com | - |
+redis | Redis | redis | redis.io,redis.com | - |
+upstash | Upstash | upstash | upstash.com | - |
+auth0 | Auth0 | auth0 | auth0.com | - |
+okta | Okta | okta | okta.com | - |
+clerk | Clerk | clerk | clerk.com,clerk.dev | - |
+shopify | Shopify | shopify | shopify.com,myshopify.com | - |
+paypal | PayPal | paypal | paypal.com | - |
+square | Square | square | squareup.com | - |
+apple | Apple | apple | apple.com,appleid.apple.com,developer.apple.com,icloud.com | - | apple account,apple id,icloud,app store connect,filevault,xcode
+microsoft | Microsoft | - | microsoft.com,live.com,outlook.com | - | outlook
+azure | Azure | - | azure.com,portal.azure.com | - | microsoft azure
+vscode | Visual Studio Code | - | code.visualstudio.com | com.microsoft.VSCode | vs code
+onepassword | 1Password | 1password | 1password.com | com.1password.1password | 1pass
+bitwarden | Bitwarden | bitwarden | bitwarden.com | com.bitwarden.desktop |
+dropbox | Dropbox | dropbox | dropbox.com | com.getdropbox.dropbox |
+atlassian | Atlassian | atlassian | atlassian.com,atlassian.net | - |
+jira | Jira | jira | jira.com | - |
+confluence | Confluence | confluence | - | - |
+trello | Trello | trello | trello.com | com.atlassian.trello |
+asana | Asana | asana | asana.com | - |
+zoom | Zoom | zoom | zoom.us | us.zoom.xos |
+twitch | Twitch | twitch | twitch.tv | - |
+x | X | x | x.com,twitter.com | - | twitter
+facebook | Facebook | facebook | facebook.com | - |
+meta | Meta | meta | meta.com,developers.facebook.com | - |
+instagram | Instagram | instagram | instagram.com | - |
+linkedin | LinkedIn | linkedin | linkedin.com | - |
+reddit | Reddit | reddit | reddit.com | - |
+telegram | Telegram | telegram | telegram.org,t.me | ru.keepcoder.Telegram |
+whatsapp | WhatsApp | whatsapp | whatsapp.com | net.whatsapp.WhatsApp |
+youtube | YouTube | youtube | youtube.com | - |
+spotify | Spotify | spotify | spotify.com | com.spotify.client |
+huggingface | Hugging Face | huggingface | huggingface.co | - | hf
+replicate | Replicate | replicate | replicate.com | - |
+mistral | Mistral AI | - | mistral.ai | - | mistral
+perplexity | Perplexity | perplexity | perplexity.ai | ai.perplexity.mac | pplx
+ollama | Ollama | ollama | ollama.com | com.electron.ollama |
+cursor | Cursor | - | cursor.com,cursor.sh | com.todesktop.230313mzl4w4u92 |
+jetbrains | JetBrains | jetbrains | jetbrains.com | com.jetbrains.toolbox |
+copilot | GitHub Copilot | githubcopilot | - | - | copilot
+expo | Expo | expo | expo.dev | - | eas
+sanity | Sanity | sanity | sanity.io | - |
+contentful | Contentful | contentful | contentful.com | - |
+posthog | PostHog | posthog | posthog.com | - |
+mixpanel | Mixpanel | mixpanel | mixpanel.com | - |
+segment | Segment | - | segment.com,segment.io | - |
+amplitude | Amplitude | - | amplitude.com | - |
+launchdarkly | LaunchDarkly | - | launchdarkly.com | - |
+circleci | CircleCI | circleci | circleci.com | - |
+githubactions | GitHub Actions | githubactions | - | - | actions
+travisci | Travis CI | travisci | travis-ci.com | - |
+jenkins | Jenkins | jenkins | jenkins.io | - |
+terraform | Terraform | terraform | terraform.io,app.terraform.io | - | tf
+hashicorp | HashiCorp | hashicorp | hashicorp.com | - |
+vault | Vault | vault | vaultproject.io | - | hashicorp vault
+kubernetes | Kubernetes | kubernetes | kubernetes.io | - | k8s,kubectl
+hetzner | Hetzner | hetzner | hetzner.com | - |
+linode | Linode | - | linode.com | - | akamai
+vultr | Vultr | vultr | vultr.com | - |
+ovh | OVHcloud | ovh | ovh.com,ovhcloud.com | - |
+namecheap | Namecheap | namecheap | namecheap.com | - |
+godaddy | GoDaddy | godaddy | godaddy.com | - |
+porkbun | Porkbun | porkbun | porkbun.com | - |
+tailscale | Tailscale | tailscale | tailscale.com | io.tailscale.ipn.macos |
+ngrok | ngrok | ngrok | ngrok.com | - |
+wordpress | WordPress | wordpress | wordpress.com,wordpress.org | - | wp
+ghost | Ghost | ghost | ghost.org,ghost.io | - |
+webflow | Webflow | webflow | webflow.com | - |
+framer | Framer | framer | framer.com | com.framer.electron |
+airtable | Airtable | airtable | airtable.com | com.FormaGrid.Airtable |
+zapier | Zapier | zapier | zapier.com | - |
+make | Make | make | make.com | - |
+n8n | n8n | n8n | n8n.io,n8n.cloud | - |
+coinbase | Coinbase | coinbase | coinbase.com | - |
+binance | Binance | binance | binance.com | - |
+plaid | Plaid | - | plaid.com | - |
+mapbox | Mapbox | mapbox | mapbox.com | - |
+googlemaps | Google Maps | googlemaps | maps.google.com | - | maps api
+cloudinary | Cloudinary | cloudinary | cloudinary.com | - |
+backblaze | Backblaze | backblaze | backblaze.com | - | b2
+wasabi | Wasabi | wasabi | wasabi.com | - |
+deno | Deno | deno | deno.com,deno.land | - | deno deploy
+bun | Bun | bun | bun.sh | - |
+postman | Postman | postman | postman.com | com.postmanlabs.mac |
+raycast | Raycast | raycast | raycast.com | com.raycast.macos |
+obsidian | Obsidian | obsidian | obsidian.md | md.obsidian |
+loom | Loom | loom | loom.com | com.loom.desktop |
+basecamp | Basecamp | basecamp | basecamp.com | com.basecamp.basecamp3 |
+hey | HEY | hey | hey.com | com.hey.app.desktop |
+arc | Arc | arc | arc.net | company.thebrowser.Browser |
+chrome | Google Chrome | googlechrome | - | com.google.Chrome | chrome
+firefox | Firefox | firefoxbrowser | mozilla.org | org.mozilla.firefox | mozilla
+signal | Signal | signal | signal.org | org.whispersystems.signal-desktop |
+steam | Steam | steam | steampowered.com,steamcommunity.com | com.valvesoftware.steam |
+amazon | Amazon | - | amazon.com | - |
+gumroad | Gumroad | gumroad | gumroad.com | - |
+lemonsqueezy | Lemon Squeezy | lemonsqueezy | lemonsqueezy.com | - |
+paddle | Paddle | paddle | paddle.com | - |
+revenuecat | RevenueCat | revenuecat | revenuecat.com | - |
+convex | Convex | convex | convex.dev | - |
+turso | Turso | turso | turso.tech | - |
+prisma | Prisma | prisma | prisma.io | - |
+groq | Groq | - | groq.com | - |
+elevenlabs | ElevenLabs | elevenlabs | elevenlabs.io | - | 11labs
+deepseek | DeepSeek | - | deepseek.com | - |
+openrouter | OpenRouter | openrouter | openrouter.ai | - |
+xai | xAI | x | x.ai,console.x.ai | - | grok
+pinecone | Pinecone | - | pinecone.io | - |
