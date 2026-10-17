@@ -116,7 +116,9 @@ p { margin: 0; text-wrap: pretty; }
 .dock {
   position: fixed; z-index: 45; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); translate: -50% 0;
   display: flex; align-items: flex-end; gap: 10px; padding: 9px 12px 11px; border-radius: 26px;
+  width: max-content; /* centered with left: 50%, so it would otherwise only get half the screen */
 }
+.dock img { max-width: none; }
 .dock__app { position: relative; display: grid; justify-items: center; text-decoration: none; margin-inline: calc((var(--mag, 1) - 1) * 24px); transition: margin 0.12s linear; }
 .dock.is-tracking .dock__app { transition: none; }
 .dock__app img {
@@ -138,7 +140,8 @@ p { margin: 0; text-wrap: pretty; }
   box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.12), 0 4px 12px -4px rgb(0 0 0 / 0.25);
   transition: opacity 0.12s ease;
 }
-.dock__app:hover .dock__name, .dock__app:focus-visible .dock__name { opacity: 1; }
+.dock__app:focus-visible .dock__name { opacity: 1; }
+@media (hover: hover) { .dock__app:hover .dock__name { opacity: 1; } }
 @media (prefers-color-scheme: dark) { .dock__name { background: rgb(40 42 48 / 0.82); box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.12), 0 4px 12px -4px rgb(0 0 0 / 0.5); } }
 @media (max-width: 640px) { .dock__app img { width: 46px; height: 46px; } }
 body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
