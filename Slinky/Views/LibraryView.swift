@@ -77,7 +77,7 @@ struct LibraryView: View {
         VStack(spacing: 14) {
             VaultIdleAnimation(samples: samples)
             Text(emptyTitle).font(.title2.weight(.bold))
-            Text(emptyLine).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 420)
+            Text(emptyLine).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 330)
             Button {
                 model.tuckPrefill = ""
                 model.tuckProject = nil

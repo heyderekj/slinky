@@ -23,7 +23,8 @@ struct VaultIdleAnimation: View {
     ]
 
     private static let iconY: CGFloat = -46
-    private static let fan: [(x: CGFloat, y: CGFloat, angle: Double)] = [(-128, 72, -7), (0, 84, 0), (128, 72, 7)]
+    /// A smile under the icon (the icon is the nose): the ends sit higher and tilt with the curve.
+    private static let fan: [(x: CGFloat, y: CGFloat, angle: Double)] = [(-132, 50, 12), (0, 82, 0), (132, 50, -12)]
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var runID = UUID()
@@ -36,6 +37,7 @@ struct VaultIdleAnimation: View {
     @State private var keyholeScale: CGFloat = 1
     @State private var spin: Double = 0
     @State private var showCheck = false
+    @State private var checkFade = false
     @State private var restShown: [Bool] = [false, false, false]
 
     private var sample: Sample { samples[index % samples.count] }
@@ -60,6 +62,8 @@ struct VaultIdleAnimation: View {
                             .symbolRenderingMode(.palette)
                             .foregroundStyle(.white, Color.green)
                             .offset(x: 10, y: 10)
+                            .scaleEffect(checkFade ? 0.5 : 1)
+                            .opacity(checkFade ? 0 : 1)
                             .transition(.symbolEffect(.drawOn))
                     }
                 }
@@ -101,6 +105,7 @@ struct VaultIdleAnimation: View {
         }
         .padding(.horizontal, 14)
         .padding(.vertical, 10)
+        .fixedSize()
         .glassEffect(.regular, in: .capsule)
     }
 
@@ -116,6 +121,7 @@ struct VaultIdleAnimation: View {
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
+        .fixedSize()
         .glassEffect(.regular, in: .rect(cornerRadius: 14))
     }
 
@@ -190,7 +196,15 @@ struct VaultIdleAnimation: View {
         withAnimation(.spring(response: 0.45, dampingFraction: 0.7)) { keyholeScale = 1 }
         withAnimation(.easeOut(duration: 0.2)) { showCheck = true }
         try? await Task.sleep(for: .milliseconds(850))
-        withAnimation(.easeIn(duration: 0.2)) { showCheck = false }
+        // Exit: shrink and fade, then remove without replaying the draw in reverse.
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.9)) { checkFade = true }
+        try? await Task.sleep(for: .milliseconds(300))
+        var quiet = Transaction()
+        quiet.disablesAnimations = true
+        withTransaction(quiet) {
+            showCheck = false
+            checkFade = false
+        }
         try? await Task.sleep(for: .milliseconds(220))
     }
 }
