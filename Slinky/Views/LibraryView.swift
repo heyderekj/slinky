@@ -5,16 +5,8 @@ import SwiftUI
 struct LibraryView: View {
     @Environment(AppModel.self) private var model
     let filter: LibraryFilter
-    /// Which tagline the All Items empty state shows. Advances once per animation loop. Not a secret.
-    @AppStorage("emptyTaglineIndex") private var taglineIndex = 0
-
-    /// The family's quirk lives at the edges: the first empty state gets a rotating line, like Dinky's.
-    /// Labels and buttons stay plain. See VOICE.md, "Where quirk lives".
-    static let taglines = [
-        "Everyone loves a Slinky. Nobody loves a leaked key.",
-        "Walks down stairs. Never into your files.",
-        "Secrets in. Asterisks out.",
-    ]
+    /// The All Items heading follows the animation: what Slinky does with each example, then the tagline.
+    @State private var playing: Int?
 
     private let columns = [GridItem(.adaptive(minimum: 270, maximum: 420), spacing: 14, alignment: .top)]
 
@@ -76,13 +68,18 @@ struct LibraryView: View {
 
     private var empty: some View {
         VStack(spacing: 14) {
-            VaultIdleAnimation(samples: samples) {
-                if filter == .all { withAnimation(.smooth) { taglineIndex += 1 } }
+            VaultIdleAnimation(samples: samples) { index in
+                withAnimation(.smooth(duration: 0.3)) { playing = index }
             }
+            // One line, so the layout under it never jumps as the heading changes.
             Text(emptyTitle)
                 .font(.title2.weight(.bold))
-                .multilineTextAlignment(.center)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: 540)
                 .contentTransition(.opacity)
+                .id(emptyTitle)
+                .transition(.opacity.combined(with: .offset(y: 4)))
             Text(emptyLine).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 330)
             Button {
                 model.tuckPrefill = ""
@@ -101,7 +98,7 @@ struct LibraryView: View {
 
     private var emptyTitle: String {
         switch filter {
-        case .all: Self.taglines[((taglineIndex % Self.taglines.count) + Self.taglines.count) % Self.taglines.count]
+        case .all: playing.flatMap { samples.indices.contains($0) ? samples[$0].headline : nil } ?? VaultIdleAnimation.restHeadline
         case .keys: "No keys or tokens yet"
         case .recovery: "No recovery codes or keys yet"
         }

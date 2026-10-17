@@ -14,18 +14,28 @@ struct VaultIdleAnimation: View {
         let rest: String
         /// Where it rests in the collection (see `scatter`).
         let slot: Int
+        /// What Slinky does with this kind of item, said plainly. Shown as the heading while it plays.
+        let headline: String
     }
 
+    /// The heading once the story is over.
+    static let restHeadline = "Slinky keeps secrets out of your files."
+
     var samples: [Sample] = VaultIdleAnimation.defaultSamples
-    /// Called each time the story plays, so the empty state can show its next tagline (like Dinky).
-    var onLoop: () -> Void = {}
+    /// Reports which example is playing (its index), or nil once everything is at rest,
+    /// so the empty state's heading can follow along.
+    var onSample: (Int?) -> Void = { _ in }
 
     /// Everything Slinky holds: a key, a project's .env line, recovery codes and a recovery key.
     static let defaultSamples = [
-        Sample(symbol: "key.fill", label: "API key", value: "sk_live_51H8xQ2Lm4f2a", rest: "sk_live_…4f2a", slot: 0),
-        Sample(symbol: "folder.fill", label: "Project variable", value: "RESEND_API_KEY=re_8Kd2Lq9w", rest: "RESEND_API_KEY=••••", slot: 1),
-        Sample(symbol: "number.square.fill", label: "Recovery codes", value: "a1b2c-3d4e5  f6a7b-8c9d0", rest: "10 codes", slot: 3),
-        Sample(symbol: "lifepreserver.fill", label: "Recovery key", value: "R7KQ-2MXP-9TDV-4HCE", rest: "R7KQ-••••-••••", slot: 2),
+        Sample(symbol: "key.fill", label: "API key", value: "sk_live_51H8xQ2Lm4f2a", rest: "sk_live_…4f2a", slot: 0,
+               headline: "A safe home for your API keys."),
+        Sample(symbol: "folder.fill", label: "Project variable", value: "RESEND_API_KEY=re_8Kd2Lq9w", rest: "RESEND_API_KEY=••••", slot: 1,
+               headline: "Your app's secrets, out of its files."),
+        Sample(symbol: "number.square.fill", label: "Recovery codes", value: "a1b2c-3d4e5  f6a7b-8c9d0", rest: "10 codes", slot: 3,
+               headline: "Backup codes, ready when you're locked out."),
+        Sample(symbol: "lifepreserver.fill", label: "Recovery key", value: "R7KQ-2MXP-9TDV-4HCE", rest: "R7KQ-••••-••••", slot: 2,
+               headline: "Recovery keys, safe for the day you need them."),
     ]
 
     private static let iconY: CGFloat = -50
@@ -156,8 +166,8 @@ struct VaultIdleAnimation: View {
     }
 
     private func play() async {
-        onLoop()
         if reduceMotion {
+            onSample(nil)
             restShown = restShown.map { _ in true }
             finished = true
             return
@@ -167,10 +177,12 @@ struct VaultIdleAnimation: View {
         try? await Task.sleep(for: .milliseconds(450))
         for i in samples.indices {
             guard !Task.isCancelled else { return }
+            onSample(i)
             await playOne(i)
         }
         // Rest like Dinky: the examples slide back out as a collection.
         for i in Self.revealOrder where samples.indices.contains(i) {
+            if i == Self.revealOrder.first { onSample(nil) }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.72)) { restShown[i] = true }
             try? await Task.sleep(for: .milliseconds(110))
         }
