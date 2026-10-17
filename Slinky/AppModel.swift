@@ -38,7 +38,7 @@ enum LockReason {
         case .manual: "You locked Slinky."
         case .screenLocked: "Locked when your screen locked."
         case .sleep: "Locked when your Mac went to sleep."
-        case .idle: "Locked after 10 minutes of inactivity."
+        case .idle: "Locked after \(Preferences.shared.autoLockMinutes) minutes of inactivity."
         case .timeLimit: "Locked after 12 hours."
         }
     }
@@ -195,6 +195,24 @@ final class AppModel {
         startIdleTimer()
     }
 
+    /// Settings › Recovery Key. Confirms it's you, then returns the new key to show exactly once.
+    /// The old printed key stops working; Touch ID on this Mac is unchanged.
+    func makeNewRecoveryKey() async -> String? {
+        guard let session else { return nil }
+        let context = LAContext()
+        do {
+            try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "make a new Recovery Key")
+        } catch {
+            return nil
+        }
+        do {
+            return try store.replaceRecoveryKey(for: session).display
+        } catch {
+            show(Self.friendly(error), style: .info)
+            return nil
+        }
+    }
+
     /// Lock from the switch, the menu or ⌃⌘L: frost covers the window first, then the vault locks.
     /// The lock itself never waits on a view, so it happens even with the window closed.
     func lockAnimated() {
@@ -223,6 +241,7 @@ final class AppModel {
         idleTimer?.invalidate()
         lockNote = reason.note
         phase = .locked
+        if reason == .manual { Sounds.play(.locked) }
     }
 
     // MARK: Changes
@@ -244,16 +263,19 @@ final class AppModel {
 
     func addKept(_ item: KeptItem) {
         change("Saved to Recovery.") { $0.kept.insert(item, at: 0) }
+        Sounds.play(.saved)
         selection = .library(.recovery)
     }
 
     func addKey(_ key: Key) {
         change("Saved to Keys & Tokens.") { $0.keys.insert(key, at: 0) }
+        Sounds.play(.saved)
         selection = .library(.keys)
     }
 
     func addCodeSet(_ set: CodeSet) {
         change("Saved \(set.codes.count) recovery codes.") { $0.codeSets.insert(set, at: 0) }
+        Sounds.play(.saved)
         selection = .library(.recovery)
     }
 
@@ -287,6 +309,7 @@ final class AppModel {
         change(count == 0 ? "Created \(name)." : "Created \(name) with \(count) \(count == 1 ? "variable" : "variables").") {
             $0.projects.append(project)
         }
+        Sounds.play(count > 1 ? .imported : .saved)
         selection = .project(project.id)
         return project.id
     }
@@ -308,6 +331,7 @@ final class AppModel {
         change(lines.count == 1 ? "Saved \(lines[0].name) to \(document.projects[p].name)." : "Imported \(lines.count) variables to \(document.projects[p].name).") { doc in
             Self.merge(lines, into: &doc.projects[p], env: env)
         }
+        Sounds.play(lines.count > 1 ? .imported : .saved)
         selection = .project(projectID)
     }
 
@@ -378,7 +402,8 @@ final class AppModel {
         guard let s = document.codeSets.firstIndex(where: { $0.id == setID }),
               document.codeSets[s].codes.indices.contains(index),
               !document.codeSets[s].used.contains(index) else { return }
-        Clipboard.copy(document.codeSets[s].codes[index])
+        Clipboard.copy(document.codeSets[s].codes[index], clearAfter: Double(Preferences.shared.clipboardSeconds))
+        Preferences.shared.copyCount += 1
         change(undoable: true) { $0.codeSets[s].used.insert(index) }
         let left = document.codeSets[s].remaining
         show("Copied and marked as used. \(left) left." + (left <= 3 ? " Consider generating new codes." : ""), canUndo: true, style: .success)
@@ -392,14 +417,18 @@ final class AppModel {
     }
 
     func copy(_ value: String, label: String, provider: String? = nil, remember: Bool = true) {
-        Clipboard.copy(value)
+        Clipboard.copy(value, clearAfter: Double(Preferences.shared.clipboardSeconds))
+        Preferences.shared.copyCount += 1
         if remember {
             recent.removeAll { $0.title == label }
             recent.insert(RecentItem(title: label, provider: provider, value: value), at: 0)
             recent = Array(recent.prefix(3))
         }
-        show("Copied \(label). The clipboard clears in 60 seconds.")
+        show("Copied \(label). \(Self.clipboardNote)")
     }
+
+    /// "The clipboard clears in 60 seconds." with the current setting.
+    static var clipboardNote: String { "The clipboard clears in \(Preferences.shared.clipboardSeconds) seconds." }
 
     func show(_ text: String, canUndo: Bool = false, style: Toast.Style? = nil) {
         // Undoable toasts are removals.
@@ -426,12 +455,12 @@ final class AppModel {
     private func observeLocks() {
         let dnc = DistributedNotificationCenter.default()
         observers.append(dnc.addObserver(forName: .init("com.apple.screenIsLocked"), object: nil, queue: .main) { [weak self] _ in
-            MainActor.assumeIsolated { self?.lock(reason: .screenLocked) }
+            MainActor.assumeIsolated { if Preferences.shared.lockOnScreenLock { self?.lock(reason: .screenLocked) } }
         })
         let ws = NSWorkspace.shared.notificationCenter
         for name in [NSWorkspace.willSleepNotification, NSWorkspace.screensDidSleepNotification] {
             observers.append(ws.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                MainActor.assumeIsolated { self?.lock(reason: .sleep) }
+                MainActor.assumeIsolated { if Preferences.shared.lockOnSleep { self?.lock(reason: .sleep) } }
             })
         }
     }
@@ -442,7 +471,7 @@ final class AppModel {
             MainActor.assumeIsolated {
                 guard let self, self.phase == .unlocked else { return }
                 let anyInput = CGEventType(rawValue: UInt32.max)!
-                if CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: anyInput) > 600 {
+                if CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: anyInput) > Double(Preferences.shared.autoLockMinutes * 60) {
                     self.lock(reason: .idle)
                 } else if let at = self.unlockedAt, Date.now.timeIntervalSince(at) > 12 * 3600 {
                     self.lock(reason: .timeLimit)

@@ -69,6 +69,18 @@ public final class VaultStore: @unchecked Sendable {
         return VaultSession(vaultKey: vaultKey, document: document)
     }
 
+    /// Makes a new Recovery Key for an unlocked vault. The old printed key stops working;
+    /// Touch ID on this Mac is unchanged. Show the new key to the person exactly once.
+    public func replaceRecoveryKey(for session: VaultSession) throws -> RecoveryKey {
+        var file = try read()
+        let recovery = RecoveryKey.generate()
+        let raw = session.vaultKey.withUnsafeBytes { Data($0) }
+        file.recoveryWrappedKey = try recovery.wrap(raw)
+        file.saved = .now
+        try write(file)
+        return recovery
+    }
+
     public func save(_ session: VaultSession) throws {
         var file = try read()
         file.payload = try seal(session.document, with: session.vaultKey)

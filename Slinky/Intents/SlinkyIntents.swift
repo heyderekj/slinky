@@ -79,7 +79,7 @@ struct CopyFromSlinkyIntent: AppIntent {
         } else {
             model.copy(found.value, label: found.title, provider: found.provider)
         }
-        return .result(dialog: "Copied \(found.title). The clipboard clears in 60 seconds.")
+        return .result(dialog: "Copied \(found.title). \(AppModel.clipboardNote)")
     }
 }
 

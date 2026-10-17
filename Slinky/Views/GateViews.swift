@@ -5,6 +5,10 @@ import SwiftUI
 struct RecoveryKeySheet: View {
     @Environment(AppModel.self) private var model
     let key: String
+    /// True when this replaces an older key from Settings.
+    var isReplacement = false
+    /// Where Done goes. By default, it closes the first-save sheet.
+    var onDone: (() -> Void)?
     @State private var saved = false
 
     var body: some View {
@@ -12,8 +16,9 @@ struct RecoveryKeySheet: View {
             HStack(spacing: 12) {
                 KeyholeMark(size: 44)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Save your Recovery Key").font(.title3.weight(.bold))
-                    Text("Your vault is ready. Keep this key somewhere safe.").foregroundStyle(.secondary)
+                    Text(isReplacement ? "Save your new Recovery Key" : "Save your Recovery Key").font(.title3.weight(.bold))
+                    Text(isReplacement ? "Your old Recovery Key no longer works." : "Your vault is ready. Keep this key somewhere safe.")
+                        .foregroundStyle(.secondary)
                 }
             }
             Text(key)
@@ -39,7 +44,9 @@ struct RecoveryKeySheet: View {
                 Toggle("I've saved my Recovery Key", isOn: $saved)
                     .toggleStyle(.checkbox)
                 Spacer()
-                Button("Done") { model.recoveryKeyToShow = nil }
+                Button("Done") {
+                    if let onDone { onDone() } else { model.recoveryKeyToShow = nil }
+                }
                     .buttonStyle(.glassProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(!saved)

@@ -123,6 +123,21 @@ struct VaultTests {
         #expect(perms == 0o600)
     }
 
+    @Test func replacingRecoveryKeyRetiresTheOldOne() throws {
+        let url = tempURL()
+        let store = VaultStore(url: url, enclave: SoftwareWrapper())
+        var (session, old) = try store.create()
+        session.document.keys.append(Key(name: "GITHUB_TOKEN", value: "ghp_EXAMPLE"))
+        try store.save(session)
+
+        let new = try store.replaceRecoveryKey(for: session)
+        #expect(new.display != old.display)
+        #expect(throws: VaultError.wrongRecoveryKey) { try store.unlock(recovery: old) }
+        #expect(try store.unlock(recovery: new).document == session.document)
+        // Touch ID on this Mac still works.
+        #expect(try store.unlock(context: nil).document == session.document)
+    }
+
     @Test func wrongRecoveryKeyFails() throws {
         let store = VaultStore(url: tempURL(), enclave: SoftwareWrapper())
         _ = try store.create()

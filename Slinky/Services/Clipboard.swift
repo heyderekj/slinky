@@ -3,7 +3,7 @@ import AppKit
 /// Copies secrets the careful way:
 /// - marked concealed and transient (nspasteboard.org), so clipboard managers and history skip them
 /// - kept off Universal Clipboard
-/// - cleared after 60 seconds, but only if nothing else was copied since
+/// - cleared after a while (Settings › Security, 60 seconds by default), but only if nothing else was copied since
 enum Clipboard {
     private static let concealed = NSPasteboard.PasteboardType("org.nspasteboard.ConcealedType")
     private static let transient = NSPasteboard.PasteboardType("org.nspasteboard.TransientType")

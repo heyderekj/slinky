@@ -4,6 +4,7 @@ import SwiftUI
 @main
 struct SlinkyApp: App {
     @State private var model = AppModel.shared
+    @State private var prefs = Preferences.shared
 
     var body: some Scene {
         Window("Slinky", id: "main") {
@@ -41,13 +42,27 @@ struct SlinkyApp: App {
             CommandGroup(replacing: .appInfo) {
                 Button("About Slinky") { AboutPanel.show() }
             }
+            CommandGroup(replacing: .appSettings) {
+                SettingsCommand()
+            }
             CommandGroup(after: .appInfo) {
                 Button("Lock Slinky") { model.lockAnimated() }
                     .keyboardShortcut("l", modifiers: [.command, .control])
                     .disabled(!model.isUnlocked)
             }
         }
-        MenuBarExtra {
+        Window("Slinky Settings", id: "settings") {
+            SettingsView()
+                .environment(model)
+                .environment(prefs)
+                .background(TransparentTitlebar(autosaveName: "SlinkySettingsWindow"))
+                .containerBackground(for: .window) { WindowGlass() }
+        }
+        .windowResizability(.contentSize)
+        .windowToolbarStyle(.unified(showsTitle: false))
+        .restorationBehavior(.disabled)
+
+        MenuBarExtra(isInserted: $prefs.showInMenuBar) {
             MenuBarStack().environment(model)
         } label: {
             Image(nsImage: MenuBarIcon.image)
@@ -58,21 +73,35 @@ struct SlinkyApp: App {
 
 /// Content runs under a see-through title bar, Tahoe style (same idea as Binky's TransparentWindow).
 struct TransparentTitlebar: NSViewRepresentable {
+    var autosaveName = "SlinkyMainWindow"
+
     func makeNSView(context: Context) -> NSView {
         let view = NSView()
-        DispatchQueue.main.async { Self.apply(view.window) }
+        DispatchQueue.main.async { Self.apply(view.window, autosaveName) }
         return view
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) { Self.apply(nsView.window) }
+    func updateNSView(_ nsView: NSView, context: Context) { Self.apply(nsView.window, autosaveName) }
 
-    private static func apply(_ window: NSWindow?) {
+    private static func apply(_ window: NSWindow?, _ autosaveName: String) {
         guard let window else { return }
         window.titlebarAppearsTransparent = true
         window.styleMask.insert(.fullSizeContentView)
         window.isOpaque = false
         window.backgroundColor = .clear
-        window.setFrameAutosaveName("SlinkyMainWindow")
+        if window.frameAutosaveName != autosaveName { window.setFrameAutosaveName(autosaveName) }
+    }
+}
+
+/// Settings… (⌘,) opens Slinky's own Settings window (a Window scene, like Binky's).
+struct SettingsCommand: View {
+    @Environment(\.openWindow) private var openWindow
+    var body: some View {
+        Button("Settings…") {
+            openWindow(id: "settings")
+            NSApp.activate()
+        }
+        .keyboardShortcut(",")
     }
 }
 

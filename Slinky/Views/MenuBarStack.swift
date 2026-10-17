@@ -40,6 +40,10 @@ struct MenuBarStack: View {
             Divider().padding(.horizontal, 12)
             VStack(spacing: 2) {
                 MenuRow(icon: "macwindow", title: "Open Slinky") { open() }
+                MenuRow(icon: "gearshape", title: "Settings…", shortcut: "⌘,") {
+                    openWindow(id: "settings")
+                    NSApp.activate()
+                }
                 MenuRow(icon: "info.circle", title: "About Slinky") { AboutPanel.show() }
                 MenuRow(icon: "power", title: "Quit Slinky", shortcut: "⌘Q") { NSApp.terminate(nil) }
             }
