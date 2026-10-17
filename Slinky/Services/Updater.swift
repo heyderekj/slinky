@@ -125,6 +125,7 @@ final class Updater {
             let staged = work.appendingPathComponent("unpacked/Slinky.app")
             guard fm.fileExists(atPath: staged.path) else { throw UpdateError.missingApp }
             guard isTrusted(staged) else { throw UpdateError.untrusted }
+            guard runsHere(staged) else { throw UpdateError.wrongMac }
 
             try replaceAfterQuit(staged: staged, destination: Bundle.main.bundleURL, cleanup: work)
             // Lock first, so nothing secret is in memory while the app swaps.
@@ -141,6 +142,16 @@ final class Updater {
     }
 
     /// Valid signature, our team, our identifier.
+    /// Slinky is Apple silicon only from 1.0.1. Never install a build this Mac can't open.
+    private func runsHere(_ app: URL) -> Bool {
+        guard let archs = Bundle(url: app)?.executableArchitectures?.map(\.intValue) else { return false }
+        #if arch(arm64)
+        return archs.contains(NSBundleExecutableArchitectureARM64)
+        #else
+        return archs.contains(NSBundleExecutableArchitectureX86_64)
+        #endif
+    }
+
     private func isTrusted(_ app: URL) -> Bool {
         var code: SecStaticCode?
         var req: SecRequirement?
@@ -173,11 +184,12 @@ final class Updater {
     }
 
     private enum UpdateError: Error {
-        case missingApp, untrusted
+        case missingApp, untrusted, wrongMac
         var message: String {
             switch self {
             case .missingApp: "The download didn't contain Slinky. Download it from GitHub instead."
             case .untrusted: "The download isn't signed by Slinky's developer, so it wasn't installed."
+            case .wrongMac: "This version of Slinky needs a Mac with Apple silicon, so it wasn't installed."
             }
         }
     }
