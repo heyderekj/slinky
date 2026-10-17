@@ -56,19 +56,7 @@ codesign --verify --deep --strict "$APP"
 echo "→ Signed: $(codesign -dvv "$APP" 2>&1 | grep -E '^Authority=Apple Development' | head -1)"
 
 # 4. Package
-echo "→ dist/Slinky-$VERSION.dmg"
-rm -f "dist/Slinky-$VERSION.dmg"
-create-dmg \
-  --volname "Slinky" \
-  --volicon "$APP/Contents/Resources/AppIcon.icns" \
-  --window-pos 200 120 \
-  --window-size 420 420 \
-  --icon-size 100 \
-  --icon "Slinky.app" 110 170 \
-  --hide-extension "Slinky.app" \
-  --app-drop-link 310 170 \
-  "dist/Slinky-$VERSION.dmg" \
-  "$APP" >/dev/null
+scripts/make-dmg.sh "$VERSION" "$APP"
 
 echo "→ dist/Slinky-$VERSION.zip"
 rm -f "dist/Slinky-$VERSION.zip"

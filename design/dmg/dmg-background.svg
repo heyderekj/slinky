@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="380" viewBox="0 0 600 380">
+  <defs>
+    <linearGradient id="ground" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#6F98BE"/>
+      <stop offset="0.55" stop-color="#557EA3"/>
+      <stop offset="1" stop-color="#456E93"/>
+    </linearGradient>
+    <radialGradient id="light" cx="0.18" cy="0.0" r="0.75">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.30"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pool" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="tray" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.13"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0.04"/>
+    </linearGradient>
+    <marker id="head" viewBox="0 0 10 10" refX="6.5" refY="5" markerWidth="6.2" markerHeight="6.2" orient="auto">
+      <path d="M1.5 1.5 L7 5 L1.5 8.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <rect width="600" height="380" fill="url(#ground)"/>
+  <rect width="600" height="380" fill="url(#light)"/>
+
+  <!-- A frosted glass tray the two icons sit on -->
+  <rect x="58" y="78" width="484" height="210" rx="34" fill="url(#tray)" stroke="url(#rim)" stroke-width="1"/>
+
+  <!-- Soft light under each icon -->
+  <ellipse cx="160" cy="172" rx="96" ry="84" fill="url(#pool)"/>
+  <ellipse cx="440" cy="172" rx="96" ry="84" fill="url(#pool)"/>
+
+  <!-- The arrow: one easy arc, dotted like something on its way -->
+  <path d="M 242 166 C 280 126, 320 126, 356 166"
+        fill="none" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="2.6" stroke-linecap="round"
+        stroke-dasharray="0.1 9" marker-end="url(#head)"/>
+
+  <!-- What to do -->
+  <text x="300.0" y="334" text-anchor="middle" font-family="SF Pro Display, SF Pro Text, Helvetica Neue, Helvetica, sans-serif"
+        font-size="14" font-weight="500" fill="#FFFFFF" fill-opacity="0.92" letter-spacing="0.1">Drag Slinky into Applications</text>
+  <text x="300.0" y="354" text-anchor="middle" font-family="SF Pro Text, Helvetica Neue, Helvetica, sans-serif"
+        font-size="11" font-weight="400" fill="#FFFFFF" fill-opacity="0.62">Slinky keeps secrets out of files.</text>
+</svg>
