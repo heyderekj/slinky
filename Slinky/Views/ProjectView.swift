@@ -51,6 +51,8 @@ struct ProjectView: View {
                     Menu {
                         Button("Import .env File…") { pickEnvFile(project) }
                         Button("Link Folder…") { pickFolder(project) }
+                        Divider()
+                        Button("Edit Project…") { model.editing = .project(project.id) }
                     } label: {
                         Label("Add", systemImage: "square.and.arrow.down")
                     }

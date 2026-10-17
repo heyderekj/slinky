@@ -125,6 +125,7 @@ private struct CardChrome<Content: View>: View {
     @ViewBuilder var content: Content
     var body: some View {
         VStack(alignment: .leading, spacing: 10) { content }
+            .contentShape(.rect(cornerRadius: 18))
             .padding(14)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(.background, in: .rect(cornerRadius: 18))
@@ -191,10 +192,13 @@ struct CodeSetCard: View {
                 }
                 Spacer()
                 Menu {
+                    Button("Edit…") { model.editing = .codes(set.id) }
+                    Divider()
                     Button("Remove", role: .destructive) { model.deleteCodeSet(set.id) }
                 } label: { Image(systemName: "ellipsis") }
                     .menuStyle(.borderlessButton).fixedSize()
             }
+        .contextMenu { Button("Edit…") { model.editing = .codes(set.id) } }
         }
     }
 }
@@ -231,10 +235,13 @@ struct KeptCard: View {
                 }
                 Spacer()
                 Menu {
+                    Button("Edit…") { model.editing = .kept(item.id) }
+                    Divider()
                     Button("Remove", role: .destructive) { model.deleteKept(item.id) }
                 } label: { Image(systemName: "ellipsis") }
                     .menuStyle(.borderlessButton).fixedSize()
             }
+        .contextMenu { Button("Edit…") { model.editing = .kept(item.id) } }
         }
     }
 }
@@ -265,10 +272,13 @@ struct KeyCard: View {
                 CopyButton { model.copy(key.value, label: key.name) }
                     .buttonStyle(.glass).controlSize(.small)
                 Menu {
+                    Button("Edit…") { model.editing = .key(key.id) }
+                    Divider()
                     Button("Remove", role: .destructive) { model.deleteKey(key.id) }
                 } label: { Image(systemName: "ellipsis") }
                     .menuStyle(.borderlessButton).fixedSize()
             }
+        .contextMenu { Button("Edit…") { model.editing = .key(key.id) } }
         }
     }
 }

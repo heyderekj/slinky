@@ -25,10 +25,13 @@ struct MainView: View {
                 AddItemOverlay().transition(.opacity)
             } else if model.showNewProject {
                 NewProjectOverlay().transition(.opacity)
+            } else if let target = model.editing {
+                EditOverlay(target: target).transition(.opacity)
             }
         }
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showTuck)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showNewProject)
+        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.editing)
         .sheet(isPresented: Binding(get: { model.recoveryKeyToShow != nil && !model.showTuck },
                                     set: { if !$0 { model.recoveryKeyToShow = nil } })) {
             if let key = model.recoveryKeyToShow { RecoveryKeySheet(key: key) }
@@ -117,6 +120,8 @@ struct SidebarView: View {
                 }
                 Divider()
             }
+            Button("Edit Project…") { model.editing = .project(project.id) }
+            Divider()
             Button("Delete Project", role: .destructive) { model.deleteProject(project.id) }
         }
     }

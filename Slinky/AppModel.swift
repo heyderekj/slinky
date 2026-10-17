@@ -30,6 +30,10 @@ enum SidebarItem: Hashable {
     case project(UUID)
 }
 
+enum EditTarget: Hashable {
+    case key(UUID), kept(UUID), codes(UUID), project(UUID)
+}
+
 enum LockReason {
     case manual, screenLocked, sleep, idle, timeLimit
 
@@ -81,6 +85,8 @@ final class AppModel {
     var selection: SidebarItem? = .library(.all)
     var showTuck = false
     var showNewProject = false
+    /// The item open in the Edit panel, if any.
+    var editing: EditTarget?
     /// A folder to start New Project with (from a drop on the sidebar).
     var newProjectFolder: URL?
     var tuckPrefill = ""
@@ -238,6 +244,7 @@ final class AppModel {
         undoSnapshot = nil
         showTuck = false
         showNewProject = false
+        editing = nil
         idleTimer?.invalidate()
         lockNote = reason.note
         phase = .locked
@@ -391,6 +398,30 @@ final class AppModel {
     func deleteProject(_ projectID: UUID) {
         change("Project deleted.", undoable: true) { $0.projects.removeAll { $0.id == projectID } }
         selection = .library(.all)
+    }
+
+    // MARK: Edits
+
+    func update(_ key: Key) {
+        guard let i = document.keys.firstIndex(where: { $0.id == key.id }) else { return }
+        var key = key
+        key.updated = .now
+        change("Saved changes to \(key.name).") { $0.keys[i] = key }
+    }
+
+    func update(_ item: KeptItem) {
+        guard let i = document.kept.firstIndex(where: { $0.id == item.id }) else { return }
+        change("Saved changes to \(item.label).") { $0.kept[i] = item }
+    }
+
+    func update(_ set: CodeSet) {
+        guard let i = document.codeSets.firstIndex(where: { $0.id == set.id }) else { return }
+        change("Saved changes to \(set.account).") { $0.codeSets[i] = set }
+    }
+
+    func update(_ project: Project) {
+        guard let i = document.projects.firstIndex(where: { $0.id == project.id }) else { return }
+        change("Saved changes to \(project.name).") { $0.projects[i] = project }
     }
 
     func deleteKept(_ id: UUID) { change("Removed.", undoable: true) { $0.kept.removeAll { $0.id == id } } }
