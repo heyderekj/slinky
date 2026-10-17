@@ -1,6 +1,6 @@
 #!/bin/bash
 # make-dmg.sh <version> <path/to/Slinky.app>
-# The install window: Slinky on the left, Applications on the right, on the glacier background from
+# The install window: Slinky on the left, Applications on the right, on the light coil background from
 # design/dmg (make_background.py). Window content is 600 x 380; icons are centered at (160,178) and (440,178).
 set -e
 VERSION="$1"; APP="$2"
