@@ -46,6 +46,7 @@ struct SlinkyApp: App {
             CommandGroup(replacing: .appSettings) {
                 SettingsCommand()
             }
+            SidebarCommands()
             CommandGroup(replacing: .help) {
                 WindowCommand(title: "Slinky Help", id: "help")
             }

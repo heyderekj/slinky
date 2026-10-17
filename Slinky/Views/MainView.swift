@@ -3,12 +3,16 @@ import SwiftUI
 
 struct MainView: View {
     @Environment(AppModel.self) private var model
+    @State private var columns: NavigationSplitViewVisibility = .all
 
     var body: some View {
         @Bindable var model = model
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $columns) {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 300)
+                // The built-in toggle lives in the sidebar's part of the toolbar. While the sidebar opens
+                // or closes that part is too narrow for it, so macOS shows the overflow » for a moment.
+                .toolbar(removing: .sidebarToggle)
         } detail: {
             Group {
                 if model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -18,6 +22,18 @@ struct MainView: View {
                 }
             }
             .overlay(alignment: .bottom) { ToastView() }
+            .toolbar {
+                // Our own toggle, in the content's part of the toolbar (like Dinky), so it never gets squeezed.
+                ToolbarItem(placement: .navigation) {
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) { columns = columns == .detailOnly ? .all : .detailOnly }
+                    } label: {
+                        Label("Sidebar", systemImage: "sidebar.left")
+                    }
+                    .help(columns == .detailOnly ? "Show the sidebar (⌃⌘S)" : "Hide the sidebar (⌃⌘S)")
+                    .accessibilityLabel(columns == .detailOnly ? "Show sidebar" : "Hide sidebar")
+                }
+            }
         }
         .overlay {
             if model.showTuck {
