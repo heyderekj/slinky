@@ -44,8 +44,9 @@ Read this before any design work. Every visual decision should trace back to som
 - **Hotkey:** ⌥⌘K for Quick Access (not ⌃⌥Space, not ⇧⌘Space).
 - **Sidebar:** a standard macOS list, not tiles. Library (All Items, Keys & Tokens, Recovery Codes, Secure Notes) with SF Symbols and quiet counts, then Projects. A small + menu at the bottom. Derek rejected the Reminders-style tiles (2026-10-16).
 - **Naming:** Keys & Tokens, Recovery Codes, Secure Notes, Projects, Add Item. No "Kept" or "Tuck It Away".
-- **Empty states:** `VaultIdleAnimation`, Slinky's sibling to Dinky's IdleAnimation. A secret rises from the bottom edge, its characters turn into dots, it slides into the icon, the keyhole closes, the asterisk turns, and the keyhole returns with a draw-on checkmark. It plays once, replays on hover, and stays static under Reduce Motion. Below it: a title, one line, one button. Nothing more.
+- **Empty states:** `VaultIdleAnimation`, Slinky's sibling to Dinky's IdleAnimation. A secret rises from the bottom edge, its characters turn into dots, it slides into the icon, the keyhole closes, the asterisk turns, and the keyhole returns with a draw-on checkmark. It ends, like Dinky, on a resting collection of examples fanned under the icon. Hover replays it; Reduce Motion shows only the resting collection. The keyhole never rotates: only the asterisk turns (60°, so it lands identical). Below it: a title, one line, one button. Nothing more.
 - **SF Symbol animations, used for meaning, not decoration:** `.replace` for state swaps (Copy → checkmark), `.drawOn` for completion (used codes, saved), `.bounce` for acknowledgement (selection, detection, toasts), `.pulse` while waiting (Touch ID), `.wiggle` for gentle warnings (low codes). One effect per moment.
+- **Success is green.** Checkmarks that confirm something worked (saved, copied, stored) use system green. The ice-blue accent stays for actions and selection.
 - **Working state:** the keyhole is absorbed into the asterisk, which spins (see `docs/plan.md`).
 
 ## Live documents

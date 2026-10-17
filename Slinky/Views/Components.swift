@@ -93,7 +93,7 @@ struct ToastView: View {
         if let toast = model.toast {
             HStack(spacing: 10) {
                 Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.tint)
+                    .foregroundStyle(.green)
                     .symbolEffect(.bounce, value: toast.id)
                 Text(toast.text).font(.callout)
                 if toast.canUndo {
@@ -125,11 +125,13 @@ struct KeyholeMark: View {
             RoundedRectangle(cornerRadius: size * 0.225, style: .continuous)
                 .fill(LinearGradient(colors: [Color(red: 0.55, green: 0.80, blue: 0.95), Color(red: 0.20, green: 0.52, blue: 0.78)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
+            // Only the asterisk turns. The keyhole always stays upright.
+            AsteriskShape()
+                .stroke(Color.white, style: StrokeStyle(lineWidth: size * 0.146, lineCap: .round))
+                .shadow(color: Color(red: 0.05, green: 0.2, blue: 0.35).opacity(0.45), radius: size * 0.04, x: size * 0.012, y: size * 0.018)
+                .padding(size * 0.21)
+                .rotationEffect(.degrees(-8 + spin))
             ZStack {
-                AsteriskShape()
-                    .stroke(Color.white, style: StrokeStyle(lineWidth: size * 0.146, lineCap: .round))
-                    .shadow(color: Color(red: 0.05, green: 0.2, blue: 0.35).opacity(0.45), radius: size * 0.04, x: size * 0.012, y: size * 0.018)
-                    .padding(size * 0.21)
                 Capsule()
                     .fill(LinearGradient(colors: [Color(red: 0.06, green: 0.16, blue: 0.27), Color(red: 0.14, green: 0.30, blue: 0.45)],
                                          startPoint: .top, endPoint: .bottom))
@@ -142,7 +144,7 @@ struct KeyholeMark: View {
                     .scaleEffect(keyholeScale)
                     .opacity(Double(keyholeScale))
             }
-            .rotationEffect(.degrees(-8 + spin))
+            .rotationEffect(.degrees(-8))
         }
         .frame(width: size, height: size)
         .shadow(color: .black.opacity(0.12), radius: size * 0.08, y: size * 0.05)
@@ -176,8 +178,13 @@ struct CopyButton: View {
             copied = true
             Task { try? await Task.sleep(for: .seconds(1.4)); copied = false }
         } label: {
-            Label(title, systemImage: copied ? "checkmark" : "doc.on.doc")
-                .contentTransition(.symbolEffect(.replace))
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemName: copied ? "checkmark" : "doc.on.doc")
+                    .foregroundStyle(copied ? Color.green : Color.primary)
+                    .contentTransition(.symbolEffect(.replace))
+            }
         }
     }
 }
