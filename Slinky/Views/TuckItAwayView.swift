@@ -49,7 +49,12 @@ struct TuckItAwayView: View {
                 .accessibilityLabel("Value to tuck away")
 
             if let detection {
-                Label(detection.label, systemImage: detection.kind == .walletSeed ? "hand.raised.fill" : "sparkle.magnifyingglass")
+                Label {
+                    Text(detection.label)
+                } icon: {
+                    Image(systemName: detection.kind == .walletSeed ? "hand.raised.fill" : "sparkle.magnifyingglass")
+                        .symbolEffect(.bounce, value: detection.label)
+                }
                     .font(.callout)
                     .foregroundStyle(detection.kind == .walletSeed ? Color.orange : Color.primary)
                     .transition(.opacity)

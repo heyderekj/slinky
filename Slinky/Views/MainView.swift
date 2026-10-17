@@ -54,8 +54,13 @@ struct SidebarView: View {
         List(selection: $model.selection) {
             Section("Library") {
                 ForEach(LibraryFilter.allCases, id: \.self) { filter in
-                    Label(filter.title, systemImage: filter.symbol)
-                        .badge(count(filter))
+                    Label {
+                        Text(filter.title)
+                    } icon: {
+                        Image(systemName: filter.symbol)
+                            .symbolEffect(.bounce, value: model.selection == .library(filter))
+                    }
+                    .badge(count(filter))
                         .tag(SidebarItem.library(filter))
                 }
             }

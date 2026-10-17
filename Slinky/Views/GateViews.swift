@@ -85,6 +85,7 @@ struct LockView: View {
                 model.unlock()
             } label: {
                 Label(model.unlockLabel, systemImage: "touchid")
+                    .symbolEffect(.pulse, isActive: model.busy)
             }
             .buttonStyle(.glassProminent)
             .controlSize(.large)

@@ -298,7 +298,7 @@ struct VariableInspector: View {
                         RevealField(value: value)
                     }
                     HStack {
-                        Button { model.copy(value, label: variable.name) } label: { Label("Copy", systemImage: "doc.on.doc") }
+                        CopyButton { model.copy(value, label: variable.name) }
                         Button { model.copy("\(variable.name)=\(value)", label: "\(variable.name)=…") } label: { Text("KEY=value") }
                         Button { draft = ""; editing = true } label: { Image(systemName: "pencil") }.help("Replace the \(env.title) value")
                     }

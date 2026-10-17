@@ -92,7 +92,9 @@ struct ToastView: View {
     var body: some View {
         if let toast = model.toast {
             HStack(spacing: 10) {
-                Image(systemName: "checkmark").foregroundStyle(.tint)
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundStyle(.tint)
+                    .symbolEffect(.bounce, value: toast.id)
                 Text(toast.text).font(.callout)
                 if toast.canUndo {
                     Button("Undo") { model.undo() }
@@ -111,30 +113,36 @@ struct ToastView: View {
     }
 }
 
-/// The app icon, drawn in SwiftUI for in-app use (welcome and lock screens).
+/// The app icon, drawn in SwiftUI. `keyholeScale` and `spin` drive the "working" animation:
+/// the keyhole is absorbed into the asterisk, which turns, then the keyhole returns.
 struct KeyholeMark: View {
     var size: CGFloat = 96
+    var keyholeScale: CGFloat = 1
+    var spin: Double = 0
 
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.225, style: .continuous)
                 .fill(LinearGradient(colors: [Color(red: 0.55, green: 0.80, blue: 0.95), Color(red: 0.20, green: 0.52, blue: 0.78)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
-            AsteriskShape()
-                .stroke(Color.white, style: StrokeStyle(lineWidth: size * 0.146, lineCap: .round))
-                .shadow(color: Color(red: 0.05, green: 0.2, blue: 0.35).opacity(0.45), radius: size * 0.04, x: size * 0.012, y: size * 0.018)
-                .rotationEffect(.degrees(-8))
-                .padding(size * 0.21)
-            Capsule()
-                .fill(LinearGradient(colors: [Color(red: 0.06, green: 0.16, blue: 0.27), Color(red: 0.14, green: 0.30, blue: 0.45)],
-                                     startPoint: .top, endPoint: .bottom))
-                .frame(width: size * 0.053, height: size * 0.15)
-                .offset(y: size * 0.03)
-                .overlay(Circle()
-                    .fill(Color(red: 0.06, green: 0.16, blue: 0.27))
-                    .frame(width: size * 0.12)
-                    .offset(y: -size * 0.07))
-                .rotationEffect(.degrees(-8))
+            ZStack {
+                AsteriskShape()
+                    .stroke(Color.white, style: StrokeStyle(lineWidth: size * 0.146, lineCap: .round))
+                    .shadow(color: Color(red: 0.05, green: 0.2, blue: 0.35).opacity(0.45), radius: size * 0.04, x: size * 0.012, y: size * 0.018)
+                    .padding(size * 0.21)
+                Capsule()
+                    .fill(LinearGradient(colors: [Color(red: 0.06, green: 0.16, blue: 0.27), Color(red: 0.14, green: 0.30, blue: 0.45)],
+                                         startPoint: .top, endPoint: .bottom))
+                    .frame(width: size * 0.053, height: size * 0.15)
+                    .offset(y: size * 0.03)
+                    .overlay(Circle()
+                        .fill(Color(red: 0.06, green: 0.16, blue: 0.27))
+                        .frame(width: size * 0.12)
+                        .offset(y: -size * 0.07))
+                    .scaleEffect(keyholeScale)
+                    .opacity(Double(keyholeScale))
+            }
+            .rotationEffect(.degrees(-8 + spin))
         }
         .frame(width: size, height: size)
         .shadow(color: .black.opacity(0.12), radius: size * 0.08, y: size * 0.05)
@@ -153,5 +161,23 @@ struct AsteriskShape: Shape {
             p.addLine(to: CGPoint(x: c.x - r * cos(a), y: c.y - r * sin(a)))
         }
         return p
+    }
+}
+
+/// Copy with an SF Symbol swap to a checkmark, so the click is acknowledged in place.
+struct CopyButton: View {
+    var title = "Copy"
+    let action: () -> Void
+    @State private var copied = false
+
+    var body: some View {
+        Button {
+            action()
+            copied = true
+            Task { try? await Task.sleep(for: .seconds(1.4)); copied = false }
+        } label: {
+            Label(title, systemImage: copied ? "checkmark" : "doc.on.doc")
+                .contentTransition(.symbolEffect(.replace))
+        }
     }
 }

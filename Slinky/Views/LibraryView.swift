@@ -75,13 +75,9 @@ struct LibraryView: View {
 
     private var empty: some View {
         VStack(spacing: 14) {
-            KeyholeMark(size: 72)
+            VaultIdleAnimation(samples: samples)
             Text(emptyTitle).font(.title2.weight(.bold))
-            Text(emptyLine).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 400)
-            if !model.hasVault {
-                Text("Slinky creates your encrypted vault when you save your first item. After that, Touch ID unlocks it.")
-                    .font(.callout).foregroundStyle(.tertiary).multilineTextAlignment(.center).frame(maxWidth: 400)
-            }
+            Text(emptyLine).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 420)
             Button {
                 model.tuckPrefill = ""
                 model.tuckProject = nil
@@ -91,16 +87,27 @@ struct LibraryView: View {
             }
             .buttonStyle(.glassProminent)
             .controlSize(.large)
+            .padding(.top, 4)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+    /// Lead the animation with the kind of item this view holds.
+    private var samples: [VaultIdleAnimation.Sample] {
+        let all = VaultIdleAnimation.defaultSamples
+        switch filter {
+        case .all, .keys: return all
+        case .codes: return [all[1], all[0], all[2]]
+        case .kept: return [all[2], all[0], all[1]]
+        }
+    }
+
     private var emptyLine: String {
         switch filter {
-        case .codes: "When a website gives you backup codes for two-step verification, paste them here. Click a code to copy it, and Slinky marks it as used."
-        case .kept: "Store recovery keys, setup keys, license keys and anything else a website tells you to keep somewhere safe."
-        case .keys: "Store API keys and personal access tokens you use across projects."
-        case .all: "Add your first item with ⌘N, or create a project for a .env file."
+        case .codes: "Paste the backup codes a website gives you. Click one to copy it, and Slinky marks it as used."
+        case .kept: "For recovery keys, setup keys and anything a website tells you to keep safe."
+        case .keys: "For API keys and access tokens you use across projects."
+        case .all: "Paste a key, recovery codes or a .env line with ⌘N. Slinky sorts it for you."
         }
     }
 }
@@ -139,6 +146,7 @@ struct CodeSetCard: View {
             }
             if set.isLow {
                 Label("Only \(set.remaining) codes left. Consider generating new ones.", systemImage: "exclamationmark.triangle.fill")
+                    .symbolEffect(.wiggle, value: set.remaining)
                     .font(.caption).foregroundStyle(.orange)
             }
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {
@@ -147,11 +155,19 @@ struct CodeSetCard: View {
                     Button {
                         model.useCode(index, in: set.id)
                     } label: {
-                        Text(code)
-                            .font(.system(size: 12, design: .monospaced))
-                            .strikethrough(used)
-                            .foregroundStyle(used ? Color.secondary.opacity(0.6) : Color.primary)
-                            .frame(maxWidth: .infinity)
+                        HStack(spacing: 4) {
+                            Text(code)
+                                .font(.system(size: 12, design: .monospaced))
+                                .strikethrough(used)
+                                .foregroundStyle(used ? Color.secondary.opacity(0.6) : Color.primary)
+                            if used {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundStyle(.secondary)
+                                    .transition(.symbolEffect(.drawOn))
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
                             .padding(.vertical, 6)
                             .background(.background.secondary, in: .rect(cornerRadius: 7))
                     }
@@ -192,7 +208,7 @@ struct KeptCard: View {
             }
             RevealField(value: item.value)
             HStack {
-                Button { model.copy(item.value, label: item.label) } label: { Label("Copy", systemImage: "doc.on.doc") }
+                CopyButton { model.copy(item.value, label: item.label) }
                     .buttonStyle(.glass).controlSize(.small)
                 if item.kind == .recoveryKey {
                     if item.printedCopy {
@@ -238,7 +254,7 @@ struct KeyCard: View {
                 }
                 Chip(text: key.agentPolicy.title, style: .plain)
                 Spacer()
-                Button { model.copy(key.value, label: key.name) } label: { Label("Copy", systemImage: "doc.on.doc") }
+                CopyButton { model.copy(key.value, label: key.name) }
                     .buttonStyle(.glass).controlSize(.small)
                 Menu {
                     Button("Remove", role: .destructive) { model.deleteKey(key.id) }
