@@ -1,0 +1,282 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		5117C0DE000000000000000D /* SlinkyCoreShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5117C0DE000000000000000B /* SlinkyCoreShared */; };
+		5117C0DE000000000000000E /* SlinkyCoreVault in Frameworks */ = {isa = PBXBuildFile; productRef = 5117C0DE000000000000000C /* SlinkyCoreVault */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		5117C0DE0000000000000005 /* Slinky.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Slinky.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		5117C0DE0000000000000004 /* Slinky */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Slinky;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		5117C0DE0000000000000008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5117C0DE000000000000000D /* SlinkyCoreShared in Frameworks */,
+				5117C0DE000000000000000E /* SlinkyCoreVault in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		5117C0DE0000000000000002 = {
+			isa = PBXGroup;
+			children = (
+				5117C0DE0000000000000004 /* Slinky */,
+				5117C0DE0000000000000003 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		5117C0DE0000000000000003 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				5117C0DE0000000000000005 /* Slinky.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		5117C0DE0000000000000006 /* Slinky */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5117C0DE0000000000000019 /* Build configuration list for PBXNativeTarget "Slinky" */;
+			buildPhases = (
+				5117C0DE0000000000000007 /* Sources */,
+				5117C0DE0000000000000008 /* Frameworks */,
+				5117C0DE0000000000000009 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5117C0DE0000000000000004 /* Slinky */,
+			);
+			name = Slinky;
+			packageProductDependencies = (
+				5117C0DE000000000000000B /* SlinkyCoreShared */,
+				5117C0DE000000000000000C /* SlinkyCoreVault */,
+			);
+			productName = Slinky;
+			productReference = 5117C0DE0000000000000005 /* Slinky.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		5117C0DE0000000000000001 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2600;
+				LastUpgradeCheck = 2600;
+				TargetAttributes = {
+					5117C0DE0000000000000006 = {
+						CreatedOnToolsVersion = 26.0;
+					};
+				};
+			};
+			buildConfigurationList = 5117C0DE0000000000000018 /* Build configuration list for PBXProject "Slinky" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 5117C0DE0000000000000002;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				5117C0DE000000000000000A /* XCLocalSwiftPackageReference "SlinkyCore" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5117C0DE0000000000000003 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				5117C0DE0000000000000006 /* Slinky */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		5117C0DE0000000000000009 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		5117C0DE0000000000000007 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		5117C0DE0000000000000014 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		5117C0DE0000000000000015 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 6.0;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		5117C0DE0000000000000016 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "1C79F5AFAA48ECA90E05A0A01B15E715BF1BBDEB";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B3U6BXA8KP;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Slinky;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Derek Castelli. MIT licensed.";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.slinky.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		5117C0DE0000000000000017 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "1C79F5AFAA48ECA90E05A0A01B15E715BF1BBDEB";
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = B3U6BXA8KP;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Slinky;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Derek Castelli. MIT licensed.";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.slinky.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		5117C0DE0000000000000018 /* Build configuration list for PBXProject "Slinky" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5117C0DE0000000000000014 /* Debug */,
+				5117C0DE0000000000000015 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5117C0DE0000000000000019 /* Build configuration list for PBXNativeTarget "Slinky" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5117C0DE0000000000000016 /* Debug */,
+				5117C0DE0000000000000017 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		5117C0DE000000000000000A /* XCLocalSwiftPackageReference "SlinkyCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = SlinkyCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5117C0DE000000000000000B /* SlinkyCoreShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5117C0DE000000000000000A /* XCLocalSwiftPackageReference "SlinkyCore" */;
+			productName = SlinkyCoreShared;
+		};
+		5117C0DE000000000000000C /* SlinkyCoreVault */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5117C0DE000000000000000A /* XCLocalSwiftPackageReference "SlinkyCore" */;
+			productName = SlinkyCoreVault;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 5117C0DE0000000000000001 /* Project object */;
+}
