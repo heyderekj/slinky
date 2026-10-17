@@ -61,7 +61,8 @@ struct SidebarView: View {
         @Bindable var model = model
         let attention = model.attention
         List(selection: $model.selection) {
-            Section("Library") {
+            // The top group needs no heading (like Passwords and Notes). Projects keeps its own.
+            Section {
                 ForEach(LibraryFilter.allCases, id: \.self) { filter in
                     Label(filter.title, systemImage: filter.symbol)
                     .badge(count(filter))
@@ -101,6 +102,10 @@ struct SidebarView: View {
                 .padding(.horizontal, 10)
                 .padding(.top, 2)
                 .padding(.bottom, 6)
+        }
+        .onAppear {
+            // macOS hands focus to the first text field when the window opens. Search shouldn't take it.
+            DispatchQueue.main.async { searchFocused = false }
         }
         .background {
             Button("Find") { searchFocused = true }
