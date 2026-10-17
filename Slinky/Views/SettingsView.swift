@@ -114,6 +114,18 @@ private struct GeneralPane: View {
                 Toggle("Show Slinky in the menu bar", isOn: $prefs.showInMenuBar)
             }
             Section {
+                Toggle("Check for updates automatically", isOn: $prefs.checkForUpdates)
+                LabeledContent("Slinky \(Updater.shared.currentVersion)") {
+                    Button(Updater.shared.isChecking ? "Checking…" : "Check Now") { Updater.shared.checkManually() }
+                        .disabled(Updater.shared.isChecking)
+                }
+            } header: {
+                Text("Updates")
+            } footer: {
+                Text("Once a day, Slinky asks GitHub whether there's a newer version. That's the only time it goes online, and nothing about you or your vault is sent.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section {
                 Toggle("Play sounds", isOn: $prefs.playSounds)
             } footer: {
                 Text("A soft sound when you save something, a bigger one when you import a .env file, and a click when you lock.")

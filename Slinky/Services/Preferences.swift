@@ -19,6 +19,8 @@ final class Preferences {
     var clipboardSeconds: Int { didSet { defaults.set(clipboardSeconds, forKey: "clipboardSeconds") } }
     var playSounds: Bool { didSet { defaults.set(playSounds, forKey: "playSounds") } }
     var showInMenuBar: Bool { didSet { defaults.set(showInMenuBar, forKey: "showInMenuBar") } }
+    /// Ask GitHub once a day whether there's a newer Slinky. The only network request Slinky makes.
+    var checkForUpdates: Bool { didSet { defaults.set(checkForUpdates, forKey: "checkForUpdates") } }
     /// How many times Slinky has copied something for you. A count only, for the About pane.
     var copyCount: Int { didSet { defaults.set(copyCount, forKey: "copyCount") } }
     /// Mirrors macOS's Login Items. Read fresh from the system when Settings opens.
@@ -27,7 +29,7 @@ final class Preferences {
     private init() {
         defaults.register(defaults: [
             "autoLockMinutes": 10, "lockOnScreenLock": true, "lockOnSleep": true,
-            "clipboardSeconds": 60, "playSounds": true, "showInMenuBar": true, "copyCount": 0,
+            "clipboardSeconds": 60, "playSounds": true, "showInMenuBar": true, "checkForUpdates": true, "copyCount": 0,
         ])
         autoLockMinutes = defaults.integer(forKey: "autoLockMinutes")
         lockOnScreenLock = defaults.bool(forKey: "lockOnScreenLock")
@@ -35,6 +37,7 @@ final class Preferences {
         clipboardSeconds = defaults.integer(forKey: "clipboardSeconds")
         playSounds = defaults.bool(forKey: "playSounds")
         showInMenuBar = defaults.bool(forKey: "showInMenuBar")
+        checkForUpdates = defaults.bool(forKey: "checkForUpdates")
         copyCount = defaults.integer(forKey: "copyCount")
         refreshLoginItem()
     }

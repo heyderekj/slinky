@@ -186,6 +186,19 @@ struct SidebarView: View {
 
     /// One labeled action, like Notes' "New Folder". Items are added from the toolbar's Add Item.
     private var footer: some View {
+        VStack(spacing: 0) {
+            if Updater.shared.shouldShowBanner {
+                UpdateBanner()
+                    .padding(.horizontal, 10)
+                    .padding(.top, 8)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+            footerRow
+        }
+        .animation(.smooth, value: Updater.shared.shouldShowBanner)
+    }
+
+    private var footerRow: some View {
         HStack {
             Button {
                 model.showNewProject = true
@@ -207,6 +220,40 @@ struct SidebarView: View {
         case .keys: model.document.keys.count
         case .recovery: model.document.codeSets.count + model.document.kept.count
         }
+    }
+}
+
+/// "Slinky 1.1 is available" at the bottom of the sidebar, like Dinky's update banner.
+struct UpdateBanner: View {
+    private var updater: Updater { .shared }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Slinky \(updater.availableVersion ?? "") is available").font(.callout.weight(.semibold))
+                    switch updater.installState {
+                    case .downloading: Text("Downloading…").font(.caption).foregroundStyle(.secondary)
+                    case .installing: Text("Installing…").font(.caption).foregroundStyle(.secondary)
+                    case let .failed(message): Text(message).font(.caption).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+                    case .idle: Text("You're on \(updater.currentVersion).").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer(minLength: 4)
+                IconButton(symbol: "xmark", help: "Not now") { updater.dismissBanner() }
+            }
+            HStack(spacing: 8) {
+                Button("Install") { Task { await updater.install() } }
+                    .buttonStyle(.glassProminent)
+                    .controlSize(.small)
+                    .disabled(updater.installState == .downloading || updater.installState == .installing)
+                if let url = updater.releaseURL {
+                    Link("What's New", destination: url).font(.caption)
+                }
+            }
+        }
+        .padding(12)
+        .glassEffect(.regular, in: .rect(cornerRadius: 14))
     }
 }
 

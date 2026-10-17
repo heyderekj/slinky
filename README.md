@@ -20,6 +20,8 @@ The family: [Dinky](https://github.com/heyderekj/dinky) makes files smaller. [Bi
 
 In one encrypted file on your Mac. The key that opens it is protected by your Mac's Secure Enclave (Touch ID), with a printed Recovery Key as the backup. No account, no server, no sync. Time Machine backs the file up like any other, still encrypted.
 
+The only time Slinky goes online is a daily check with GitHub for a newer version (you can turn it off in Settings). Updates install in place, and only if they're signed by Slinky's developer.
+
 Slinky doesn't store passwords (that's Apple Passwords) or crypto wallet recovery phrases.
 
 ## Install

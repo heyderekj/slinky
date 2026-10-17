@@ -51,6 +51,7 @@ struct HelpView: View {
         ]),
         Topic(symbol: "internaldrive", title: "Where your things live", body: [
             "In one encrypted file on this Mac. There's no account and nothing goes to a server.",
+            "The only time Slinky goes online is a daily check with GitHub for a newer version. Turn it off in Settings › General.",
             "Time Machine backs the file up like any other. It stays encrypted, and only your Touch ID or your Recovery Key opens it.",
         ]),
         Topic(symbol: "envelope", title: "Questions", body: [

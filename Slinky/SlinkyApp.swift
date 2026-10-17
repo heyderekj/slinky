@@ -14,6 +14,7 @@ struct SlinkyApp: App {
                 .task {
                     model.start()
                     QuickAccess.shared.configure(model)
+                    Updater.shared.checkOnLaunch()
                 }
                 .background(WindowOpenerBridge())
                 .background(TransparentTitlebar())
@@ -46,6 +47,7 @@ struct SlinkyApp: App {
             }
             CommandGroup(replacing: .appInfo) {
                 Button("About Slinky") { AboutPanel.show() }
+                Button("Check for Updates…") { Updater.shared.checkManually() }
             }
             CommandGroup(replacing: .appSettings) {
                 SettingsCommand()
