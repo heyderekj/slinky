@@ -1,0 +1,6 @@
+.build/
+*.app
+*.zip
+.DS_Store
+design/icon/**/png/
+spike/.build/

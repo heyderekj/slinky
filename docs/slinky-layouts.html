@@ -1,0 +1,916 @@
+<title>Slinky Layouts</title>
+<style>
+:root{
+  --bg:#ffffff; --text:#1c1c1e; --text-2:#6b6b70; --divider:#e6e8eb; --surface:#f3f5f7; --surface-2:#e8ecf0;
+  --accent:#4a7aa3; --accent-strong:#355d80; --accent-soft:rgba(74,122,163,.10); --on-accent:#fff;
+  --live:#c8283a; --live-soft:rgba(200,40,58,.10); --warn:#a85a00; --warn-soft:rgba(255,149,0,.15); --ok:#2f7d5b;
+  /* mock tokens */
+  --wall:radial-gradient(60% 70% at 15% 20%,#e9f4ff 0%,rgba(233,244,255,0) 70%),radial-gradient(50% 60% at 85% 15%,#efe9ff 0%,rgba(239,233,255,0) 70%),radial-gradient(70% 70% at 70% 100%,#cfe4f3 0%,rgba(207,228,243,0) 70%),linear-gradient(160deg,#f6f9fc,#dbe7f1);
+  --glass:rgba(250,252,255,.56); --glass-strong:rgba(250,252,255,.74); --glass-line:rgba(255,255,255,.85); --glass-edge:rgba(30,60,90,.14);
+  --paper:#fbfdff; --paper-2:#f2f6fa; --paper-line:rgba(30,60,90,.08);
+  --ink:#1b2430; --ink-2:#5c6b7a; --ink-3:#93a1ae; --mono-bg:rgba(74,122,163,.08);
+  --sel:rgba(74,122,163,.14); --win-shadow:0 30px 70px -28px rgba(30,60,90,.55),0 0 0 .5px rgba(30,60,90,.22);
+  --ghost:rgba(120,150,180,.35);
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0e0f11; --text:#f2f4f7; --text-2:#9aa3ad; --divider:#2a2d31; --surface:#191b1e; --surface-2:#24272b;
+    --accent:#a9c7dc; --accent-strong:#d3e4f0; --accent-soft:rgba(169,199,220,.13); --on-accent:#0e1a24;
+    --live:#ff7480; --live-soft:rgba(255,116,128,.14); --warn:#ffb340; --warn-soft:rgba(255,179,64,.14); --ok:#6fd3a5;
+    --wall:radial-gradient(60% 70% at 15% 20%,#1d2a36 0%,rgba(29,42,54,0) 70%),radial-gradient(50% 60% at 85% 15%,#251f33 0%,rgba(37,31,51,0) 70%),radial-gradient(70% 70% at 70% 100%,#13283a 0%,rgba(19,40,58,0) 70%),linear-gradient(160deg,#121519,#07090b);
+    --glass:rgba(38,42,48,.56); --glass-strong:rgba(38,42,48,.74); --glass-line:rgba(255,255,255,.10); --glass-edge:rgba(0,0,0,.5);
+    --paper:#16191c; --paper-2:#1c2024; --paper-line:rgba(255,255,255,.07);
+    --ink:#eef2f6; --ink-2:#9aa6b2; --ink-3:#66717c; --mono-bg:rgba(169,199,220,.10);
+    --sel:rgba(169,199,220,.15); --win-shadow:0 30px 70px -28px rgba(0,0,0,.85),0 0 0 .5px rgba(255,255,255,.12);
+    --ghost:rgba(169,199,220,.3);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0e0f11; --text:#f2f4f7; --text-2:#9aa3ad; --divider:#2a2d31; --surface:#191b1e; --surface-2:#24272b;
+  --accent:#a9c7dc; --accent-strong:#d3e4f0; --accent-soft:rgba(169,199,220,.13); --on-accent:#0e1a24;
+  --live:#ff7480; --live-soft:rgba(255,116,128,.14); --warn:#ffb340; --warn-soft:rgba(255,179,64,.14); --ok:#6fd3a5;
+  --wall:radial-gradient(60% 70% at 15% 20%,#1d2a36 0%,rgba(29,42,54,0) 70%),radial-gradient(50% 60% at 85% 15%,#251f33 0%,rgba(37,31,51,0) 70%),radial-gradient(70% 70% at 70% 100%,#13283a 0%,rgba(19,40,58,0) 70%),linear-gradient(160deg,#121519,#07090b);
+  --glass:rgba(38,42,48,.56); --glass-strong:rgba(38,42,48,.74); --glass-line:rgba(255,255,255,.10); --glass-edge:rgba(0,0,0,.5);
+  --paper:#16191c; --paper-2:#1c2024; --paper-line:rgba(255,255,255,.07);
+  --ink:#eef2f6; --ink-2:#9aa6b2; --ink-3:#66717c; --mono-bg:rgba(169,199,220,.10);
+  --sel:rgba(169,199,220,.15); --win-shadow:0 30px 70px -28px rgba(0,0,0,.85),0 0 0 .5px rgba(255,255,255,.12);
+  --ghost:rgba(169,199,220,.3);
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,sans-serif;padding-inline:16px;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)} a:hover{color:var(--accent-strong)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:.9em}
+.page{max-width:1100px;margin:0 auto;padding-block:40px 80px}
+.col{max-width:760px;margin-inline:auto}
+.only-dark{display:none!important}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .only-light{display:none!important}:root:not([data-theme="light"]) .only-dark{display:block!important}}
+:root[data-theme="dark"] .only-light{display:none!important}:root[data-theme="dark"] .only-dark{display:block!important}
+
+header.top{display:flex;gap:20px;align-items:center;max-width:760px;margin:0 auto}
+header.top svg{width:84px;height:84px;flex:none;filter:drop-shadow(0 10px 18px rgba(30,60,90,.2))}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin:0 0 6px}
+h1{font-size:40px;line-height:1.05;letter-spacing:-.03em;margin:0 0 8px;font-weight:800;text-wrap:balance}
+h2{font-size:28px;line-height:1.12;letter-spacing:-.025em;margin:0 0 10px;font-weight:750;text-wrap:balance}
+h3{font-size:16px;margin:0 0 6px;letter-spacing:-.01em}
+.lede{color:var(--text-2);margin:0;text-wrap:pretty}
+section{margin-top:72px}
+.sec-lede{color:var(--text-2);margin:0 0 20px;text-wrap:pretty}
+
+.finds{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.find{background:var(--surface);border-radius:16px;padding:16px}
+.find .freq{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-2)}
+.find h3{margin-top:6px}
+.find p{font-size:14px;color:var(--text-2);margin:0}
+.rules{display:grid;grid-template-columns:repeat(2,1fr);gap:8px 22px;margin:0;padding:0;list-style:none;counter-reset:r}
+.rules li{counter-increment:r;font-size:14.5px;display:flex;gap:10px}
+.rules li::before{content:counter(r);flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:700;font-size:12px;display:grid;place-items:center;margin-top:1px}
+
+.concept-head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.tagline{color:var(--text-2);margin:0 0 18px}
+.letter{font-size:13px;font-weight:800;width:30px;height:30px;border-radius:9px;display:inline-grid;place-items:center;background:var(--accent);color:var(--on-accent);flex:none;transform:translateY(-3px)}
+.notes{display:grid;grid-template-columns:1.3fr 1fr;gap:22px;margin-top:18px}
+.notes ul{margin:0;padding-left:18px;font-size:14.5px}
+.notes li{margin-bottom:6px}
+.notes li::marker{color:var(--accent)}
+.notes .from{font-size:14px;color:var(--text-2)}
+.try{font-size:13px;color:var(--text-2);margin:0 0 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.try b{color:var(--text)}
+
+/* stage scaling */
+.stage-scroll{overflow-x:auto;overflow-y:hidden;border-radius:20px}
+.stage-size{position:relative;margin-inline:auto}
+.desk{position:absolute;left:0;top:0;width:1040px;height:620px;transform-origin:0 0;background:var(--wall);border-radius:20px;overflow:hidden;color:var(--ink);font:13px/1.4 -apple-system,BlinkMacSystemFont,"Inter",sans-serif;user-select:none;-webkit-user-select:none}
+.desk button{font:inherit;color:inherit}
+.desk input{font:inherit;color:var(--ink)}
+.narrow{font-size:12.5px;color:var(--text-2);text-align:center;margin-top:8px}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+
+/* shared mock pieces */
+.ghostwin{position:absolute;border-radius:18px;background:linear-gradient(160deg,rgba(255,255,255,.5),rgba(200,220,240,.35));box-shadow:0 0 0 .5px var(--glass-edge);filter:blur(1px)}
+:root[data-theme="dark"] .ghostwin{background:linear-gradient(160deg,rgba(60,70,80,.5),rgba(30,40,50,.4))}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .ghostwin{background:linear-gradient(160deg,rgba(60,70,80,.5),rgba(30,40,50,.4))}}
+.ghostwin i{position:absolute;left:18px;right:18px;height:10px;border-radius:5px;background:var(--ghost)}
+.win{position:absolute;border-radius:22px;overflow:hidden;box-shadow:var(--win-shadow);background:var(--paper)}
+.glass{background:var(--glass);backdrop-filter:blur(28px) saturate(1.7);-webkit-backdrop-filter:blur(28px) saturate(1.7);box-shadow:inset 0 1px 0 var(--glass-line),inset 0 0 0 .5px var(--glass-edge)}
+.lights{display:flex;gap:8px}
+.lights i{width:12px;height:12px;border-radius:50%;background:#ff5f57}.lights i:nth-child(2){background:#febc2e}.lights i:nth-child(3){background:#28c840}
+.cap{display:inline-flex;align-items:center;gap:2px;padding:3px;border-radius:999px;background:var(--glass-strong);box-shadow:inset 0 1px 0 var(--glass-line),inset 0 0 0 .5px var(--glass-edge),0 4px 12px -6px rgba(30,60,90,.35)}
+.cap button{border:0;background:transparent;cursor:pointer;height:26px;padding:0 11px;border-radius:999px;font-size:12px}
+.cap button[aria-pressed="true"]{background:var(--paper);box-shadow:0 1px 3px rgba(0,0,0,.14);font-weight:600}
+.cap .icon-b{width:30px;padding:0}
+.prime{border:0;cursor:pointer;height:30px;padding:0 14px;border-radius:999px;background:var(--accent);color:var(--on-accent)!important;font-weight:600;font-size:12.5px;box-shadow:0 6px 16px -8px rgba(30,60,90,.6)}
+.btn{border:0;cursor:pointer;height:28px;padding:0 12px;border-radius:999px;background:var(--paper-2);box-shadow:inset 0 0 0 .5px var(--paper-line);font-size:12px}
+.ic{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none;vertical-align:-2px}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;letter-spacing:.04em;padding:2px 7px;border-radius:6px;white-space:nowrap}
+.chip.live{color:var(--live);background:var(--live-soft)}
+.chip.test{color:var(--accent);background:var(--accent-soft)}
+.chip.warn{color:var(--warn);background:var(--warn-soft)}
+.chip.seal{color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--paper-line)}
+.chip.plain{color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--paper-line)}
+.ring{--p:1;width:16px;height:16px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*360deg),var(--paper-line) 0);display:inline-block;flex:none;-webkit-mask:radial-gradient(circle,transparent 4px,#000 4.5px);mask:radial-gradient(circle,transparent 4px,#000 4.5px)}
+.toast{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:8px 14px;border-radius:999px;font-size:12.5px;z-index:50;animation:tin .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes tin{from{opacity:0;transform:translate(-50%,14px) scale(.96)}to{opacity:1;transform:translate(-50%,0)}}
+
+/* ===== A: the .env ===== */
+#A .win{left:46px;top:30px;width:948px;height:560px;display:grid;grid-template-columns:212px 1fr}
+#A .side{padding:14px 10px;display:flex;flex-direction:column;gap:14px}
+#A .side .lights{padding:2px 6px 4px}
+.navh{font-size:11px;font-weight:600;color:var(--ink-2);padding:0 8px 3px}
+.nav{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;padding:5px 8px;border-radius:8px;cursor:pointer;text-align:left;font-size:13px}
+.nav .ic{color:var(--accent)}
+.nav.sel{background:var(--sel)}
+.nav .n{margin-left:auto;font-size:11.5px;color:var(--ink-2)}
+.nav .dot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:#ff9f0a}
+#A .main{position:relative;background:var(--paper);overflow:hidden}
+#A .bar{position:absolute;inset:0 0 auto 0;height:58px;display:flex;align-items:center;gap:10px;padding:0 14px;z-index:5;border-bottom:.5px solid var(--paper-line)}
+#A .title b{display:block;font-size:15px}
+#A .title span{font-size:11.5px;color:var(--ink-2)}
+#A .file{position:absolute;inset:58px 0 0 0;overflow:auto;padding:12px 268px 20px 0}
+.ln .cols,.envhead .cols{order:3}.ln .v,.envhead .vh{order:4}
+.drift{margin:4px 0 10px 18px;display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:var(--warn-soft);font-size:12.5px}
+.drift .ic{color:var(--warn)}
+.drift .btn{margin-left:auto}
+.envhead{display:grid;grid-template-columns:40px 196px 112px 1fr;padding:0 12px 4px 0;font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.envhead .cols{display:flex;justify-content:space-around}
+.envhead .cols span.on{color:var(--accent)}
+.envhead .cols{letter-spacing:.02em;font-size:9.5px}
+.ln{display:grid;grid-template-columns:40px 196px 112px 1fr;align-items:center;min-height:30px;padding-right:12px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;cursor:pointer;border:0;background:transparent;width:100%;text-align:left}
+.ln:hover{background:var(--paper-2)}
+.ln.sel{background:var(--sel)}
+.ln .no{color:var(--ink-3);text-align:right;padding-right:14px;font-size:11px}
+.ln .k{font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ln .v{color:var(--ink-2);display:flex;gap:8px;align-items:center;min-width:0;white-space:nowrap;overflow:hidden}
+.ln .v .eq{color:var(--ink-3)}
+.ln .cols{display:flex;justify-content:space-around}
+.d{width:9px;height:9px;border-radius:50%;background:var(--accent);opacity:.35}
+.d.on{opacity:1}
+.d.miss{background:transparent;box-shadow:inset 0 0 0 1.5px var(--ink-3);opacity:1}
+.ln.comment{cursor:default}
+.ln.comment:hover{background:transparent}
+.ln.comment .k{color:var(--ink-3);font-weight:400}
+.ln.missing .k{color:var(--ink-2)}
+.ln.missing .v{color:var(--warn);font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:12px}
+.ask{border:0;cursor:pointer;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:999px}
+#A .insp{position:absolute;right:14px;top:74px;width:248px;border-radius:18px;padding:16px;z-index:6;transition:top .35s cubic-bezier(.34,1.3,.64,1)}
+.insp h4{margin:0;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;word-break:break-all}
+.insp .sub{font-size:11.5px;color:var(--ink-2);margin:2px 0 12px}
+.peek{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;background:var(--paper);border-radius:10px;padding:10px 12px;box-shadow:inset 0 0 0 .5px var(--paper-line);display:flex;align-items:center;gap:8px}
+.peek small{margin-left:auto;font-family:-apple-system,sans-serif;font-size:10.5px;color:var(--ink-3)}
+.row-actions{display:flex;gap:6px;margin:10px 0 12px;flex-wrap:wrap}
+.kv{display:grid;grid-template-columns:78px 1fr;gap:6px 10px;font-size:11.5px}
+.kv dt{color:var(--ink-2)} .kv dd{margin:0}
+
+/* ===== B: shelf ===== */
+#B .win{left:46px;top:30px;width:948px;height:560px}
+#B .bar{position:absolute;inset:0 0 auto 0;height:58px;display:flex;align-items:center;gap:12px;padding:0 16px;z-index:5}
+#B .grid{position:absolute;inset:58px 0 0 0;overflow:auto;padding:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-content:start;background:var(--paper-2)}
+.card{background:var(--paper);border-radius:18px;padding:14px;box-shadow:0 1px 0 var(--glass-line) inset,0 0 0 .5px var(--paper-line),0 10px 24px -18px rgba(30,60,90,.5)}
+.card .kind{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.card h4{margin:2px 0 2px;font-size:14px}
+.card .meta{font-size:11.5px;color:var(--ink-2)}
+.chips{display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-top:10px}
+.cc{border:0;cursor:pointer;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;letter-spacing:.03em;padding:5px 6px;border-radius:7px;background:var(--paper-2);box-shadow:inset 0 0 0 .5px var(--paper-line)}
+.cc:hover{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.cc.used{text-decoration:line-through;color:var(--ink-3);opacity:.6}
+.cardtop{display:flex;align-items:flex-start;gap:10px}
+.cardtop .count{margin-left:auto;text-align:right}
+.cardtop .count b{display:block;font-size:20px;line-height:1;font-variant-numeric:tabular-nums}
+.cardtop .count span{font-size:10.5px;color:var(--ink-2)}
+.reveal{margin-top:10px;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;padding:9px 10px;border-radius:9px;background:var(--paper-2);box-shadow:inset 0 0 0 .5px var(--paper-line);letter-spacing:.06em}
+.reveal .real{display:none}
+.reveal:hover .real{display:inline}.reveal:hover .mask{display:none}
+.stack{position:relative;height:150px;cursor:pointer;background:transparent;box-shadow:none;padding:0}
+.stack .sheet{position:absolute;inset:0;border-radius:18px;background:var(--paper);box-shadow:0 0 0 .5px var(--paper-line),0 10px 24px -18px rgba(30,60,90,.5);padding:14px;transition:transform .45s cubic-bezier(.34,1.56,.64,1)}
+.stack .sheet:nth-child(1){transform:translate(10px,-10px) rotate(2deg);opacity:.75}
+.stack .sheet:nth-child(2){transform:translate(5px,-5px) rotate(1deg);opacity:.88}
+.stack:hover .sheet:nth-child(1){transform:translate(26px,-22px) rotate(6deg)}
+.stack:hover .sheet:nth-child(2){transform:translate(13px,-11px) rotate(3deg)}
+.stack .sheet .mini{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;color:var(--ink-2);line-height:1.7;margin-top:6px}
+
+/* ===== C: palette ===== */
+#C .pal{position:absolute;left:170px;top:70px;width:700px;height:440px;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;z-index:5;box-shadow:var(--win-shadow)}
+.pal-top{display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:.5px solid var(--paper-line)}
+.pal-top input{flex:1;border:0;outline:none;background:transparent;font-size:19px}
+.pal-body{flex:1;display:grid;grid-template-columns:300px 1fr;min-height:0}
+.res{overflow:auto;padding:8px;border-right:.5px solid var(--paper-line)}
+.r{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;width:100%;border:0;background:transparent;padding:7px 9px;border-radius:10px;cursor:pointer;text-align:left}
+.r.on{background:var(--sel)}
+.r .nm{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-weight:600;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .pj{font-size:11px;color:var(--ink-2)}
+.mg{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:10px;font-weight:800;background:hsl(var(--h) 45% 91%);color:hsl(var(--h) 40% 32%)}
+:root[data-theme="dark"] .mg{background:hsl(var(--h) 25% 24%);color:hsl(var(--h) 55% 80%)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .mg{background:hsl(var(--h) 25% 24%);color:hsl(var(--h) 55% 80%)}}
+.prev{padding:18px 20px;background:var(--paper);display:flex;flex-direction:column;gap:10px}
+.prev h4{margin:0;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:15px}
+.prev .sub{font-size:12px;color:var(--ink-2)}
+.prev .sure{font-size:11.5px;color:var(--ink-2);margin-top:auto;padding-top:10px;border-top:.5px solid var(--paper-line)}
+.pal-foot{display:flex;gap:16px;padding:9px 16px;border-top:.5px solid var(--paper-line);font-size:11px;color:var(--ink-2)}
+.pal-foot b{color:var(--ink)}
+.acts{position:absolute;right:16px;bottom:44px;width:240px;border-radius:14px;padding:6px;z-index:7}
+.acts button{display:flex;width:100%;border:0;background:transparent;padding:6px 9px;border-radius:8px;cursor:pointer;font-size:12.5px;text-align:left}
+.acts button:hover{background:var(--sel)}
+.acts button span{margin-left:auto;color:var(--ink-2);font-size:11px}
+.tuck{padding:18px 20px;display:flex;flex-direction:column;gap:12px;background:var(--paper);flex:1}
+.paste{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;padding:12px;border-radius:12px;background:var(--paper-2);box-shadow:inset 0 0 0 .5px var(--paper-line);min-height:46px;display:flex;align-items:center}
+.paste.empty{color:var(--ink-3);font-family:-apple-system,sans-serif}
+.dest{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dest button{border:0;cursor:pointer;text-align:left;padding:10px 12px;border-radius:12px;background:var(--paper-2);box-shadow:inset 0 0 0 .5px var(--paper-line)}
+.dest button b{display:block;font-size:12.5px}
+.dest button span{font-size:11px;color:var(--ink-2)}
+.dest button[aria-pressed="true"]{box-shadow:inset 0 0 0 2px var(--accent);background:var(--accent-soft)}
+.samples{display:flex;gap:6px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-2);align-items:center}
+.samples .btn{height:24px;font-size:11px}
+
+/* ===== D: receipts ===== */
+#D .menubar{position:absolute;inset:0 0 auto 0;height:28px;display:flex;align-items:center;gap:16px;padding:0 14px;font-size:12.5px;z-index:20}
+#D .menubar .agents{margin-left:auto;display:flex;align-items:center;gap:6px;padding:2px 10px;border-radius:999px;border:0;cursor:pointer;font-size:11.5px;font-weight:600}
+#D .menubar .agents i{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+#D .menubar .agents.off i{background:#ff9f0a}
+#D .win{left:40px;top:52px;width:620px;height:540px;display:grid;grid-template-columns:220px 1fr}
+#D .keys{padding:14px 8px;overflow:auto}
+#D .keys .lights{padding:2px 8px 12px}
+#D .k{display:flex;align-items:center;gap:8px;width:100%;border:0;background:transparent;padding:7px 9px;border-radius:9px;cursor:pointer;text-align:left;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;font-weight:600}
+#D .k.sel{background:var(--sel)}
+#D .k .c{margin-left:auto;font-family:-apple-system,sans-serif;font-size:10.5px;color:var(--ink-2);font-weight:500;white-space:nowrap;padding-left:6px}
+#D .tl{background:var(--paper);padding:18px 18px;overflow:auto}
+#D .tl h4{margin:0;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:14px}
+#D .tl .sub{font-size:11.5px;color:var(--ink-2);margin:2px 0 14px}
+.rc{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:start;padding:10px 0;border-top:.5px solid var(--paper-line)}
+.rc b{font-size:12.5px}
+.rc .w{font-size:11.5px;color:var(--ink-2)}
+.rc .t{font-size:11px;color:var(--ink-3);text-align:right}
+.rc.new{animation:slink .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes slink{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
+.stackq{position:absolute;right:24px;top:52px;width:330px;z-index:15}
+.ap{position:absolute;left:0;right:0;border-radius:18px;padding:14px;transition:transform .5s cubic-bezier(.34,1.4,.64,1),opacity .35s}
+.ap h5{margin:0 0 2px;font-size:13.5px}
+.ap .w{font-size:11.5px;color:var(--ink-2)}
+.ap .chain{display:flex;gap:4px;flex-wrap:wrap;margin:8px 0;font-size:10.5px}
+.ap .chain span{padding:2px 7px;border-radius:999px;background:var(--paper);box-shadow:inset 0 0 0 .5px var(--paper-line)}
+.ap .row{display:flex;gap:6px;align-items:center}
+.ap .row .cap{margin-right:auto}
+.ap .row .cap button{height:22px;padding:0 8px;font-size:11px}
+.ap.out{opacity:0;transform:translateY(-10px) scale(.94)!important}
+
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 2px}
+.tile{border:0;cursor:pointer;text-align:left;padding:8px 9px;border-radius:12px;background:var(--glass-strong);box-shadow:inset 0 0 0 .5px var(--glass-edge);display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:6px}
+.tile .ic{color:var(--accent);grid-row:1}
+.tile b{grid-column:2;text-align:right;font-size:15px;line-height:1}
+.tile span{grid-column:1/3;font-size:11.5px;color:var(--ink-2);margin-top:4px}
+.tile.warn .ic,.tile.warn b{color:var(--warn)}
+.pol{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:3px;border-radius:10px;background:var(--paper);box-shadow:inset 0 0 0 .5px var(--paper-line);margin-bottom:10px}
+.pol button{border:0;cursor:pointer;background:transparent;font-size:10.5px;padding:5px 2px;border-radius:7px;line-height:1.2}
+.pol button[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);font-weight:600}
+.ap .why{font-size:11.5px;margin-top:6px;font-style:italic}
+.ap .why span{font-style:normal;font-size:10px;color:var(--ink-3)}
+
+/* ===== E: rising shelf ===== */
+#E .shelf{position:absolute;left:36px;right:36px;bottom:18px;height:268px;border-radius:28px;padding:14px 16px 16px;z-index:5;box-shadow:var(--win-shadow);animation:rise .6s cubic-bezier(.34,1.3,.64,1) both;outline:none}
+#E .shelf:focus-visible{box-shadow:var(--win-shadow),0 0 0 2px var(--accent)}
+@keyframes rise{from{opacity:0;transform:translateY(60px)}to{opacity:1;transform:none}}
+.sh-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sh-search{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:999px;background:var(--glass-strong);box-shadow:inset 0 0 0 .5px var(--glass-edge);font-size:12px;color:var(--ink-2);width:200px}
+.pills{display:flex;gap:6px}
+.pill{border:0;cursor:pointer;height:28px;padding:0 12px;border-radius:999px;background:transparent;font-size:12px;display:inline-flex;align-items:center;gap:6px;color:var(--ink-2)}
+.pill b{font-weight:600;color:var(--ink-3);font-size:11px}
+.pill[aria-pressed="true"]{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.pill[aria-pressed="true"] b{color:var(--accent)}
+.pill.req b{color:var(--warn)}
+.sh-cards{display:flex;gap:12px;overflow:hidden;padding:4px 2px 2px}
+.sc{flex:none;width:176px;height:176px;border-radius:20px;border:0;cursor:pointer;text-align:left;padding:14px;background:var(--paper);box-shadow:0 0 0 .5px var(--paper-line),0 12px 26px -18px rgba(30,60,90,.6);display:flex;flex-direction:column;gap:6px;transition:transform .35s cubic-bezier(.34,1.56,.64,1),box-shadow .2s}
+.sc.on{transform:translateY(-6px);box-shadow:0 0 0 2px var(--accent),0 18px 30px -18px rgba(30,60,90,.7)}
+.sc .nm{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-weight:600;font-size:11.5px;word-break:break-all;line-height:1.3}
+.sc .nm.sans{font-family:-apple-system,sans-serif;font-size:13px}
+.sc .pk{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;color:var(--ink-2)}
+.sc .ft{margin-top:auto;display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink-3)}
+.sc.slot{background:transparent;box-shadow:none;border:1.5px dashed var(--ghost);align-items:center;justify-content:center;text-align:center;color:var(--ink-2);font-size:12px}
+.sc.slot.on{border-color:var(--accent);box-shadow:none}
+.sc.slot .big{font-size:26px;line-height:1;color:var(--accent)}
+.sc .codes-mini{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-top:4px}
+.sc .codes-mini i{height:8px;border-radius:3px;background:var(--accent);opacity:.75}
+.sc .codes-mini i.u{opacity:.15}
+.sh-hint{position:absolute;right:20px;top:18px;font-size:10.5px;color:var(--ink-2);display:flex;gap:10px}
+.sh-hint b{color:var(--ink)}
+
+/* ===== F + G: menu bar stack and widget ===== */
+#F .mbar{position:absolute;inset:0 0 auto 0;height:28px;display:flex;align-items:center;gap:16px;padding:0 14px;font-size:12.5px;z-index:20}
+#F .mbar .sl{margin-left:auto;display:inline-flex;align-items:center;justify-content:center;width:30px;height:22px;border-radius:7px;background:var(--sel)}
+#F .mbar .sl svg{width:16px;height:16px}
+#F .stackm{position:absolute;right:120px;top:36px;width:330px;display:flex;flex-direction:column;gap:8px;z-index:19}
+.mc{border-radius:18px;padding:12px 14px;animation:drop .5s cubic-bezier(.34,1.4,.64,1) both}
+.mc:nth-child(2){animation-delay:.05s}.mc:nth-child(3){animation-delay:.1s}.mc:nth-child(4){animation-delay:.15s}.mc:nth-child(5){animation-delay:.2s}
+@keyframes drop{from{opacity:0;transform:translateY(-10px) scale(.97)}to{opacity:1;transform:none}}
+.mc .row{display:flex;align-items:center;gap:10px}
+.mc .row .grow{flex:1;min-width:0}
+.mc b{font-size:13px}
+.mc .w{font-size:11.5px;color:var(--ink-2)}
+.mc .btn,.mc .prime{height:26px;font-size:11.5px}
+.lockdot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:none}
+.lockdot.off{background:#ff9f0a}
+.pchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.pchips button{border:0;cursor:pointer;height:26px;padding:0 11px;border-radius:999px;background:var(--paper);box-shadow:inset 0 0 0 .5px var(--paper-line);font-size:11.5px}
+.mfoot{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-2);padding:2px 6px}
+.widget{position:absolute;left:44px;top:70px;width:300px;border-radius:26px;padding:16px 18px;z-index:5}
+.widget .wt{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:10px}
+.widget .wt svg{width:20px;height:20px;border-radius:5px}
+.widget .stat{display:flex;align-items:baseline;gap:8px}
+.widget .stat b{font-size:30px;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.widget .stat span{font-size:12px;color:var(--ink-2)}
+.widget ul{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:12px}
+.widget li{display:flex;gap:8px;align-items:center}
+.widget li i{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+.widget li i.w{background:#ff9f0a}
+.widget .tag{position:absolute;right:14px;top:14px}
+/* shared pieces */
+.pieces{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.piece{border-radius:18px;background:var(--wall);padding:22px;min-height:170px;display:flex;flex-direction:column;justify-content:center;gap:10px;color:var(--ink)}
+.piece .glass{border-radius:16px;padding:12px 14px}
+.piece p{margin:0;font-size:13px;color:var(--ink-2)}
+.piece h3{color:var(--ink)}
+.rec{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.rec div{background:var(--surface);border-radius:16px;padding:14px 16px}
+.rec div p{margin:0;font-size:14px;color:var(--text-2)}
+footer{margin-top:72px;padding-top:16px;border-top:1px solid var(--divider);color:var(--text-2);font-size:13px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+@media (max-width:760px){
+  h1{font-size:32px}
+  .finds,.rules,.notes,.pieces,.rec{grid-template-columns:1fr}
+  header.top{flex-direction:column;align-items:flex-start}
+}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+
+<main class="page">
+  <header class="top">
+    <svg class="only-light" role="img" aria-label="Slinky app icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs><linearGradient id="hlbg" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#f8fcff"/><stop offset="1" stop-color="#d6e7f4"/></linearGradient>
+<radialGradient id="hlfrost" cx="0.2" cy="0.06" r="0.85"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+<linearGradient id="hlglass" gradientUnits="userSpaceOnUse" x1="250" y1="250" x2="780" y2="820"><stop offset="0" stop-color="#f3f8fc"/><stop offset="1" stop-color="#cfe1ef"/></linearGradient>
+<linearGradient id="hlglassT" gradientUnits="userSpaceOnUse" x1="250" y1="250" x2="780" y2="820"><stop offset="0" stop-color="#ffffff" stop-opacity=".78"/><stop offset="1" stop-color="#cfe1ef" stop-opacity=".55"/></linearGradient>
+<filter id="hlsh" x="-30%" y="-30%" width="170%" height="180%"><feDropShadow dx="12" dy="17" stdDeviation="15" flood-color="#4f7698" flood-opacity=".3"/></filter>
+<filter id="hlblur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="hlsoft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.5"/></filter><mask id="hlkm" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="#fff" stroke-width="150" stroke-linecap="round"/></mask><mask id="hlkul" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="translate(-6 -7) rotate(-8 512 512)" fill="none" stroke="#000" stroke-width="150" stroke-linecap="round"/></mask><mask id="hlkdr" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="translate(4 5) rotate(-8 512 512)" fill="none" stroke="#000" stroke-width="150" stroke-linecap="round"/></mask><linearGradient id="hlholeg" gradientUnits="userSpaceOnUse" x1="440" y1="400" x2="590" y2="640"><stop offset="0" stop-color="#1f3f5e"/><stop offset="1" stop-color="#4f7fa8"/></linearGradient><mask id="hlhole" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="#000"/></mask><mask id="hlinhole" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="#fff"/></mask><mask id="hlshadeTL" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="translate(10 12) rotate(-8 512 512)" fill="#000"/></mask><mask id="hllitBR" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="translate(-3 -4) rotate(-8 512 512)" fill="#000"/></mask></defs>
+<rect rx="230" width="1024" height="1024" fill="url(#hlbg)"/><rect rx="230" width="1024" height="1024" fill="url(#hlfrost)"/>
+<rect rx="226" x="6" y="6" width="1012" height="1012" fill="none" stroke="#fff" stroke-width="12" stroke-opacity=".95"/><g mask="url(#hlhole)"><g filter="url(#hlsh)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="#dbe8f3" stroke-width="150" stroke-linecap="round"/></g><g mask="url(#hlkm)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="url(#hlglass)" stroke-width="150" stroke-linecap="round"/><g filter="url(#hlblur)"><rect width="1024" height="1024" fill="#6f97b8" fill-opacity=".42" mask="url(#hlkul)"/></g><rect width="1024" height="1024" fill="#fff" fill-opacity="1" mask="url(#hlkdr)"/></g></g><g mask="url(#hlinhole)"><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="url(#hlholeg)"/><g filter="url(#hlblur)"><rect width="1024" height="1024" fill="#0b1b2a" fill-opacity=".55" mask="url(#hlshadeTL)"/></g><rect width="1024" height="1024" fill="#ffffff" fill-opacity=".85" mask="url(#hllitBR)"/></g></svg><svg class="only-dark" role="img" aria-label="Slinky app icon, dark mode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs><linearGradient id="hdbg" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#1a222a"/><stop offset="1" stop-color="#06080a"/></linearGradient>
+<radialGradient id="hdfrost" cx="0.2" cy="0.06" r="0.85"><stop offset="0" stop-color="#5d7387" stop-opacity=".25"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+<linearGradient id="hdglass" gradientUnits="userSpaceOnUse" x1="250" y1="250" x2="780" y2="820"><stop offset="0" stop-color="#4a5866"/><stop offset="1" stop-color="#2f3a45"/></linearGradient>
+<linearGradient id="hdglassT" gradientUnits="userSpaceOnUse" x1="250" y1="250" x2="780" y2="820"><stop offset="0" stop-color="#ffffff" stop-opacity=".78"/><stop offset="1" stop-color="#cfe1ef" stop-opacity=".55"/></linearGradient>
+<filter id="hdsh" x="-30%" y="-30%" width="170%" height="180%"><feDropShadow dx="12" dy="17" stdDeviation="15" flood-color="#000000" flood-opacity=".7"/></filter>
+<filter id="hdblur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="hdsoft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.5"/></filter><mask id="hdkm" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="#fff" stroke-width="150" stroke-linecap="round"/></mask><mask id="hdkul" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="translate(-6 -7) rotate(-8 512 512)" fill="none" stroke="#000" stroke-width="150" stroke-linecap="round"/></mask><mask id="hdkdr" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="translate(4 5) rotate(-8 512 512)" fill="none" stroke="#000" stroke-width="150" stroke-linecap="round"/></mask><linearGradient id="hdholeg" gradientUnits="userSpaceOnUse" x1="440" y1="400" x2="590" y2="640"><stop offset="0" stop-color="#020507"/><stop offset="1" stop-color="#14202b"/></linearGradient><mask id="hdhole" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="#000"/></mask><mask id="hdinhole" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="#fff"/></mask><mask id="hdshadeTL" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="translate(10 12) rotate(-8 512 512)" fill="#000"/></mask><mask id="hdlitBR" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="translate(-3 -4) rotate(-8 512 512)" fill="#000"/></mask></defs>
+<rect rx="230" width="1024" height="1024" fill="url(#hdbg)"/><rect rx="230" width="1024" height="1024" fill="url(#hdfrost)"/>
+<rect rx="226" x="6" y="6" width="1012" height="1012" fill="none" stroke="#fff" stroke-width="12" stroke-opacity=".06"/><g mask="url(#hdhole)"><g filter="url(#hdsh)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="#2f3a45" stroke-width="150" stroke-linecap="round"/></g><g mask="url(#hdkm)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="url(#hdglass)" stroke-width="150" stroke-linecap="round"/><g filter="url(#hdblur)"><rect width="1024" height="1024" fill="#05080b" fill-opacity=".55" mask="url(#hdkul)"/></g><rect width="1024" height="1024" fill="#a9bccb" fill-opacity=".55" mask="url(#hdkdr)"/></g></g><g mask="url(#hdinhole)"><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="url(#hdholeg)"/><g filter="url(#hdblur)"><rect width="1024" height="1024" fill="#0b1b2a" fill-opacity=".55" mask="url(#hdshadeTL)"/></g><rect width="1024" height="1024" fill="#a9bccb" fill-opacity=".45" mask="url(#hdlitBR)"/></g></svg>
+    <div>
+      <p class="eyebrow">Slinky · layout concepts</p>
+      <h1>Six ways to hold a secret</h1>
+      <p class="lede">Six simple layouts, each built from what people complain about in 1Password, Bitwarden, Apple Passwords and the new crop of developer-secret apps. Glass on the chrome, opaque paper under the values, and every mock is clickable. All keys shown are fake.</p>
+    </div>
+  </header>
+
+  <section class="col" aria-labelledby="f-h">
+    <p class="eyebrow">What competitor users keep saying</p>
+    <h2 id="f-h">Six complaints worth designing against</h2>
+    <div class="finds">
+      <div class="find"><span class="freq">Very common</span><h3>"It doesn't feel like a Mac app"</h3><p>1Password 8's non-native-feel thread runs past 127 replies. Bitwarden can take minutes to load on Tahoe. <a href="https://1password.community/discussion/comment/608906/" target="_blank" rel="noopener">1Password</a> · <a href="https://community.bitwarden.com/t/bitwarden-desktop-app-extremely-slow-on-macbook-air-m1-macos-26-0-1/90053" target="_blank" rel="noopener">Bitwarden</a></p></div>
+      <div class="find"><span class="freq">Common</span><h3>Too many clicks to copy</h3><p>Bitwarden's 2026 redesigns made only titles clickable, added spacing and dropped copy shortcuts. People asked for a revert. <a href="https://community.bitwarden.com/t/desktop-app-2026-4-0-usability-feedback-and-bugs/96908" target="_blank" rel="noopener">forum</a></p></div>
+      <div class="find"><span class="freq">Common</span><h3>Quick Access copies the wrong thing</h3><p>Search opens the previously viewed item, so people paste the wrong password without noticing. <a href="https://www.1password.community/1password-at-home-31/quick-search-opens-to-incorrect-login-card-in-the-app-3656" target="_blank" rel="noopener">1Password</a></p></div>
+      <div class="find"><span class="freq">Five years running</span><h3>Recovery codes have no home</h3><p>Six-plus threads ask for masked codes, one per row, mark-as-used and a date. People dump them into notes instead. <a href="https://www.1password.community/1password-at-home-31/feature-suggestion-recovery-codes-info-type-for-records-24560" target="_blank" rel="noopener">1Password</a></p></div>
+      <div class="find"><span class="freq">Growing</span><h3>API keys forced into password shapes</h3><p>"Username" and "Credential" labels on API keys confuse people, and there's no environment, expiry or rotation. <a href="https://www.1password.community/developers-69/new-item-type-recommendation-api-keys-23306" target="_blank" rel="noopener">1Password</a></p></div>
+      <div class="find"><span class="freq">Very common</span><h3>Glass you can't read</h3><p>Tahoe's light mode bleaches edges away, and selection highlights vanish. macOS 27 added a transparency slider and put sidebars back edge-to-edge. <a href="https://eclecticlight.co/2025/12/28/last-year-on-my-mac-look-back-in-disbelief/" target="_blank" rel="noopener">Eclectic Light</a> · <a href="https://sixcolors.com/post/2026/09/macos-27-golden-gate-review-bridging-the-tahoe-gap/" target="_blank" rel="noopener">Six Colors</a></p></div>
+    </div>
+  </section>
+
+  <section class="col" aria-labelledby="r-h">
+    <p class="eyebrow">Rules for our glass</p>
+    <h2 id="r-h">Translucent where it helps, solid where you read</h2>
+    <ol class="rules">
+      <li>Glass only on chrome: sidebar, toolbar, quick panel, approval cards, inspector.</li>
+      <li>Values sit on opaque paper, in monospace, at 4.5:1 contrast or better.</li>
+      <li>No whiteout: hairline edges, soft shadows, and a slightly cooler paper.</li>
+      <li>The accent appears once per view, on the primary action.</li>
+      <li>System split views, so sidebars follow macOS 26 and 27 on their own.</li>
+      <li>Test both ends of the transparency slider, Reduce Transparency and an LCD.</li>
+    </ol>
+  </section>
+
+  <!-- ===================== A ===================== -->
+  <section id="concept-a" aria-labelledby="a-h">
+    <div class="col">
+      <div class="concept-head"><span class="letter">A</span><h2 id="a-h">The .env, without the file</h2></div>
+      <p class="tagline">The main window looks like the file you already know: line numbers, <code># comments</code>, <code>KEY = value</code>. Only the values are masked, and every line knows which environments it's in.</p>
+      <p class="try"><b>Try:</b> switch Local / Preview / Production · click a line · Copy (watch the ring) · Ask for the missing key</p>
+    </div>
+    <div class="stage-scroll"><div class="stage-size"><div class="desk" id="A">
+      <div class="ghostwin" style="left:620px;top:-30px;width:420px;height:260px"><i style="top:40px"></i><i style="top:62px;right:120px"></i></div>
+      <div class="win">
+        <aside class="side glass">
+          <div class="lights"><i></i><i></i><i></i></div>
+          <div><div class="navh">Projects</div>
+            <button class="nav sel" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z"/></svg>harvous<span class="dot" title="2 missing"></span></button>
+            <button class="nav" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z"/></svg>dinkyfiles.com<span class="n">4</span></button>
+            <button class="nav" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z"/></svg>binkyfiles.com<span class="n">4</span></button>
+            <button class="nav" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.5A1.5 1.5 0 0 1 5 6h4l2 2h8a1.5 1.5 0 0 1 1.5 1.5v8A1.5 1.5 0 0 1 19 19H5a1.5 1.5 0 0 1-1.5-1.5z"/></svg>slinky<span class="n">3</span></button>
+          </div>
+          <div class="tiles"><button class="tile" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="8" cy="15.5" r="3.5"/><path d="M10.5 13 19 4.5M16.5 7l2.5 2.5M14.3 9.2l2 2"/></svg><b>14</b><span>Keys</span></button><button class="tile" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.4"/><path d="M6.2 6.2l3.4 3.4M14.4 14.4l3.4 3.4M17.8 6.2l-3.4 3.4M9.6 14.4l-3.4 3.4"/></svg><b>5</b><span>Codes</span></button><button class="tile" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="11" width="12" height="9" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg><b>6</b><span>Kept</span></button><button class="tile warn" type="button"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><b>1</b><span>Requests</span></button></div>
+        </aside>
+        <div class="main">
+          <div class="bar glass">
+            <div class="title"><b>harvous</b><span>.env · 11 keys · 2 missing</span></div>
+            <span style="flex:1"></span>
+            <span class="cap" role="group" aria-label="Environment" id="envSeg"><button type="button" aria-pressed="true" data-env="0">Local</button><button type="button" aria-pressed="false" data-env="1">Preview</button><button type="button" aria-pressed="false" data-env="2">Production</button></span>
+            <span class="cap"><button class="icon-b" type="button" aria-label="Search"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg></button></span>
+            <button class="prime" type="button">Tuck It Away</button>
+          </div>
+          <div class="file" id="aFile"></div>
+          <div class="insp glass" id="aInsp"></div>
+        </div>
+      </div>
+      <div id="aToast"></div>
+    </div></div></div>
+    <p class="narrow" hidden>Scroll sideways to see the whole window.</p>
+    <div class="col"><div class="notes">
+      <div><h3>Fixes</h3><ul>
+        <li>No more API keys forced into password shapes: a variable is a <code>KEY</code> and a value, the way you write it.</li>
+        <li>Drift is visible: lines from <code>.env.example</code> that Slinky lacks show up empty, with Ask right there.</li>
+        <li>Environments as columns, Infisical-style, so "missing in Production" is a hollow dot, not a surprise deploy.</li>
+        <li>The inspector floats over the paper instead of adding a third column.</li>
+      </ul></div>
+      <div class="from"><h3>Borrowed from</h3>Infisical's environment matrix, Railway's <code>.env.example</code> suggestions and sealed variables, Vercel's write-only secrets, and code editors' gutters.</div>
+    </div></div>
+  </section>
+
+  <!-- ===================== B ===================== -->
+  <section id="concept-b" aria-labelledby="b-h">
+    <div class="col">
+      <div class="concept-head"><span class="letter">B</span><h2 id="b-h">The Shelf</h2></div>
+      <p class="tagline">For everything that isn't a project: recovery codes, recovery keys, personal tokens, the router password. Cards on a shelf, each shaped like what it holds.</p>
+      <p class="try"><b>Try:</b> click recovery codes to cross them off · hover the Apple recovery key · hover the project stack</p>
+    </div>
+    <div class="stage-scroll"><div class="stage-size"><div class="desk" id="B">
+      <div class="ghostwin" style="left:-40px;top:380px;width:360px;height:300px"><i style="top:40px"></i></div>
+      <div class="win">
+        <div class="bar glass">
+          <div class="lights"><i></i><i></i><i></i></div>
+          <b style="font-size:15px;margin-left:8px">Kept</b>
+          <span class="cap" role="group" aria-label="Filter" style="margin-left:14px"><button type="button" aria-pressed="true">All</button><button type="button" aria-pressed="false">Codes</button><button type="button" aria-pressed="false">Kept</button><button type="button" aria-pressed="false">Keys</button></span>
+          <span style="flex:1"></span>
+          <span style="font-size:11.5px;color:var(--ink-2)">23 things · 0 lying around</span>
+          <button class="prime" type="button">Tuck It Away</button>
+        </div>
+        <div class="grid" id="bGrid"></div>
+      </div>
+    </div></div></div>
+    <p class="narrow" hidden>Scroll sideways to see the whole window.</p>
+    <div class="col"><div class="notes">
+      <div><h3>Fixes</h3><ul>
+        <li>Recovery codes finally get a real shape: a grid of chips, cross off as you use them, a count, a date.</li>
+        <li>"Store this somewhere safe" has a home that isn't a notes field, with Apple's own hover-to-reveal.</li>
+        <li>Expiring tokens say so on the card, quietly.</li>
+        <li>Projects appear as stacks, a doorway into layout A.</li>
+      </ul></div>
+      <div class="from"><h3>Borrowed from</h3>Wallet's cards, Apple Passwords' FileVault-key treatment, and five years of 1Password feature requests for recovery codes.</div>
+    </div></div>
+  </section>
+
+  <!-- ===================== C ===================== -->
+  <section id="concept-c" aria-labelledby="c-h">
+    <div class="col">
+      <div class="concept-head"><span class="letter">C</span><h2 id="c-h">The Palette</h2></div>
+      <p class="tagline">Quick Access that can't copy the wrong thing: the selected item is always previewed, big, before you press Return. Flip to Tuck Away and one paste goes to the right place.</p>
+      <p class="try"><b>Try:</b> type to filter · ↑↓ to move · Return copies · ⌘K actions · switch to Tuck Away and try the three samples</p>
+    </div>
+    <div class="stage-scroll"><div class="stage-size"><div class="desk" id="C">
+      <div class="ghostwin" style="left:40px;top:40px;width:520px;height:400px"><i style="top:40px"></i><i style="top:64px;right:200px"></i><i style="top:88px;right:120px"></i></div>
+      <div class="ghostwin" style="left:520px;top:190px;width:480px;height:380px"><i style="top:40px"></i><i style="top:64px;right:160px"></i></div>
+      <div class="pal glass" role="dialog" aria-label="Quick Access">
+        <div class="pal-top">
+          <span class="cap" role="group" aria-label="Mode" id="cMode"><button type="button" aria-pressed="true" data-m="find">Find</button><button type="button" aria-pressed="false" data-m="tuck">Tuck Away</button></span>
+          <label for="cQ" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search Slinky</label>
+          <input id="cQ" type="text" value="st" autocomplete="off" spellcheck="false" placeholder="Find a key, code or anything kept">
+          <span style="font-size:11px;color:var(--ink-2)">⌥⌘K</span>
+        </div>
+        <div class="pal-body" id="cFind"><div class="res" id="cRes" role="listbox" aria-label="Results"></div><div class="prev" id="cPrev"></div></div>
+        <div class="tuck" id="cTuck" hidden></div>
+        <div class="pal-foot" id="cFoot"><span><b>↵</b> Copy value</span><span><b>⌘↵</b> Copy KEY=value</span><span><b>⌘K</b> Actions</span><span style="margin-left:auto"><b>⇥</b> Tuck Away</span></div>
+        <div class="acts glass" id="cActs" hidden></div>
+      </div>
+      <div id="cToast"></div>
+    </div></div></div>
+    <p class="narrow" hidden>Scroll sideways to see the whole window.</p>
+    <div class="col"><div class="notes">
+      <div><h3>Fixes</h3><ul>
+        <li>Wrong-item copies: the preview pane always shows exactly what Return will copy, with "Return copies this" spelled out.</li>
+        <li>Capture friction: Tuck Away reads a paste and suggests Kept, Key or a project variable. Derek's recovery key, personal token and env secret each land right.</li>
+        <li>No hotkey clash with macOS 27's Visual Intelligence or 1Password's new ⌥⌘\.</li>
+      </ul></div>
+      <div class="from"><h3>Borrowed from</h3>Raycast's ↵ / ⌘↵ / ⌘K model, Spotlight's look, and 1Password's Quick Access, minus its wrong-item bug.</div>
+    </div></div>
+  </section>
+
+  <!-- ===================== D ===================== -->
+  <section id="concept-d" aria-labelledby="d-h">
+    <div class="col">
+      <div class="concept-head"><span class="letter">D</span><h2 id="d-h">Receipts</h2></div>
+      <p class="tagline">When agents ask, approval cards stack in the corner like CleanShot thumbnails. Answer one and it folds into a receipt on that key's timeline. Every use of every key, in plain words.</p>
+      <p class="try"><b>Try:</b> Simulate requests · Allow or Deny each · flip the Agents switch in the menu bar</p>
+    </div>
+    <div class="stage-scroll"><div class="stage-size"><div class="desk" id="D">
+      <div class="menubar glass"><b>Slinky</b><span>File</span><span>Edit</span><span>View</span><button class="agents glass" type="button" id="dAgents" aria-pressed="true"><i></i>Agents on</button><span style="font-variant-numeric:tabular-nums">Fri Oct 16 2:04 PM</span></div>
+      <div class="ghostwin" style="left:690px;top:300px;width:360px;height:300px"><i style="top:40px"></i><i style="top:64px;right:120px"></i></div>
+      <div class="win">
+        <aside class="keys glass">
+          <div class="lights"><i></i><i></i><i></i></div>
+          <div id="dKeys"></div>
+        </aside>
+        <div class="tl" id="dTl"></div>
+      </div>
+      <div class="stackq" id="dStack"></div>
+      <button class="prime" type="button" id="dSim" style="position:absolute;right:24px;bottom:24px;z-index:16">Simulate requests</button>
+    </div></div></div>
+    <p class="narrow" hidden>Scroll sideways to see the whole window.</p>
+    <div class="col"><div class="notes">
+      <div><h3>Fixes</h3><ul>
+        <li>Secretive's new pending-requests window can hide behind other windows, and 1Password's mounted .env can't tell processes apart. Slinky's cards are always frontmost and name the asker, the folder, the key and the agent's stated reason (marked unverified).</li>
+        <li>Several agents at once don't pile up modal dialogs; they queue as a stack you can clear in seconds.</li>
+        <li>"Who used this key, when?" has one answer per key, which is also the rotation checklist after a leak.</li>
+        <li>A menu bar switch (or Control Center control) pauses all agent access instantly.</li>
+      </ul></div>
+      <div class="from"><h3>Borrowed from</h3>Secretive's notify-on-every-use, CleanShot's floating thumbnails, and Tahoe's Control Center controls.</div>
+    </div></div>
+  </section>
+
+
+  <!-- ===================== E ===================== -->
+  <section id="concept-e" aria-labelledby="e-h">
+    <div class="col">
+      <div class="concept-head"><span class="letter">E</span><h2 id="e-h">The Rising Shelf</h2></div>
+      <p class="tagline">A different Quick Access: on ⌥⌘K a frosted shelf rises from the bottom of the screen, like a drawer sliding out. Pill tabs with counts, big cards you can read at a glance, and a slot at the front that catches whatever you paste.</p>
+      <p class="try"><b>Try:</b> click the shelf, then ←→ to move, Return to copy, 1–5 to switch tabs · or click tabs and cards</p>
+    </div>
+    <div class="stage-scroll"><div class="stage-size"><div class="desk" id="E">
+      <div class="ghostwin" style="left:60px;top:30px;width:560px;height:300px"><i style="top:40px"></i><i style="top:64px;right:220px"></i><i style="top:88px;right:140px"></i></div>
+      <div class="ghostwin" style="left:520px;top:80px;width:470px;height:250px"><i style="top:40px"></i><i style="top:64px;right:160px"></i></div>
+      <div class="shelf glass" id="eShelf" tabindex="0" aria-label="Rising Shelf. Use arrow keys to move, Return to copy.">
+        <div class="sh-top">
+          <span class="sh-search"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/></svg> Search</span>
+          <span class="pills" id="eTabs"></span>
+        </div>
+        <div class="sh-hint"><span><b>←→</b> move</span><span><b>↵</b> copy</span><span><b>⌘K</b> actions</span></div>
+        <div class="sh-cards" id="eCards"></div>
+      </div>
+      <div id="eToast"></div>
+    </div></div></div>
+    <p class="narrow" hidden>Scroll sideways to see the whole window.</p>
+    <div class="col"><div class="notes">
+      <div><h3>Why it might beat C</h3><ul>
+        <li>Cards are bigger than rows, so it's harder to grab the wrong key, the same problem C solves with its preview.</li>
+        <li>It never covers the window you're working in; it lives along the bottom edge, near the Dock.</li>
+        <li>The paste slot makes "store this somewhere safe" a single gesture.</li>
+        <li>Requests get a tab with a count, so agent asks are never buried.</li>
+      </ul></div>
+      <div class="from"><h3>Borrowed from</h3>Supaste's bottom-edge clipboard shelf, macOS's own Dock, and Stage Manager's sense of things sliding in and out.</div>
+    </div></div>
+  </section>
+
+  <!-- ===================== F + G ===================== -->
+  <section id="concept-f" aria-labelledby="f2-h">
+    <div class="col">
+      <div class="concept-head"><span class="letter">F</span><h2 id="f2-h">The menu bar, as a stack of glass</h2></div>
+      <p class="tagline">Click the asterisk in the menu bar and a column of small glass cards drops down, each one live: how long until Slinky locks, any agent waiting, what's on the clipboard and when it clears, and your projects as one-tap chips. On the left, <b>G</b>: the same at-a-glance status as a desktop widget.</p>
+      <p class="try"><b>Try:</b> Allow or Deny the request · Lock Now · Clear Now · tap a project chip</p>
+    </div>
+    <div class="stage-scroll"><div class="stage-size"><div class="desk" id="F">
+      <div class="mbar glass"><b>Finder</b><span>File</span><span>Edit</span><span>View</span><span class="sl" title="Slinky"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.00 19.50L12.00 4.50M5.50 15.75L18.50 8.25M5.50 8.25L18.50 15.75" stroke="currentColor" stroke-width="4.2" stroke-linecap="round" fill="none"/><circle cx="12" cy="11" r="1.6" fill="var(--sel)"/><path d="M11.3 11.5h1.4l.4 2.6h-2.2z" fill="var(--sel)"/></svg></span><span style="font-variant-numeric:tabular-nums">Fri Oct 16 2:04 PM</span></div>
+      <div class="ghostwin" style="left:380px;top:250px;width:380px;height:330px"><i style="top:40px"></i><i style="top:64px;right:120px"></i></div>
+      <div class="widget glass" aria-label="Slinky desktop widget">
+        <span class="chip test tag">G · V1.X</span>
+        <div class="wt"><svg class="only-light" role="img" aria-label="Slinky" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs><linearGradient id="wlbg" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#f8fcff"/><stop offset="1" stop-color="#d6e7f4"/></linearGradient>
+<radialGradient id="wlfrost" cx="0.2" cy="0.06" r="0.85"><stop offset="0" stop-color="#ffffff" stop-opacity=".95"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+<linearGradient id="wlglass" gradientUnits="userSpaceOnUse" x1="250" y1="250" x2="780" y2="820"><stop offset="0" stop-color="#f3f8fc"/><stop offset="1" stop-color="#cfe1ef"/></linearGradient>
+<linearGradient id="wlglassT" gradientUnits="userSpaceOnUse" x1="250" y1="250" x2="780" y2="820"><stop offset="0" stop-color="#ffffff" stop-opacity=".78"/><stop offset="1" stop-color="#cfe1ef" stop-opacity=".55"/></linearGradient>
+<filter id="wlsh" x="-30%" y="-30%" width="170%" height="180%"><feDropShadow dx="12" dy="17" stdDeviation="15" flood-color="#4f7698" flood-opacity=".3"/></filter>
+<filter id="wlblur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="wlsoft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.5"/></filter><mask id="wlkm" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="#fff" stroke-width="150" stroke-linecap="round"/></mask><mask id="wlkul" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="translate(-6 -7) rotate(-8 512 512)" fill="none" stroke="#000" stroke-width="150" stroke-linecap="round"/></mask><mask id="wlkdr" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="translate(4 5) rotate(-8 512 512)" fill="none" stroke="#000" stroke-width="150" stroke-linecap="round"/></mask><linearGradient id="wlholeg" gradientUnits="userSpaceOnUse" x1="440" y1="400" x2="590" y2="640"><stop offset="0" stop-color="#1f3f5e"/><stop offset="1" stop-color="#4f7fa8"/></linearGradient><mask id="wlhole" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="#000"/></mask><mask id="wlinhole" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="#fff"/></mask><mask id="wlshadeTL" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="translate(10 12) rotate(-8 512 512)" fill="#000"/></mask><mask id="wllitBR" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="translate(-3 -4) rotate(-8 512 512)" fill="#000"/></mask></defs>
+<rect rx="230" width="1024" height="1024" fill="url(#wlbg)"/><rect rx="230" width="1024" height="1024" fill="url(#wlfrost)"/>
+<rect x="6" y="6" width="1012" height="1012" fill="none" stroke="#fff" stroke-width="12" stroke-opacity=".95"/><g mask="url(#wlhole)"><g filter="url(#wlsh)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="#dbe8f3" stroke-width="150" stroke-linecap="round"/></g><g mask="url(#wlkm)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="url(#wlglass)" stroke-width="150" stroke-linecap="round"/><g filter="url(#wlblur)"><rect width="1024" height="1024" fill="#6f97b8" fill-opacity=".42" mask="url(#wlkul)"/></g><rect width="1024" height="1024" fill="#fff" fill-opacity="1" mask="url(#wlkdr)"/></g></g><g mask="url(#wlinhole)"><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="url(#wlholeg)"/><g filter="url(#wlblur)"><rect width="1024" height="1024" fill="#0b1b2a" fill-opacity=".55" mask="url(#wlshadeTL)"/></g><rect width="1024" height="1024" fill="#ffffff" fill-opacity=".85" mask="url(#wllitBR)"/></g></svg><svg class="only-dark" role="img" aria-label="Slinky" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024"><defs><linearGradient id="wdbg" x1="0" y1="0" x2="0.4" y2="1"><stop offset="0" stop-color="#1a222a"/><stop offset="1" stop-color="#06080a"/></linearGradient>
+<radialGradient id="wdfrost" cx="0.2" cy="0.06" r="0.85"><stop offset="0" stop-color="#5d7387" stop-opacity=".25"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+<linearGradient id="wdglass" gradientUnits="userSpaceOnUse" x1="250" y1="250" x2="780" y2="820"><stop offset="0" stop-color="#4a5866"/><stop offset="1" stop-color="#2f3a45"/></linearGradient>
+<linearGradient id="wdglassT" gradientUnits="userSpaceOnUse" x1="250" y1="250" x2="780" y2="820"><stop offset="0" stop-color="#ffffff" stop-opacity=".78"/><stop offset="1" stop-color="#cfe1ef" stop-opacity=".55"/></linearGradient>
+<filter id="wdsh" x="-30%" y="-30%" width="170%" height="180%"><feDropShadow dx="12" dy="17" stdDeviation="15" flood-color="#000000" flood-opacity=".7"/></filter>
+<filter id="wdblur" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>
+<filter id="wdsoft" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="3.5"/></filter><mask id="wdkm" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="#fff" stroke-width="150" stroke-linecap="round"/></mask><mask id="wdkul" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="translate(-6 -7) rotate(-8 512 512)" fill="none" stroke="#000" stroke-width="150" stroke-linecap="round"/></mask><mask id="wdkdr" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="translate(4 5) rotate(-8 512 512)" fill="none" stroke="#000" stroke-width="150" stroke-linecap="round"/></mask><linearGradient id="wdholeg" gradientUnits="userSpaceOnUse" x1="440" y1="400" x2="590" y2="640"><stop offset="0" stop-color="#020507"/><stop offset="1" stop-color="#14202b"/></linearGradient><mask id="wdhole" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="#000"/></mask><mask id="wdinhole" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="#fff"/></mask><mask id="wdshadeTL" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="translate(10 12) rotate(-8 512 512)" fill="#000"/></mask><mask id="wdlitBR" maskUnits="userSpaceOnUse" x="0" y="0" width="1024" height="1024"><rect width="1024" height="1024" fill="#fff"/><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="translate(-3 -4) rotate(-8 512 512)" fill="#000"/></mask></defs>
+<rect rx="230" width="1024" height="1024" fill="url(#wdbg)"/><rect rx="230" width="1024" height="1024" fill="url(#wdfrost)"/>
+<rect x="6" y="6" width="1012" height="1012" fill="none" stroke="#fff" stroke-width="12" stroke-opacity=".06"/><g mask="url(#wdhole)"><g filter="url(#wdsh)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="#2f3a45" stroke-width="150" stroke-linecap="round"/></g><g mask="url(#wdkm)"><path d="M512.0 782.0L512.0 242.0M278.2 647.0L745.8 377.0M278.2 377.0L745.8 647.0" transform="rotate(-8 512 512)" fill="none" stroke="url(#wdglass)" stroke-width="150" stroke-linecap="round"/><g filter="url(#wdblur)"><rect width="1024" height="1024" fill="#05080b" fill-opacity=".55" mask="url(#wdkul)"/></g><rect width="1024" height="1024" fill="#a9bccb" fill-opacity=".55" mask="url(#wdkdr)"/></g></g><g mask="url(#wdinhole)"><path d="M485.0 495.8 A62 62 0 1 1 539.0 495.8 L539.0 613.8 A27.0 27.0 0 0 1 485.0 613.8 Z" transform="rotate(-8 512 512)" fill="url(#wdholeg)"/><g filter="url(#wdblur)"><rect width="1024" height="1024" fill="#0b1b2a" fill-opacity=".55" mask="url(#wdshadeTL)"/></g><rect width="1024" height="1024" fill="#a9bccb" fill-opacity=".45" mask="url(#wdlitBR)"/></g></svg> Slinky</div>
+        <div class="stat"><b id="gReq">3</b><span>agent requests today, all answered</span></div>
+        <ul><li><i></i>Agents on · Claude Code, Cursor</li><li><i class="w"></i>GITHUB_TOKEN expires in 5 days</li><li><i class="w"></i>Vercel recovery codes: 3 left</li></ul>
+      </div>
+      <div class="stackm" id="fStack"></div>
+      <div id="fToast"></div>
+    </div></div></div>
+    <p class="narrow" hidden>Scroll sideways to see the whole window.</p>
+    <div class="col"><div class="notes">
+      <div><h3>Fixes</h3><ul>
+        <li>A plain menu hides state behind words. Cards show it: the lock timer and the clipboard timer actually tick.</li>
+        <li>An agent request can be answered right from the menu bar, without opening any window.</li>
+        <li>macOS 27 can hide menu bar extras in an overflow, so the widget (G) and a Control Center control carry the same status.</li>
+      </ul></div>
+      <div class="from"><h3>Borrowed from</h3>DisplayBuddy's stacked translucent control cards, Cooldock's live tiles, and Control Center's own modules.</div>
+    </div></div>
+  </section>
+
+  <section class="col" aria-labelledby="p-h">
+    <p class="eyebrow">Small pieces, every layout</p>
+    <h2 id="p-h">Shared details</h2>
+    <div class="pieces">
+      <div class="piece"><div class="glass"><span class="mono" style="font-size:13px">sk_live_…4f2a</span> <span class="chip live" style="margin-left:6px">LIVE</span></div><h3>Peek, not reveal</h3><p>First and last few characters tell keys apart without exposing them.</p></div>
+      <div class="piece"><div class="glass" style="display:flex;align-items:center;gap:10px"><span class="ring" id="pRing" style="--p:.7"></span><span>Copied. Clears in <b id="pSec">42</b>s</span></div><h3>A visible countdown</h3><p>The ring on the copied row empties as the clipboard timer runs out. No silent clearing.</p></div>
+      <div class="piece"><div class="glass"><span class="mono">SLINKY_UPDATE_SIGNING_KEY</span> <span class="chip seal" style="margin-left:6px"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="11" width="12" height="9" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg> SEALED</span></div><h3>Sealed keys</h3><p>Write-only once saved. Usable by <code>slinky run</code>, never shown again, like Vercel's Secret type.</p></div>
+      <div class="piece"><div class="glass" style="display:flex;align-items:center;gap:10px"><span class="chip warn">ROTATES IN 12D</span><span class="chip warn">3 CODES LEFT</span></div><h3>Quiet nudges</h3><p>Expiry, rotation and low codes as small tags, never pop-ups.</p></div>
+    </div>
+  </section>
+
+  <section class="col" aria-labelledby="rec-h">
+    <p class="eyebrow">Recommendation</p>
+    <h2 id="rec-h">Use them together, each where it belongs</h2>
+    <div class="rec">
+      <div><h3>A is the main window</h3><p>Projects in the sidebar open as .env views. It's where developers live.</p></div>
+      <div><h3>B is the Library</h3><p>Recovery Codes and Kept in the same window open as the Shelf, so non-project things get their own shape.</p></div>
+      <div><h3>C is Quick Access, E is the challenger</h3><p>⌥⌘K opens the Palette by default. The Rising Shelf (E) is worth a real side-by-side once the app runs; it may feel better for people who think in cards. Tuck Away is the default when the clipboard holds something new.</p></div>
+      <div><h3>D and F are how agents meet you</h3><p>Approval cards in the corner, Receipts in the sidebar, and the menu bar as a stack of live glass cards (F) with the Agents switch. The widget (G) comes in v1.x.</p></div>
+    </div>
+  </section>
+
+  <footer><span>Slinky layout concepts · Oct 16, 2026</span><span>Research: <code>docs/research-competitor-ui.md</code></span></footer>
+</main>
+
+<script>
+(function(){
+"use strict";
+var $=function(s,r){return (r||document).querySelector(s);};
+var esc=function(s){return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];});};
+var I={copy:'<rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a1 1 0 0 0-1-1H6a1 1 0 0 0-1 1v9a1 1 0 0 0 1 1h2"/>',large:'<path d="M4 18 8.5 6h1L14 18M5.6 14h6.8M15 18l2.5-7h1l2.5 7M15.8 16h4.4"/>',link:'<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',warn:'<path d="M12 4 3 19.5h18z"/><path d="M12 10v4.5M12 17v.3"/>',lock:'<rect x="6" y="11" width="12" height="9" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/>',check:'<path d="M5 12.5l4.5 4.5L19 7.5"/>',rotate:'<path d="M4 12a8 8 0 0 1 14-5.3M20 4v4h-4M20 12a8 8 0 0 1-14 5.3M4 20v-4h4"/>'};
+function ic(n){return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">'+I[n]+'</svg>';}
+function mg(t,h){return '<span class="mg" style="--h:'+h+'">'+t+'</span>';}
+function toast(host,msg){var el=$(host);el.innerHTML='<div class="toast glass">'+ic('check')+'<span>'+msg+'</span></div>';clearTimeout(el._t);el._t=setTimeout(function(){el.innerHTML='';},2600);}
+
+/* ---------- scaling ---------- */
+var W=1040,H=620;
+function fitAll(){document.querySelectorAll('.stage-scroll').forEach(function(sc){var sz=sc.firstElementChild,desk=sz.firstElementChild,av=sc.clientWidth,s=Math.min(1,Math.max(.62,av/W));desk.style.transform='scale('+s+')';sz.style.width=(W*s)+'px';sz.style.height=(H*s)+'px';var hint=sc.nextElementSibling;if(hint&&hint.classList.contains('narrow'))hint.hidden=!(W*s>av+1);});}
+if(window.ResizeObserver){var ro=new ResizeObserver(fitAll);document.querySelectorAll('.stage-scroll').forEach(function(s){ro.observe(s);});}else window.addEventListener('resize',fitAll);
+fitAll();
+
+/* ---------- A: the .env ---------- */
+var ENV=['Local','Preview','Production'];
+var lines=[
+ {c:'# Payments'},
+ {k:'STRIPE_SECRET_KEY',v:['sk_test_…81cd','sk_test_…81cd','sk_live_…4f2a'],on:[1,1,1],tag:[null,null,'live'],prov:'Stripe',used:'2h ago · Claude Code',agents:['allowed','allowed','human-only']},
+ {k:'STRIPE_WEBHOOK_SECRET',v:['whsec_…7yQe','whsec_…2pLm',null],on:[1,1,0],prov:'Stripe',used:'2h ago · Claude Code',agents:['allowed','allowed','—']},
+ {blank:1},
+ {c:'# AI'},
+ {k:'OPENAI_API_KEY',v:['sk-proj-…Q7vA','sk-proj-…Q7vA','sk-proj-…Zt0e'],on:[1,1,1],prov:'OpenAI',used:'5h ago · Cursor',agents:['allowed','allowed','allowed']},
+ {k:'ANTHROPIC_API_KEY',v:['sk-ant-…m3AA','sk-ant-…m3AA','sk-ant-…r8AA'],on:[1,1,1],prov:'Anthropic',used:'2h ago · Claude Code',agents:['allowed','allowed','allowed'],rot:'Rotates in 41d'},
+ {blank:1},
+ {c:'# Data'},
+ {k:'SUPABASE_SERVICE_ROLE_KEY',v:['sb_secret_…J9s0','sb_secret_…J9s0','sb_secret_…Ux2c'],on:[1,1,1],prov:'Supabase',used:'2h ago · Claude Code',agents:['allowed','allowed','human-only']},
+ {k:'NEXT_PUBLIC_SUPABASE_URL',v:['https://example.supabase.co','https://example.supabase.co','https://example.supabase.co'],on:[1,1,1],tag:['plain','plain','plain'],prov:'Supabase',used:'2h ago · Claude Code',agents:['allowed','allowed','allowed']},
+ {k:'DATABASE_URL',v:['postgres://…@db.example…','postgres://…@db.example…',null],on:[1,1,0],prov:'Postgres',used:'Yesterday · you',agents:['allowed','allowed','—']},
+ {blank:1},
+ {c:'# Email and errors'},
+ {k:'RESEND_API_KEY',missing:1},
+ {k:'SENTRY_DSN',missing:1},
+ {blank:1},
+ {c:'# Release'},
+ {k:'SLINKY_UPDATE_SIGNING_KEY',v:['sealed','sealed','sealed'],on:[1,1,1],tag:['seal','seal','seal'],prov:'Slinky',used:'Never shown · used by slinky run',agents:['run only','run only','run only']}
+];
+var aEnv=0,aSel=1,aRingT=null;
+function aRender(){
+  var h='<div class="drift">'+ic('warn')+'<span><b>.env.example</b> lists 2 keys Slinky doesn’t have yet.</span><button class="btn" type="button" data-askall="1">Ask for both</button></div>';
+  h+='<div class="envhead"><span></span><span>Key</span><span class="vh">Value</span><span class="cols">'+['Local','Prev','Prod'].map(function(e,i){return '<span class="'+(i===aEnv?'on':'')+'">'+e+'</span>';}).join('')+'</span></div>';
+  lines.forEach(function(L,i){
+    var no='<span class="no">'+(i+1)+'</span>';
+    if(L.blank){h+='<div class="ln comment">'+no+'<span></span><span></span><span></span></div>';return;}
+    if(L.c){h+='<div class="ln comment">'+no+'<span class="k">'+esc(L.c)+'</span><span></span><span></span></div>';return;}
+    if(L.missing){h+='<button type="button" class="ln missing'+(i===aSel?' sel':'')+'" data-i="'+i+'">'+no+'<span class="k">'+L.k+'</span><span class="v">missing <button class="ask" type="button" data-ask="'+L.k+'">Ask</button></span><span class="cols"><span class="d miss"></span><span class="d miss"></span><span class="d miss"></span></span></button>';return;}
+    var v=L.v[aEnv],tag=L.tag&&L.tag[aEnv];
+    var vv=v===null?'<span style="color:var(--warn);font-family:-apple-system,sans-serif;font-size:12px">not in '+ENV[aEnv]+'</span>':'<span class="eq">=</span><span>'+esc(v)+'</span>'+(tag==='live'?'<span class="chip live">LIVE</span>':tag==='plain'?'<span class="chip plain">PLAIN</span>':tag==='seal'?'<span class="chip seal">'+ic('lock')+'SEALED</span>':'');
+    h+='<button type="button" class="ln'+(i===aSel?' sel':'')+'" data-i="'+i+'">'+no+'<span class="k">'+L.k+'</span><span class="v">'+vv+'</span><span class="cols">'+L.on.map(function(o,j){return '<span class="d'+(o?(j===aEnv?' on':''):' miss')+'"></span>';}).join('')+'</span></button>';
+  });
+  $('#aFile').innerHTML=h;
+  aInsp();
+}
+function aInsp(){
+  var L=lines[aSel],el=$('#aInsp'),row=$('#aFile .ln[data-i="'+aSel+'"]');
+  var top=row?Math.max(74,Math.min(row.offsetTop+58-20,560-300)):74;el.style.top=top+'px';
+  if(L.missing){el.innerHTML='<h4>'+L.k+'</h4><p class="sub">Listed in .env.example · not in Slinky</p><p style="font-size:12px;color:var(--ink-2);margin:0 0 12px">When an agent needs it, it asks here, never in the chat.</p><button class="prime" type="button" data-ask="'+L.k+'">Ask Me for It</button>';return;}
+  var v=L.v[aEnv];
+  el.innerHTML='<h4>'+L.k+'</h4><p class="sub">'+L.prov+' · harvous · '+ENV[aEnv]+'</p>'+
+   '<div class="peek">'+(v===null?'<span style="color:var(--warn);font-family:-apple-system,sans-serif">Not set for '+ENV[aEnv]+'</span>':esc(v))+(L.tag&&L.tag[aEnv]==='seal'?'<small>write-only</small>':'<small>peek</small>')+'</div>'+
+   '<div class="row-actions">'+(L.tag&&L.tag[aEnv]==='seal'?'<button class="btn" type="button" disabled style="opacity:.5">'+ic('lock')+' Sealed</button>':'<button class="btn" type="button" data-copy="1">'+ic('copy')+' Copy <span class="ring" id="aRing" style="--p:0;margin-left:2px"></span></button><button class="btn" type="button">'+ic('large')+'</button>')+'<button class="btn" type="button">'+ic('link')+' Reference</button></div>'+
+   '<div class="pol" role="group" aria-label="Agent policy">'+['Agents can use','Ask every time','Never leaves'].map(function(t,j){var cur=L.agents[aEnv]==='human-only'||L.agents[aEnv]==='run only'?(L.agents[aEnv]==='run only'?0:2):(L.agents[aEnv]==='—'?1:0);return '<button type="button" aria-pressed="'+(j===cur)+'">'+t+'</button>';}).join('')+'</div><dl class="kv"><dt>Last used</dt><dd>'+L.used+'</dd>'+(L.rot?'<dt>Rotation</dt><dd><span class="chip warn">'+L.rot.toUpperCase()+'</span></dd>':'')+'</dl>';
+}
+$('#aFile').addEventListener('click',function(e){
+  var a=e.target.closest('[data-ask]');if(a){e.stopPropagation();toast('#aToast','Asked. Paste '+a.getAttribute('data-ask')+' into Slinky when you have it.');return;}
+  if(e.target.closest('[data-askall]')){toast('#aToast','Asked for RESEND_API_KEY and SENTRY_DSN.');return;}
+  var r=e.target.closest('[data-i]');if(!r)return;aSel=+r.getAttribute('data-i');aRender();
+});
+$('#aInsp').addEventListener('click',function(e){
+  var pb=e.target.closest('.pol button');if(pb){pb.parentNode.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',b===pb?'true':'false');});toast('#aToast',pb.textContent==='Never leaves'?'Never leaves Slinky. Agents can\u2019t ask for it.':pb.textContent==='Ask every time'?'Agents must ask, with Touch ID, every time.':'Agents can use it. You still approve each command.');return;}
+  var a=e.target.closest('[data-ask]');if(a){toast('#aToast','Asked. Paste '+a.getAttribute('data-ask')+' into Slinky when you have it.');return;}
+  if(!e.target.closest('[data-copy]'))return;
+  var L=lines[aSel];if(L.tag&&L.tag[aEnv]==='live'){toast('#aToast','Touch ID first: this is a live key.');}
+  var p=1,ring=$('#aRing');clearInterval(aRingT);
+  aRingT=setInterval(function(){p-=.02;if(!ring||p<=0){clearInterval(aRingT);if(ring)ring.style.setProperty('--p',0);return;}ring.style.setProperty('--p',p);},120);
+  if(!(L.tag&&L.tag[aEnv]==='live'))toast('#aToast','Copied. Clears in 60s.');
+});
+$('#envSeg').addEventListener('click',function(e){var b=e.target.closest('[data-env]');if(!b)return;aEnv=+b.getAttribute('data-env');this.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b?'true':'false');});aRender();});
+aRender();
+
+/* ---------- B: shelf ---------- */
+function codes(seed){var s=seed,o=[],hx='0123456789abcdef';for(var i=0;i<10;i++){var c='';for(var j=0;j<10;j++){s=(s*1103515245+12345)&0x7fffffff;c+=hx[(s>>8)%16];if(j===4)c+='-';}o.push(c);}return o;}
+var bCards=[
+ {t:'codes',n:'GitHub',m:'heyderekj · regenerated Mar 3',h:228,c:codes(7),u:[1,4,8]},
+ {t:'kept',n:'Apple ID recovery key',m:'Kept · printed copy in the desk drawer',h:210,val:'R7KQ-2MXP-9TDV-4HCE-W8NA-3FJB-6YLZ',mask:'••••-••••-••••-••••-••••-••••-••••'},
+ {t:'key',n:'Personal GitHub token',m:'Key · github_pat_…Tq2w',h:228,warn:'EXPIRES IN 5 DAYS'},
+ {t:'stack',n:'harvous',m:'11 keys · 2 missing'},
+ {t:'codes',n:'Vercel',m:'heyderekj · regenerated Nov 18',h:238,c:codes(19),u:[0,1,2,3,5,6,9]},
+ {t:'kept',n:'Router admin',m:'Kept · from the sticker under the router',h:190,val:'correct-horse-EXAMPLE',mask:'•••••••••••••••••••••'}
+];
+function bRender(){
+  $('#bGrid').innerHTML=bCards.map(function(c,ci){
+    if(c.t==='codes'){var left=c.c.length-c.u.length;return '<div class="card"><div class="cardtop">'+mg(c.n.slice(0,2),c.h)+'<div><div class="kind">Recovery codes</div><h4>'+c.n+'</h4><div class="meta">'+c.m+'</div></div><div class="count"><b style="color:'+(left<=3?'var(--warn)':'inherit')+'">'+left+'</b><span>left</span></div></div><div class="chips">'+c.c.map(function(x,i){return '<button type="button" class="cc'+(c.u.indexOf(i)>-1?' used':'')+'" data-c="'+ci+'" data-i="'+i+'">'+x+'</button>';}).join('')+'</div></div>';}
+    if(c.t==='kept')return '<div class="card"><div class="cardtop">'+mg(c.n.slice(0,2),c.h)+'<div><div class="kind">Kept</div><h4>'+c.n+'</h4><div class="meta">'+c.m+'</div></div></div><div class="reveal" tabindex="0" aria-label="Hover to reveal"><span class="mask">'+c.mask+'</span><span class="real">'+esc(c.val)+'</span></div></div>';
+    if(c.t==='key')return '<div class="card"><div class="cardtop">'+mg('Gh',c.h)+'<div><div class="kind">Key</div><h4>'+c.n+'</h4><div class="meta">'+c.m+'</div></div></div><div style="margin-top:12px;display:flex;gap:6px;flex-wrap:wrap"><span class="chip warn">'+c.warn+'</span><span class="chip plain">NOT IN ANY PROJECT</span></div><div style="margin-top:12px;display:flex;gap:6px"><button class="btn" type="button">Rotate…</button><button class="btn" type="button">'+ic('copy')+' Copy</button></div></div>';
+    return '<div class="card stack" tabindex="0" aria-label="harvous project"><div class="sheet"></div><div class="sheet"></div><div class="sheet"><div class="kind">Project</div><h4 style="margin:2px 0">'+c.n+'</h4><div class="meta">'+c.m+'</div><div class="mini">STRIPE_SECRET_KEY = sk_test_…81cd<br>OPENAI_API_KEY = sk-proj-…Q7vA<br>RESEND_API_KEY = <span style="color:var(--warn)">missing</span></div></div></div>';
+  }).join('');
+}
+$('#bGrid').addEventListener('click',function(e){var b=e.target.closest('[data-c]');if(!b||b.classList.contains('used'))return;var c=bCards[+b.getAttribute('data-c')];c.u.push(+b.getAttribute('data-i'));bRender();});
+bRender();
+
+/* ---------- C: palette ---------- */
+var items=[
+ {k:'STRIPE_SECRET_KEY',p:'harvous · Local',v:'sk_test_…81cd',h:250,m:'St',used:'2h ago by Claude Code'},
+ {k:'STRIPE_SECRET_KEY',p:'harvous · Production',v:'sk_live_…4f2a',h:250,m:'St',live:1,used:'Yesterday by you'},
+ {k:'STRIPE_WEBHOOK_SECRET',p:'harvous · Local',v:'whsec_…7yQe',h:250,m:'St',used:'2h ago by Claude Code'},
+ {k:'SUPABASE_SERVICE_ROLE_KEY',p:'harvous',v:'sb_secret_…J9s0',h:150,m:'Sb',used:'2h ago by Claude Code'},
+ {k:'GitHub recovery codes',p:'7 left · copies the next unused code',v:'a3f9c-…',h:228,m:'Gh',codes:1,used:'Mar 3'},
+ {k:'OPENAI_API_KEY',p:'harvous, slinky',v:'sk-proj-…Q7vA',h:170,m:'Op',used:'5h ago by Cursor'},
+ {k:'Apple ID recovery key',p:'Kept',v:'R7KQ-…-6YLZ',h:210,m:'Ap',kept:1,used:'Kept Oct 16'}
+];
+var cSel=0,cMode='find';
+function cFilter(){var q=$('#cQ').value.trim().toLowerCase();return items.filter(function(x){return !q||(x.k+' '+x.p).toLowerCase().indexOf(q)>-1;});}
+function cRender(){
+  var its=cFilter();cSel=Math.min(cSel,Math.max(0,its.length-1));
+  $('#cRes').innerHTML=its.length?its.map(function(x,i){return '<button type="button" role="option" aria-selected="'+(i===cSel)+'" class="r'+(i===cSel?' on':'')+'" data-r="'+i+'">'+mg(x.m,x.h)+'<span style="min-width:0"><span class="nm" style="display:block'+(x.codes||x.kept?';font-family:-apple-system,sans-serif':'')+'">'+esc(x.k)+'</span><span class="pj">'+esc(x.p)+'</span></span>'+(x.live?'<span class="chip live">LIVE</span>':'')+'</button>';}).join(''):'<p style="padding:14px;color:var(--ink-2);font-size:12.5px">Nothing matches.</p>';
+  var x=its[cSel];
+  $('#cPrev').innerHTML=x?'<div style="display:flex;gap:10px;align-items:center">'+mg(x.m,x.h)+'<div><h4 style="'+(x.codes||x.kept?'font-family:-apple-system,sans-serif':'')+'">'+esc(x.k)+'</h4><div class="sub">'+esc(x.p)+'</div></div></div><div class="peek">'+esc(x.v)+(x.live?'<span class="chip live" style="margin-left:auto">LIVE · TOUCH ID</span>':'<small>peek</small>')+'</div><dl class="kv"><dt>Last used</dt><dd>'+esc(x.used)+'</dd></dl><div class="sure">'+ic('check')+' <b>Return copies this one.</b> '+(x.codes?'The next unused code, then it’s crossed off.':'Clipboard clears in 60s.')+'</div>':'';
+}
+$('#cQ').addEventListener('input',function(){cSel=0;cRender();});
+$('#cQ').addEventListener('keydown',function(e){
+  var n=cFilter().length;
+  if(e.key==='ArrowDown'){cSel=Math.min(n-1,cSel+1);cRender();e.preventDefault();}
+  else if(e.key==='ArrowUp'){cSel=Math.max(0,cSel-1);cRender();e.preventDefault();}
+  else if(e.key==='Enter'){e.preventDefault();var x=cFilter()[cSel];if(!x)return;toast('#cToast',(e.metaKey||e.ctrlKey)?'Copied '+esc(x.k)+'=…':(x.live?'Touch ID, then copied. Clears in 60s.':'Copied '+esc(x.k)+'. Clears in 60s.'));}
+  else if(e.key==='k'&&(e.metaKey||e.ctrlKey)){e.preventDefault();cActs();}
+  else if(e.key==='Tab'){e.preventDefault();cSetMode(cMode==='find'?'tuck':'find');}
+});
+$('#cRes').addEventListener('click',function(e){var b=e.target.closest('[data-r]');if(!b)return;cSel=+b.getAttribute('data-r');cRender();$('#cQ').focus({preventScroll:true});});
+function cActs(){var a=$('#cActs');if(!a.hidden){a.hidden=true;return;}var x=cFilter()[cSel];a.innerHTML='<button type="button">Copy value<span>↵</span></button><button type="button">Copy KEY=value<span>⌘↵</span></button><button type="button">Show in Large Type<span>⌥↵</span></button><button type="button">Copy slinky:// reference<span>⌘⇧C</span></button><button type="button">Run a command with it…<span>⌘R</span></button><button type="button">Open in Slinky<span>⌘O</span></button>';a.hidden=false;}
+$('#cActs').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;this.hidden=true;toast('#cToast',b.firstChild.textContent+': done.');});
+var samples={
+ 'Recovery key':{v:'R7KQ-2MXP-9TDV-4HCE-W8NA-3FJB-6YLZ',why:'Looks like an Apple recovery key.',to:0},
+ 'Personal token':{v:'github_pat_11EXAMPLE…Tq2w',why:'Looks like a GitHub personal token.',to:1},
+ 'Env secret':{v:'RESEND_API_KEY=re_EXAMPLE_8KcP',why:'Looks like a Resend key for a project.',to:2}
+};
+var tState={s:null,to:null};
+function cTuck(){
+  var s=tState.s?samples[tState.s]:null;
+  $('#cTuck').innerHTML='<div class="paste'+(s?'':' empty')+'">'+(s?esc(s.v):'Paste anything: a key, a code block, a KEY=value line…')+'</div>'+
+   (s?'<div style="font-size:12.5px;display:flex;gap:6px;align-items:center">'+ic('check')+' '+s.why+'</div>':'')+
+   '<div class="dest" role="group" aria-label="Where it goes">'+['Kept','Key','Project variable'].map(function(d,i){var sub=['Recovery keys, router passwords, one-offs','Personal tokens, with an optional expiry','harvous · Local, used by slinky run'][i];return '<button type="button" data-to="'+i+'" aria-pressed="'+(tState.to===i)+'"><b>'+d+'</b><span>'+sub+'</span></button>';}).join('')+'</div>'+
+   '<div class="samples">Derek’s day, as samples:'+Object.keys(samples).map(function(k){return ' <button class="btn" type="button" data-s="'+k+'">'+k+'</button>';}).join('')+'<span style="flex:1"></span><button class="prime" type="button" id="tGo"'+(s?'':' disabled style="opacity:.5"')+'>Tuck It Away</button></div>';
+}
+$('#cTuck').addEventListener('click',function(e){
+  var s=e.target.closest('[data-s]');if(s){tState.s=s.getAttribute('data-s');tState.to=samples[tState.s].to;cTuck();return;}
+  var t=e.target.closest('[data-to]');if(t){tState.to=+t.getAttribute('data-to');cTuck();return;}
+  if(e.target.closest('#tGo')&&tState.s){toast('#cToast','Tucked away in '+['Kept','Keys','harvous'][tState.to]+'.'+(tState.to===0?' Print a copy too?':''));tState={s:null,to:null};cTuck();}
+});
+function cSetMode(m){cMode=m;$('#cMode').querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-m')===m?'true':'false');});$('#cFind').hidden=m!=='find';$('#cTuck').hidden=m!=='tuck';$('#cActs').hidden=true;$('#cFoot').innerHTML=m==='find'?'<span><b>↵</b> Copy value</span><span><b>⌘↵</b> Copy KEY=value</span><span><b>⌘K</b> Actions</span><span style="margin-left:auto"><b>⇥</b> Tuck Away</span>':'<span><b>⌘V</b> Paste</span><span><b>↵</b> Tuck It Away</span><span style="margin-left:auto"><b>⇥</b> Find</span>';if(m==='tuck')cTuck();}
+$('#cMode').addEventListener('click',function(e){var b=e.target.closest('[data-m]');if(b)cSetMode(b.getAttribute('data-m'));});
+cRender();
+
+/* ---------- D: receipts ---------- */
+var dKeys=[{k:'STRIPE_SECRET_KEY',c:'4 today'},{k:'OPENAI_API_KEY',c:'2 today'},{k:'ANTHROPIC_API_KEY',c:'3 today'},{k:'SUPABASE_SERVICE_ROLE_KEY',c:'1 today'},{k:'GITHUB_TOKEN',c:'Tue'},{k:'NETLIFY_AUTH_TOKEN',c:'Sep 12'}];
+var receipts={
+ 'STRIPE_SECRET_KEY':[{who:'Claude Code',m:'CC',h:22,what:'npm run dev · ~/harvous · test key',t:'1:58 PM',d:'Allowed 1h'},{who:'Codex',m:'Cx',h:168,what:'node scripts/refund.js · live key',t:'Yesterday',d:'Refused · live is human-only'},{who:'You',m:'Me',h:200,what:'Copied from Quick Access',t:'Yesterday',d:'Touch ID'}],
+ 'OPENAI_API_KEY':[{who:'Cursor',m:'Cu',h:222,what:'pnpm test · ~/slinky',t:'9:12 AM',d:'Allowed once'}]
+};
+var dSel='STRIPE_SECRET_KEY',dOn=true,dQueue=[],dN=0;
+function dRender(){
+  $('#dKeys').innerHTML=dKeys.map(function(x){return '<button type="button" class="k'+(x.k===dSel?' sel':'')+'" data-k="'+x.k+'"><span style="overflow:hidden;text-overflow:ellipsis">'+x.k+'</span><span class="c">'+x.c+'</span></button>';}).join('');
+  var r=receipts[dSel]||[];
+  $('#dTl').innerHTML='<h4>'+dSel+'</h4><p class="sub">Receipts · every time this key left Slinky, and who asked</p>'+(r.length?r.map(function(x,i){return '<div class="rc'+(x.fresh?' new':'')+'">'+mg(x.m,x.h)+'<div><b>'+x.who+'</b><div class="w">'+esc(x.what)+'</div></div><div class="t">'+x.t+'<br><span class="chip '+(/Refused|Denied/.test(x.d)?'live':'test')+'" style="margin-top:4px">'+x.d.toUpperCase()+'</span></div></div>';}).join(''):'<p class="sub">No receipts yet.</p>');
+  r.forEach(function(x){x.fresh=false;});
+}
+function dStack(){
+  var host=$('#dStack');
+  host.innerHTML=dQueue.map(function(q,i){var depth=dQueue.length-1-i;return '<div class="ap glass" data-q="'+q.id+'" style="top:0;transform:translateY('+(depth*14)+'px) scale('+(1-depth*.04)+');z-index:'+(10-depth)+';opacity:'+(depth>2?0:1)+'"><h5>'+q.who+' wants '+q.key+'</h5><div class="w">'+q.cmd+' · '+q.dir+'</div><div class="why">“'+q.why+'” <span>stated by the agent, unverified</span></div><div class="chain"><span>'+q.who+'</span><span>›</span><span>zsh</span><span>›</span><span>'+q.cmd.split(' ')[0]+'</span></div><div class="row"><span class="cap"><button type="button" aria-pressed="true">Once</button><button type="button" aria-pressed="false">1 Hour</button></span><button class="btn" type="button" data-deny="'+q.id+'">Deny</button><button class="prime" type="button" data-allow="'+q.id+'" style="height:26px;font-size:11.5px">Allow…</button></div></div>';}).join('');
+}
+function dAnswer(id,ok){
+  var q=dQueue.filter(function(x){return x.id===id;})[0];if(!q)return;
+  var el=$('#dStack [data-q="'+id+'"]');if(el)el.classList.add('out');
+  setTimeout(function(){
+    dQueue=dQueue.filter(function(x){return x.id!==id;});
+    (receipts[q.key]=receipts[q.key]||[]).unshift({who:q.who,m:q.m,h:q.h,what:q.cmd+' · '+q.dir,t:'Just now',d:ok?'Allowed once':'Denied',fresh:true});
+    dSel=q.key;dRender();dStack();
+  },300);
+}
+$('#dStack').addEventListener('click',function(e){
+  var a=e.target.closest('[data-allow]'),d=e.target.closest('[data-deny]');
+  if(a)dAnswer(+a.getAttribute('data-allow'),true);if(d)dAnswer(+d.getAttribute('data-deny'),false);
+  var seg=e.target.closest('.cap button');if(seg){seg.parentNode.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-pressed',b===seg?'true':'false');});}
+});
+$('#dKeys').addEventListener('click',function(e){var b=e.target.closest('[data-k]');if(!b)return;dSel=b.getAttribute('data-k');dRender();});
+$('#dSim').addEventListener('click',function(){
+  if(!dOn){toast('#dSim','');return;}
+  var reqs=[{who:'Claude Code',m:'CC',h:22,key:'STRIPE_SECRET_KEY',cmd:'npm run dev',dir:'~/harvous',why:'Start the dev server to test checkout'},{who:'Cursor',m:'Cu',h:222,key:'OPENAI_API_KEY',cmd:'pnpm test',dir:'~/slinky',why:'Run the summarizer tests'},{who:'Codex',m:'Cx',h:168,key:'ANTHROPIC_API_KEY',cmd:'python eval.py',dir:'~/harvous',why:'Score the new prompt'}];
+  reqs.forEach(function(r,i){setTimeout(function(){r.id=++dN;dQueue.push(r);dStack();},i*350);});
+});
+$('#dAgents').addEventListener('click',function(){dOn=!dOn;this.classList.toggle('off',!dOn);this.lastChild.textContent=dOn?'Agents on':'Agents paused';this.setAttribute('aria-pressed',dOn?'true':'false');if(!dOn){dQueue.forEach(function(q){(receipts[q.key]=receipts[q.key]||[]).unshift({who:q.who,m:q.m,h:q.h,what:q.cmd+' · '+q.dir,t:'Just now',d:'Denied · paused',fresh:true});});dQueue=[];dStack();dRender();}$('#dSim').disabled=!dOn;$('#dSim').style.opacity=dOn?1:.5;});
+dRender();
+
+
+/* ---------- E: rising shelf ---------- */
+var eTabs=[
+ {n:'Recent',c:6,cards:[{t:'key',m:'St',h:250,k:'STRIPE_SECRET_KEY',p:'sk_test_…81cd',f:'harvous · 2h ago'},{t:'codes',m:'Gh',h:228,k:'GitHub',left:7,f:'regenerated Mar 3'},{t:'key',m:'Op',h:170,k:'OPENAI_API_KEY',p:'sk-proj-…Q7vA',f:'harvous, slinky'},{t:'kept',m:'Ap',h:210,k:'Apple ID recovery key',f:'Kept · Oct 16'},{t:'key',m:'St',h:250,k:'STRIPE_SECRET_KEY',p:'sk_live_…4f2a',live:1,f:'harvous · Production'}]},
+ {n:'Keys',c:14,cards:[{t:'key',m:'An',h:24,k:'ANTHROPIC_API_KEY',p:'sk-ant-…m3AA',f:'harvous'},{t:'key',m:'Sb',h:150,k:'SUPABASE_SERVICE_ROLE_KEY',p:'sb_secret_…J9s0',f:'harvous'},{t:'key',m:'Gh',h:228,k:'GITHUB_TOKEN',p:'github_pat_…Tq2w',warn:'5 DAYS',f:'3 projects'},{t:'key',m:'Ne',h:186,k:'NETLIFY_AUTH_TOKEN',p:'nfp_…x2Lr',f:'2 projects'}]},
+ {n:'Codes',c:5,cards:[{t:'codes',m:'Gh',h:228,k:'GitHub',left:7,f:'regenerated Mar 3'},{t:'codes',m:'Ve',h:238,k:'Vercel',left:3,f:'regenerated Nov 18'},{t:'codes',m:'St',h:250,k:'Stripe',left:10,f:'regenerated Mar 3'},{t:'codes',m:'Go',h:205,k:'Google',left:8,f:'regenerated Jan 9'}]},
+ {n:'Kept',c:6,cards:[{t:'kept',m:'Ap',h:210,k:'Apple ID recovery key',f:'Printed copy in the drawer'},{t:'kept',m:'Ro',h:190,k:'Router admin',f:'From the sticker'},{t:'kept',m:'Fi',h:200,k:'FileVault recovery key',f:'This Mac'}]},
+ {n:'Requests',c:1,req:1,cards:[{t:'req',m:'CC',h:22,k:'Claude Code wants STRIPE_SECRET_KEY',f:'npm run dev · ~/harvous'}]}
+];
+var eTab=0,eSel=1;
+function eRender(){
+  $('#eTabs').innerHTML=eTabs.map(function(t,i){return '<button type="button" class="pill'+(t.req?' req':'')+'" aria-pressed="'+(i===eTab)+'" data-t="'+i+'">'+t.n+' <b>'+t.c+'</b></button>';}).join('');
+  var cs=eTabs[eTab].cards;eSel=Math.min(eSel,cs.length);
+  var h='<button type="button" class="sc slot'+(eSel===0?' on':'')+'" data-c="0"><span class="big">+</span><span>Paste to tuck away</span><span style="font-size:10.5px;color:var(--ink-3)">⌘V anywhere on the shelf</span></button>';
+  h+=cs.map(function(c,i){var on=(i+1)===eSel?' on':'';
+    if(c.t==='key')return '<button type="button" class="sc'+on+'" data-c="'+(i+1)+'">'+mg(c.m,c.h)+'<span class="nm">'+c.k+'</span><span class="pk">'+c.p+'</span><span class="ft">'+(c.live?'<span class="chip live">LIVE</span>':'')+(c.warn?'<span class="chip warn">'+c.warn+'</span>':'')+c.f+'</span></button>';
+    if(c.t==='codes'){var bars='';for(var j=0;j<10;j++)bars+='<i class="'+(j>=c.left?'u':'')+'"></i>';return '<button type="button" class="sc'+on+'" data-c="'+(i+1)+'">'+mg(c.m,c.h)+'<span class="nm sans">'+c.k+' codes</span><span class="codes-mini">'+bars+'</span><span class="ft"><b style="color:'+(c.left<=3?'var(--warn)':'var(--ink)')+';font-size:12px">'+c.left+' left</b> · '+c.f+'</span></button>';}
+    if(c.t==='kept')return '<button type="button" class="sc'+on+'" data-c="'+(i+1)+'">'+mg(c.m,c.h)+'<span class="nm sans">'+c.k+'</span><span class="pk">••••-••••-••••</span><span class="ft">'+c.f+'</span></button>';
+    return '<button type="button" class="sc'+on+'" data-c="'+(i+1)+'">'+mg(c.m,c.h)+'<span class="nm sans">'+c.k+'</span><span class="ft">'+c.f+'</span><span style="display:flex;gap:6px;margin-top:4px"><span class="btn" style="display:inline-flex;align-items:center;height:24px">Deny</span><span class="prime" style="display:inline-flex;align-items:center;height:24px;font-size:11px">Allow…</span></span></button>';
+  }).join('');
+  $('#eCards').innerHTML=h;
+}
+function eAct(){
+  var cs=eTabs[eTab].cards;
+  if(eSel===0){toast('#eToast','Paste with ⌘V and Slinky will suggest where it goes.');return;}
+  var c=cs[eSel-1];if(!c)return;
+  if(c.t==='codes')toast('#eToast','Copied the next '+c.k+' code and crossed it off.');
+  else if(c.t==='req')toast('#eToast','Touch ID, then allowed once.');
+  else if(c.live)toast('#eToast','Touch ID first: live key. Then copied.');
+  else toast('#eToast','Copied '+esc(c.k)+'. Clears in 60s.');
+}
+$('#eTabs').addEventListener('click',function(e){var b=e.target.closest('[data-t]');if(!b)return;eTab=+b.getAttribute('data-t');eSel=1;eRender();});
+$('#eCards').addEventListener('click',function(e){var b=e.target.closest('[data-c]');if(!b)return;eSel=+b.getAttribute('data-c');eRender();eAct();});
+$('#eShelf').addEventListener('keydown',function(e){
+  var n=eTabs[eTab].cards.length;
+  if(e.key==='ArrowRight'){eSel=Math.min(n,eSel+1);eRender();e.preventDefault();}
+  else if(e.key==='ArrowLeft'){eSel=Math.max(0,eSel-1);eRender();e.preventDefault();}
+  else if(e.key==='Enter'){eAct();e.preventDefault();}
+  else if(/^[1-5]$/.test(e.key)){eTab=+e.key-1;eSel=1;eRender();e.preventDefault();}
+});
+eRender();
+
+/* ---------- F: menu bar stack ---------- */
+var fLock=540,fLocked=false,fClip=42,fReq=true,fReqDone=null;
+function fmt(s){return Math.floor(s/60)+':'+('0'+(s%60)).slice(-2);}
+function fRender(){
+  var h='<div class="mc glass"><div class="row"><span class="lockdot'+(fLocked?' off':'')+'"></span><div class="grow"><b>'+(fLocked?'Locked':'Unlocked')+'</b><div class="w">'+(fLocked?'Touch ID to unlock':'Locks in <span id="fLockT">'+fmt(fLock)+'</span> · or on sleep')+'</div></div><button class="btn" type="button" data-f="lock">'+(fLocked?'Unlock…':'Lock Now')+'</button></div></div>';
+  if(fReq)h+='<div class="mc glass"><div class="row">'+mg('CC',22)+'<div class="grow"><b>Claude Code wants STRIPE_SECRET_KEY</b><div class="w">npm run dev · ~/harvous</div></div></div><div class="row" style="margin-top:10px;justify-content:flex-end"><button class="btn" type="button" data-f="deny">Deny</button><button class="prime" type="button" data-f="allow">Allow…</button></div></div>';
+  else if(fReqDone)h+='<div class="mc glass"><div class="row">'+mg('CC',22)+'<div class="grow"><b>'+fReqDone+'</b><div class="w">STRIPE_SECRET_KEY · just now · in Receipts</div></div></div></div>';
+  h+='<div class="mc glass"><div class="row"><span class="ring" id="fRing" style="--p:'+(fClip/60)+';width:20px;height:20px"></span><div class="grow"><b>'+(fClip>0?'OPENAI_API_KEY copied':'Clipboard clear')+'</b><div class="w">'+(fClip>0?'Clears in <span id="fClipT">'+fClip+'</span>s':'Nothing secret on it')+'</div></div>'+(fClip>0?'<button class="btn" type="button" data-f="clear">Clear Now</button>':'')+'</div></div>';
+  h+='<div class="mc glass"><b>Projects</b><div class="pchips"><button type="button" data-p="harvous">harvous</button><button type="button" data-p="dinkyfiles.com">dinkyfiles.com</button><button type="button" data-p="binkyfiles.com">binkyfiles.com</button><button type="button" data-p="slinky">slinky</button></div></div>';
+  h+='<div class="mfoot"><span>Quick Access ⌥⌘K</span><span>Open Slinky ⌘O</span></div>';
+  $('#fStack').innerHTML=h;
+}
+$('#fStack').addEventListener('click',function(e){
+  var b=e.target.closest('[data-f]'),p=e.target.closest('[data-p]');
+  if(p){toast('#fToast','Opened '+p.getAttribute('data-p')+' in Slinky.');return;}
+  if(!b)return;var f=b.getAttribute('data-f');
+  if(f==='lock'){fLocked=!fLocked;if(!fLocked)fLock=600;toast('#fToast',fLocked?'Locked. Touch ID to peek.':'Touch ID, then unlocked.');}
+  if(f==='allow'){fReq=false;fReqDone='Allowed once for Claude Code';$('#gReq').textContent='4';toast('#fToast','Touch ID, then allowed once.');}
+  if(f==='deny'){fReq=false;fReqDone='Denied. Nothing slipped out.';$('#gReq').textContent='4';}
+  if(f==='clear'){fClip=0;}
+  fRender();
+});
+setInterval(function(){
+  if(!fLocked&&fLock>0){fLock--;var t=$('#fLockT');if(t)t.textContent=fmt(fLock);if(fLock===0){fLocked=true;fRender();}}
+  if(fClip>0){fClip--;var c=$('#fClipT'),r=$('#fRing');if(c)c.textContent=fClip;if(r)r.style.setProperty('--p',fClip/60);if(fClip===0)fRender();}
+},1000);
+fRender();
+
+/* ---------- shared: countdown ---------- */
+var ps=42;setInterval(function(){ps=ps<=1?60:ps-1;var r=$('#pRing'),s=$('#pSec');if(r)r.style.setProperty('--p',ps/60);if(s)s.textContent=ps;},1000);
+})();
+</script>
