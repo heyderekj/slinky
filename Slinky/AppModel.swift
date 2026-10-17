@@ -3,6 +3,7 @@ import LocalAuthentication
 import Observation
 import SlinkyCoreShared
 import SlinkyCoreVault
+import UniformTypeIdentifiers
 
 enum LibraryFilter: String, CaseIterable, Hashable {
     case all, keys, recovery
@@ -247,6 +248,69 @@ final class AppModel {
         }
     }
 
+    // MARK: Backups
+
+    var canExportBackup: Bool { isUnlocked && hasVault && session != nil }
+    /// Restoring replaces this Mac's vault, so an existing one must be unlocked first.
+    var canRestoreBackup: Bool { !hasVault || isUnlocked }
+    var showRestore = false
+
+    /// No declared type (the app has no Info.plist of its own); the extension is enough for the save panel.
+    static let backupType = UTType(filenameExtension: "slinkybackup", conformingTo: .data) ?? .data
+
+    /// File › Export Backup…: confirms it's you, then asks where to save. The file is named by date only.
+    func exportBackup() async {
+        guard canExportBackup, var current = session else { return }
+        let context = LAContext()
+        do {
+            try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "export a backup of your vault")
+        } catch { return }
+        let panel = NSSavePanel()
+        panel.title = "Export Backup"
+        panel.nameFieldStringValue = "Slinky Backup \(Date.now.formatted(.iso8601.year().month().day())).slinkybackup"
+        panel.allowedContentTypes = [Self.backupType]
+        panel.canCreateDirectories = true
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        current.document = document
+        do {
+            try store.exportBackup(for: current, to: url)
+            show("Backup saved. It opens with your current Recovery Key.")
+        } catch {
+            show("Couldn't save the backup: \(Self.friendly(error))", style: .info)
+        }
+    }
+
+    /// Restore from Backup…: the backup's Recovery Key opens it, then it becomes this Mac's vault.
+    /// Returns a plain message if it didn't work.
+    func restoreBackup(from url: URL, recoveryText: String) async -> String? {
+        guard canRestoreBackup else { return "Unlock Slinky first." }
+        guard let key = RecoveryKey(recoveryText) else { return "That isn't a valid Recovery Key. It has 8 groups of 4 characters." }
+        guard VaultStore.isVaultFile(url) else { return "That file isn't a Slinky backup." }
+        if hasVault {
+            let context = LAContext()
+            do {
+                try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "replace your vault with a backup")
+            } catch { return "" }
+        }
+        do {
+            try enclave.ensureKey()
+            let restored = try store.restoreBackup(from: url, recovery: key)
+            hasVault = true
+            // Nothing from the vault it replaced carries over: no Undo into it, no recent copies.
+            undoSnapshot = nil
+            recent = []
+            didUnlock(restored)
+            selection = .library(.all)
+            librarySelection = nil
+            show("Restored from your backup. Touch ID opens it on this Mac now.")
+            return nil
+        } catch VaultError.wrongRecoveryKey {
+            return "That Recovery Key doesn't open this backup. Use the key you had when the backup was made."
+        } catch {
+            return Self.friendly(error)
+        }
+    }
+
     /// Lock from the switch, the menu or ⌃⌘L: frost covers the window first, then the vault locks.
     /// The lock itself never waits on a view, so it happens even with the window closed.
     func lockAnimated() {
@@ -281,6 +345,7 @@ final class AppModel {
         addDraft = nil
         librarySelection = nil
         choosingIcon = nil
+        showRestore = false
         // Names and website icons it worked out stay only while unlocked.
         IconResolver.shared.reset()
         idleTimer?.invalidate()

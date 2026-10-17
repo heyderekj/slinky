@@ -203,6 +203,7 @@ private struct RecoveryKeyPane: View {
     @State private var confirm = false
     @State private var newKey: String?
     @State private var working = false
+    @State private var restoring = false
 
     var body: some View {
         Form {
@@ -231,6 +232,21 @@ private struct RecoveryKeyPane: View {
                 }
             }
             Section {
+                LabeledContent("Export a backup") {
+                    Button("Export Backup…") { Task { await model.exportBackup() } }
+                        .disabled(!model.canExportBackup)
+                }
+                LabeledContent("Restore") {
+                    Button("Restore from Backup…") { restoring = true }
+                        .disabled(!model.canRestoreBackup)
+                }
+            } header: {
+                Text("Backups")
+            } footer: {
+                Text("A backup is your whole vault in one encrypted file, to keep somewhere else. It opens only with the Recovery Key you have when you make it, so after making a new Recovery Key, export a new backup.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section {
                 LabeledContent("Vault file") {
                     Button("Show in Finder") {
                         NSWorkspace.shared.activateFileViewerSelecting([VaultStore.defaultURL])
@@ -254,6 +270,7 @@ private struct RecoveryKeyPane: View {
         } message: {
             Text("Your current Recovery Key will stop working. You'll need to print or save the new one.")
         }
+        .sheet(isPresented: $restoring) { RestoreBackupView() }
         .sheet(isPresented: Binding(get: { newKey != nil }, set: { if !$0 { newKey = nil } })) {
             if let newKey {
                 RecoveryKeySheet(key: newKey, isReplacement: true) { self.newKey = nil }

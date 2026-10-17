@@ -68,6 +68,7 @@ struct MainView: View {
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showNewProject)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.editing)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.importing != nil)
+        .sheet(isPresented: $model.showRestore) { RestoreBackupView() }
         .sheet(isPresented: Binding(get: { model.choosingIcon != nil }, set: { if !$0 { model.choosingIcon = nil } })) {
             if let ref = model.choosingIcon { ChooseIconView(ref: ref) }
         }

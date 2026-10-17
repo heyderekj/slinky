@@ -38,6 +38,11 @@ struct SlinkyApp: App {
                 Button("Import…") { model.beginImport() }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
+                Divider()
+                Button("Export Backup…") { Task { await model.exportBackup() } }
+                    .disabled(!model.canExportBackup)
+                Button("Restore from Backup…") { model.showRestore = true }
+                    .disabled(!model.canRestoreBackup)
             }
             CommandGroup(after: .newItem) {
                 Button("Quick Access") { QuickAccess.shared.show() }

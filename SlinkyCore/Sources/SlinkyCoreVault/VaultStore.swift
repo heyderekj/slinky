@@ -81,6 +81,39 @@ public final class VaultStore: @unchecked Sendable {
         return recovery
     }
 
+    // MARK: Backups
+
+    /// Writes a backup of an unlocked vault to `destination`. It's the same encrypted vault, minus this Mac's
+    /// Touch ID key, so it opens only with the Recovery Key the vault has right now. No new crypto.
+    public func exportBackup(for session: VaultSession, to destination: URL) throws {
+        let current = try read()
+        let backup = VaultFile(enclaveWrappedKey: Data(), recoveryWrappedKey: current.recoveryWrappedKey,
+                               payload: try seal(session.document, with: session.vaultKey), saved: .now)
+        try JSONEncoder.vault.encode(backup).write(to: destination, options: [.atomic])
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: destination.path)
+    }
+
+    /// Opens a backup with its Recovery Key and makes it this Mac's vault, wrapped for Touch ID here.
+    /// The vault it replaces is kept as `vault.slinky.previous`. Throws `wrongRecoveryKey` without
+    /// touching anything if the key doesn't fit.
+    public func restoreBackup(from source: URL, recovery: RecoveryKey) throws -> VaultSession {
+        let backup = try read(from: source)
+        let raw = try recovery.unwrap(backup.recoveryWrappedKey)
+        let vaultKey = SymmetricKey(data: raw)
+        let document = try open(backup.payload, with: vaultKey)
+        let file = VaultFile(enclaveWrappedKey: try enclave.wrap(raw), recoveryWrappedKey: backup.recoveryWrappedKey,
+                             payload: backup.payload, saved: .now)
+        try write(file)
+        return VaultSession(vaultKey: vaultKey, document: document)
+    }
+
+    /// Whether a file is a Slinky vault or backup, without opening it.
+    public static func isVaultFile(_ url: URL) -> Bool {
+        guard let data = try? Data(contentsOf: url), data.count < 64 * 1024 * 1024,
+              let file = try? JSONDecoder.vault.decode(VaultFile.self, from: data) else { return false }
+        return file.format == "slinky-vault"
+    }
+
     public func save(_ session: VaultSession) throws {
         var file = try read()
         file.payload = try seal(session.document, with: session.vaultKey)
@@ -102,7 +135,9 @@ public final class VaultStore: @unchecked Sendable {
         return try JSONDecoder.vault.decode(VaultDocument.self, from: json)
     }
 
-    private func read() throws -> VaultFile {
+    private func read() throws -> VaultFile { try read(from: url) }
+
+    private func read(from url: URL) throws -> VaultFile {
         guard let data = try? Data(contentsOf: url) else { throw VaultError.notFound }
         let file: VaultFile
         do { file = try JSONDecoder.vault.decode(VaultFile.self, from: data) }

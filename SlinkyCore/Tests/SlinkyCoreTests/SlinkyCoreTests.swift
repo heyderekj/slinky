@@ -138,6 +138,29 @@ struct VaultTests {
         #expect(try store.unlock(context: nil).document == session.document)
     }
 
+    @Test func backupRoundTrip() throws {
+        let url = tempURL()
+        let store = VaultStore(url: url, enclave: SoftwareWrapper())
+        var (session, recovery) = try store.create()
+        session.document.keys.append(Key(name: "STRIPE_SECRET_KEY", value: "sk_test_EXAMPLE"))
+        try store.save(session)
+
+        let backup = url.deletingLastPathComponent().appendingPathComponent("Slinky Backup.slinkybackup")
+        try store.exportBackup(for: session, to: backup)
+        #expect(VaultStore.isVaultFile(backup))
+        #expect(!(try String(contentsOf: backup, encoding: .utf8)).contains("sk_test_EXAMPLE"))
+
+        // A new Mac: no vault yet. The wrong key changes nothing; the right one restores and sets up Touch ID.
+        let otherURL = tempURL()
+        let newMac = VaultStore(url: otherURL, enclave: SoftwareWrapper())
+        #expect(throws: VaultError.wrongRecoveryKey) { try newMac.restoreBackup(from: backup, recovery: RecoveryKey.generate()) }
+        #expect(!newMac.exists)
+        let restored = try newMac.restoreBackup(from: backup, recovery: recovery)
+        #expect(restored.document == session.document)
+        #expect(try newMac.unlock(context: nil).document == session.document)
+        #expect(try newMac.unlock(recovery: recovery).document == session.document)
+    }
+
     @Test func wrongRecoveryKeyFails() throws {
         let store = VaultStore(url: tempURL(), enclave: SoftwareWrapper())
         _ = try store.create()
