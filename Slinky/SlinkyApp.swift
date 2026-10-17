@@ -27,9 +27,7 @@ struct SlinkyApp: App {
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("Add Item…") {
-                    model.tuckPrefill = ""
-                    model.tuckProject = nil
-                    model.showTuck = true
+                    if case let .project(id)? = model.selection { model.openAddItem(project: id) } else { model.openAddItem() }
                 }
                     .keyboardShortcut("n")
                     .disabled(!model.isUnlocked)

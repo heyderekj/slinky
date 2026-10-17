@@ -51,11 +51,13 @@ struct PanelBackdrop: View {
 /// Add Item floats over the window on a soft dim, instead of a sheet.
 struct AddItemOverlay: View {
     @Environment(AppModel.self) private var model
+    /// A click outside asks the panel to close; it checks for unsaved work first.
+    @State private var closeRequest = 0
 
     var body: some View {
         ZStack {
-            PanelBackdrop(close: close)
-            AddItemPanel(close: close)
+            PanelBackdrop(close: { closeRequest += 1 })
+            AddItemPanel(close: close, closeRequest: closeRequest)
         }
     }
 
@@ -70,9 +72,19 @@ struct AddItemOverlay: View {
 struct AddItemPanel: View {
     @Environment(AppModel.self) private var model
     let close: () -> Void
+    var closeRequest = 0
 
     enum ProjectChoice: Hashable { case existing(UUID), new }
-    enum Field: Hashable { case input, name, from, projectName }
+    enum Field: Hashable { case input, name, from, projectName, note, link }
+
+    /// What's been typed so far. Kept in memory (never on disk) when the panel closes without saving, so a
+    /// stray click or Esc doesn't lose work; reopening Add Item picks up where you left off. Locking clears it.
+    struct Draft: Equatable {
+        var text = "", destination: Detection.Destination = .key, destinationTouched = false
+        var name = "", nameTouched = false, from = ""
+        var project: ProjectChoice = .new, newProjectName = "", env: AppEnvironment = .local
+        var hasExpiry = false, expiry = Date.now, note = "", link = ""
+    }
 
     @State private var text = ""
     @State private var captured = false
@@ -92,7 +104,15 @@ struct AddItemPanel: View {
     @State private var hasExpiry = false
     @State private var expiry = Calendar.current.date(byAdding: .day, value: 90, to: .now) ?? .now
     @State private var showExpiry = false
+    @State private var note = ""
+    @State private var showNote = false
+    @State private var link = ""
+    @State private var showLink = false
     @State private var appeared = false
+    @State private var confirmingDiscard = false
+    @State private var restoredDraft = false
+    /// Saved or discarded on purpose: nothing to keep when the panel goes away.
+    @State private var finished = false
     @FocusState private var focus: Field?
 
     private var detection: Detection? { Detector.detect(text) }
@@ -101,8 +121,13 @@ struct AddItemPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack {
+            HStack(spacing: 10) {
                 Text("Add Item").font(.headline)
+                if restoredDraft {
+                    Text("Picked up where you left off").font(.callout).foregroundStyle(.secondary)
+                    Button("Start Over") { discardDraft(); clear(); note = ""; link = ""; showNote = false; showLink = false }
+                        .buttonStyle(.link).font(.callout)
+                }
                 Spacer()
                 Keycap("esc")
             }
@@ -124,6 +149,7 @@ struct AddItemPanel: View {
                 }
                 if !isSeed {
                     chips.padding(.top, 12)
+                    if showNote || !note.isEmpty { noteField.padding(.top, 10) }
                 }
             } else {
                 input.transition(.opacity)
@@ -142,6 +168,8 @@ struct AddItemPanel: View {
         .animation(.spring(response: 0.38, dampingFraction: 0.86), value: captured)
         .animation(.spring(response: 0.3, dampingFraction: 0.9), value: destination)
         .onAppear(perform: setUp)
+        .onDisappear(perform: keepDraft)
+        .onChange(of: closeRequest) { requestClose() }
         .onChange(of: text) { old, new in
             // A paste (many characters at once, or several lines) lands straight away.
             if !captured, new.count - old.count >= 8 || new.contains("\n") { capture() }
@@ -393,17 +421,67 @@ struct AddItemPanel: View {
                     .buttonStyle(ChipButtonStyle(selected: false))
                 }
             }
+            // Extras for any one item: a note, and a link to where it came from.
+            if !isMultiLine || destination == .codes {
+                if showLink || !link.isEmpty {
+                    ChipField(symbol: "link", prompt: "Link, like dash.cloudflare.com", text: $link)
+                        .focused($focus, equals: .link)
+                } else {
+                    Button { showLink = true; focus = .link } label: { ChipLabel(symbol: "link", text: "Add link") }
+                        .buttonStyle(ChipButtonStyle(selected: false))
+                }
+                if !(showNote || !note.isEmpty) {
+                    Button { showNote = true; focus = .note } label: { ChipLabel(symbol: "text.alignleft", text: "Add note") }
+                        .buttonStyle(ChipButtonStyle(selected: false))
+                }
+            }
             Spacer(minLength: 0)
         }
     }
 
+    private var noteField: some View {
+        TextField("", text: $note, prompt: Text("Note, like what it's for or who gave it to you"), axis: .vertical)
+            .textFieldStyle(.plain)
+            .lineLimit(1...4)
+            .focused($focus, equals: .note)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 10)
+            .background(Color.paper, in: .rect(cornerRadius: 12))
+            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.secondary.opacity(0.2), lineWidth: 1))
+    }
+
     // MARK: Footer
 
+    @ViewBuilder
     private var footer: some View {
+        if confirmingDiscard {
+            HStack(spacing: 10) {
+                Label("Discard this item?", systemImage: "exclamationmark.circle")
+                    .font(.callout.weight(.semibold))
+                Spacer()
+                Button("Discard", role: .destructive) { finished = true; discardDraft(); close() }
+                    .glassButton()
+                    .controlSize(.large)
+                Button("Keep Editing") { withAnimation(.snappy) { confirmingDiscard = false } }
+                    .keyboardShortcut(.defaultAction)
+                    .glassProminentButton()
+                    .controlSize(.large)
+                // Esc again also keeps editing.
+                Button("") { withAnimation(.snappy) { confirmingDiscard = false } }
+                    .keyboardShortcut(.cancelAction)
+                    .hidden()
+            }
+            .transition(.opacity)
+        } else {
+            normalFooter
+        }
+    }
+
+    private var normalFooter: some View {
         HStack(spacing: 10) {
             EncryptedNote()
             Spacer()
-            Button("Cancel", action: close)
+            Button("Cancel", action: requestClose)
                 .keyboardShortcut(.cancelAction)
                 .glassButton()
                 .controlSize(.large)
@@ -434,11 +512,61 @@ struct AddItemPanel: View {
         }
         withAnimation(.spring(response: 0.38, dampingFraction: 0.84)) { appeared = true }
         if !model.tuckPrefill.isEmpty {
+            // Something new was handed in (a paste, a drop, Shortcuts): that wins over an old draft.
             text = model.tuckPrefill
+            model.tuckPrefill = ""
             capture()
+        } else if let draft = model.addDraft {
+            restore(draft)
         } else {
             Task { focus = .input }
         }
+        model.addDraft = nil
+    }
+
+    private var hasContent: Bool {
+        !trimmed.isEmpty || !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !link.trimmingCharacters(in: .whitespaces).isEmpty
+    }
+
+    /// Esc, Cancel or a click outside: closes straight away when there's nothing to lose, otherwise asks.
+    private func requestClose() {
+        guard hasContent else { finished = true; close(); return }
+        withAnimation(.snappy) { confirmingDiscard = true }
+    }
+
+    private var currentDraft: Draft {
+        Draft(text: text, destination: destination, destinationTouched: destinationTouched, name: name,
+              nameTouched: nameTouched, from: from, project: project, newProjectName: newProjectName, env: env,
+              hasExpiry: hasExpiry, expiry: expiry, note: note, link: link)
+    }
+
+    /// The panel went away without a save or a discard (the window closed, another panel took over).
+    /// Never after locking: the lock has already cleared everything.
+    private func keepDraft() {
+        guard !finished, model.isUnlocked, hasContent else { return }
+        model.addDraft = currentDraft
+    }
+
+    private func discardDraft() {
+        model.addDraft = nil
+        restoredDraft = false
+    }
+
+    private func restore(_ d: Draft) {
+        text = d.text
+        destination = d.destination; destinationTouched = d.destinationTouched
+        name = d.name; nameTouched = d.nameTouched; from = d.from; showFrom = !d.from.isEmpty
+        project = d.project; newProjectName = d.newProjectName; env = d.env
+        hasExpiry = d.hasExpiry; expiry = d.expiry
+        note = d.note; showNote = !d.note.isEmpty
+        link = d.link; showLink = !d.link.isEmpty
+        if !trimmed.isEmpty {
+            captured = true
+            masked = middle.count
+            settled = true
+        }
+        restoredDraft = true
     }
 
     private func capture() {
@@ -513,15 +641,20 @@ struct AddItemPanel: View {
     private func save() {
         guard canSave else { return }
         let label = name.trimmingCharacters(in: .whitespaces)
+        let savedNote: String? = note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : note.trimmingCharacters(in: .whitespacesAndNewlines)
+        let savedLink = Links.normalized(link)
         switch destination {
         case .kept:
             let kind: KeptKind = detection?.kind == .setupKey ? .setupKey : .recoveryKey
-            model.addKept(KeptItem(label: label, kind: kind, from: from.isEmpty ? nil : from, value: singleValue))
+            model.addKept(KeptItem(label: label, kind: kind, from: from.isEmpty ? nil : from, value: singleValue,
+                                   note: savedNote, link: savedLink))
         case .key:
             model.addKey(Key(name: label, value: singleValue, provider: detection?.provider,
-                             isLive: detection?.isLive ?? false, expires: hasExpiry ? expiry : nil))
+                             isLive: detection?.isLive ?? false, expires: hasExpiry ? expiry : nil,
+                             note: savedNote, link: savedLink))
         case .codes:
-            model.addCodeSet(CodeSet(account: label, username: from.isEmpty ? nil : from, codes: codes))
+            model.addCodeSet(CodeSet(account: label, username: from.isEmpty ? nil : from, codes: codes,
+                                     note: savedNote, link: savedLink))
         case .project:
             let projectID: UUID
             switch project {
@@ -530,7 +663,10 @@ struct AddItemPanel: View {
             }
             let lines = envLines.count > 1 ? envLines : [DotEnvLine(name: label, value: singleValue)]
             model.addVariables(lines, to: projectID, env: env)
+            if lines.count == 1 { model.setDetails(note: savedNote, link: savedLink, variableNamed: lines[0].name, in: projectID) }
         }
+        finished = true
+        model.addDraft = nil
         close()
     }
 

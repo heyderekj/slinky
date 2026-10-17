@@ -33,8 +33,24 @@ struct MainView: View {
                     .help(columns == .detailOnly ? "Show the sidebar (⌃⌘S)" : "Hide the sidebar (⌃⌘S)")
                     .accessibilityLabel(columns == .detailOnly ? "Show sidebar" : "Hide sidebar")
                 }
+                // Always here, whatever's on screen: in a project it adds a variable to that project.
+                ToolbarItem(placement: .primaryAction) {
+                    Button { addHere() } label: { Label("Add Item", systemImage: "plus") }
+                        .help(isProject ? "Add a variable to this project (⌘N)" : "Add Item (⌘N)")
+                }
+            }
+            // Drop a key or some .env lines anywhere on the content to add them.
+            .dropDestination(for: String.self) { items, _ in
+                guard let text = items.first, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, canAdd else { return false }
+                addHere(prefill: text)
+                return true
             }
         }
+        .background(PasteToAdd { text in
+            guard canAdd else { return false }
+            addHere(prefill: text)
+            return true
+        })
         .overlay {
             if model.showTuck {
                 AddItemOverlay().transition(.opacity)
@@ -54,6 +70,18 @@ struct MainView: View {
                                     set: { if !$0 { model.recoveryKeyToShow = nil } })) {
             if let key = model.recoveryKeyToShow { RecoveryKeySheet(key: key) }
         }
+    }
+
+    private var isProject: Bool { if case .project? = model.selection { true } else { false } }
+
+    /// Nothing else is open on top, so adding makes sense right now.
+    private var canAdd: Bool {
+        model.isUnlocked && !model.showTuck && !model.showNewProject && model.editing == nil && model.importing == nil
+    }
+
+    private func addHere(prefill: String = "") {
+        if case let .project(id)? = model.selection { model.openAddItem(prefill: prefill, project: id) }
+        else { model.openAddItem(prefill: prefill) }
     }
 
     @ViewBuilder

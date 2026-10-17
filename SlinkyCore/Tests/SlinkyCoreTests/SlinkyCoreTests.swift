@@ -328,3 +328,17 @@ struct DocumentFormatTests {
         #expect(doc.trash == nil)
     }
 }
+
+@Suite("Links")
+struct LinkTests {
+    @Test func normalizes() {
+        #expect(Links.normalized("dash.cloudflare.com") == "https://dash.cloudflare.com")
+        #expect(Links.normalized("http://example.com/keys") == "https://example.com/keys")
+        #expect(Links.normalized("  https://github.com/settings/tokens ") == "https://github.com/settings/tokens")
+        #expect(Links.normalized("javascript:alert(1)") == nil)
+        #expect(Links.normalized("ftp://example.com") == nil)
+        #expect(Links.normalized("not a link") == nil)
+        #expect(Links.normalized("localhost") == nil)
+        #expect(Links.host(of: "https://www.GitHub.com/x") == "github.com")
+    }
+}

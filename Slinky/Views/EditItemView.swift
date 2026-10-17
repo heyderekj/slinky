@@ -6,11 +6,12 @@ import SwiftUI
 struct EditOverlay: View {
     @Environment(AppModel.self) private var model
     let target: EditTarget
+    @State private var closeRequest = 0
 
     var body: some View {
         ZStack {
-            PanelBackdrop(close: close)
-            EditPanel(target: target, close: close)
+            PanelBackdrop(close: { closeRequest += 1 })
+            EditPanel(target: target, close: close, closeRequest: closeRequest)
                 .id(target)
         }
     }
@@ -24,11 +25,14 @@ private struct EditPanel: View {
     @Environment(AppModel.self) private var model
     let target: EditTarget
     let close: () -> Void
+    /// Goes up each time the backdrop is clicked: close, or ask first if something changed.
+    var closeRequest = 0
 
     // Shared drafts. Only the ones the target uses matter.
     @State private var name = ""
     @State private var from = ""
     @State private var note = ""
+    @State private var link = ""
     @State private var newValue = ""
     @State private var replacing = false
     @State private var hasExpiry = false
@@ -39,6 +43,8 @@ private struct EditPanel: View {
     @State private var resetUsed = false
     @State private var folders: [String] = []
     @State private var loaded = false
+    @State private var original: Snapshot?
+    @State private var confirmingDiscard = false
     @State private var appeared = false
 
     var body: some View {
@@ -69,6 +75,7 @@ private struct EditPanel: View {
         .opacity(appeared ? 1 : 0)
         .animation(.spring(response: 0.3, dampingFraction: 0.88), value: replacing)
         .animation(.spring(response: 0.3, dampingFraction: 0.88), value: hasExpiry)
+        .onChange(of: closeRequest) { requestClose() }
         .onAppear {
             load()
             withAnimation(.spring(response: 0.38, dampingFraction: 0.84)) { appeared = true }
@@ -100,7 +107,8 @@ private struct EditPanel: View {
                     .labelsHidden()
                     .pickerStyle(.segmented)
                 }
-                FieldRow("Note", last: true) { plainField($note, prompt: "Optional, like which account it belongs to") }
+                FieldRow("Note") { plainField($note, prompt: "Optional, like which account it belongs to") }
+                linkRow
             }
         case let .kept(id):
             if let item = model.document.kept.first(where: { $0.id == id }) {
@@ -117,12 +125,15 @@ private struct EditPanel: View {
                 }
                 FieldRow("Website or app") { plainField($from, prompt: "Optional") }
                 valueRow(current: item.value)
-                FieldRow("Note", last: true) { plainField($note, prompt: "Optional, like where the printed copy is") }
+                FieldRow("Note") { plainField($note, prompt: "Optional, like where the printed copy is") }
+                linkRow
             }
         case let .codes(id):
             if let set = model.document.codeSets.first(where: { $0.id == id }) {
                 FieldRow("Account") { plainField($name, prompt: "GitHub") }
                 FieldRow("Username") { plainField($from, prompt: "Optional") }
+                FieldRow("Note") { plainField($note, prompt: "Optional, like which account they belong to") }
+                linkRow(last: false)
                 FieldRow("Codes", last: !replacing) {
                     HStack {
                         Text("\(set.remaining) of \(set.codes.count) left").foregroundStyle(.secondary)
@@ -170,6 +181,15 @@ private struct EditPanel: View {
         }
     }
 
+    private var linkRow: some View { linkRow(last: true) }
+
+    private func linkRow(last: Bool) -> some View {
+        FieldRow("Link", last: last) {
+            plainField($link, prompt: "Optional, like the page where you manage it")
+                .onSubmit { link = Links.normalized(link) ?? link }
+        }
+    }
+
     private func valueRow(current: String) -> some View {
         FieldRow(replacing ? "New value" : "Value") {
             if replacing {
@@ -197,14 +217,39 @@ private struct EditPanel: View {
 
     // MARK: Footer
 
+    @ViewBuilder
     private var footer: some View {
+        if confirmingDiscard {
+            HStack(spacing: 10) {
+                Label("Discard your changes?", systemImage: "exclamationmark.circle")
+                    .font(.callout.weight(.semibold))
+                Spacer()
+                Button("Discard", role: .destructive, action: close)
+                    .glassButton()
+                    .controlSize(.large)
+                Button("Keep Editing") { withAnimation(.snappy) { confirmingDiscard = false } }
+                    .keyboardShortcut(.defaultAction)
+                    .glassProminentButton()
+                    .controlSize(.large)
+                // Esc again also keeps editing.
+                Button("") { withAnimation(.snappy) { confirmingDiscard = false } }
+                    .keyboardShortcut(.cancelAction)
+                    .hidden()
+            }
+            .transition(.opacity)
+        } else {
+            normalFooter
+        }
+    }
+
+    private var normalFooter: some View {
         HStack(spacing: 10) {
             // Undoable (Recently Deleted keeps it 30 days), so no confirmation.
             Button(deleteButton, role: .destructive) { delete() }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.red)
             Spacer()
-            Button("Cancel", action: close)
+            Button("Cancel", action: requestClose)
                 .keyboardShortcut(.cancelAction)
                 .glassButton()
                 .controlSize(.large)
@@ -247,6 +292,30 @@ private struct EditPanel: View {
         return "Delete"
     }
 
+    /// Everything the panel can change, to tell whether closing would lose something.
+    private struct Snapshot: Equatable {
+        var name, from, note, link, newValue, newCodes: String
+        var replacing, hasExpiry, resetUsed: Bool
+        var expiry: Date
+        var policy: AgentPolicy
+        var keptKind: KeptKind
+        var folders: [String]
+    }
+
+    private var snapshot: Snapshot {
+        Snapshot(name: name, from: from, note: note, link: link, newValue: newValue, newCodes: newCodes,
+                 replacing: replacing, hasExpiry: hasExpiry, resetUsed: resetUsed, expiry: expiry,
+                 policy: policy, keptKind: keptKind, folders: folders)
+    }
+
+    private func requestClose() {
+        guard let original, snapshot != original else { close(); return }
+        withAnimation(.snappy) { confirmingDiscard = true }
+    }
+
+    /// The link as saved: https only. Something that isn't a web address is dropped rather than stored.
+    private var savedLink: String? { Links.normalized(link) }
+
     private var parsedCodes: [String] { RecoveryCodes.extract(newCodes) }
 
     private var canSave: Bool {
@@ -264,6 +333,7 @@ private struct EditPanel: View {
             guard let key = model.document.keys.first(where: { $0.id == id }) else { return }
             name = key.name
             note = key.note ?? ""
+            link = key.link ?? ""
             hasExpiry = key.expires != nil
             expiry = key.expires ?? Calendar.current.date(byAdding: .day, value: 90, to: .now) ?? .now
             policy = key.agentPolicy
@@ -272,16 +342,20 @@ private struct EditPanel: View {
             name = item.label
             from = item.from ?? ""
             note = item.note ?? ""
+            link = item.link ?? ""
             keptKind = item.kind == .setupKey ? .setupKey : .recoveryKey
         case let .codes(id):
             guard let set = model.document.codeSets.first(where: { $0.id == id }) else { return }
             name = set.account
             from = set.username ?? ""
+            note = set.note ?? ""
+            link = set.link ?? ""
         case let .project(id):
             guard let p = model.document.projects.first(where: { $0.id == id }) else { return }
             name = p.name
             folders = p.folders
         }
+        original = snapshot
     }
 
     private func save() {
@@ -293,6 +367,7 @@ private struct EditPanel: View {
             guard var key = model.document.keys.first(where: { $0.id == id }) else { return }
             key.name = trimmedName
             key.note = note.isEmpty ? nil : note
+            key.link = savedLink
             key.expires = hasExpiry ? expiry : nil
             key.agentPolicy = policy
             if replacing, !value.isEmpty {
@@ -307,6 +382,7 @@ private struct EditPanel: View {
             item.label = trimmedName
             item.from = from.isEmpty ? nil : from
             item.note = note.isEmpty ? nil : note
+            item.link = savedLink
             item.kind = keptKind
             if replacing, !value.isEmpty {
                 item.value = value
@@ -317,6 +393,8 @@ private struct EditPanel: View {
             guard var set = model.document.codeSets.first(where: { $0.id == id }) else { return }
             set.account = trimmedName
             set.username = from.isEmpty ? nil : from
+            set.note = note.isEmpty ? nil : note
+            set.link = savedLink
             if replacing, parsedCodes.count >= 2 {
                 set.codes = parsedCodes
                 set.used = []

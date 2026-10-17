@@ -17,9 +17,7 @@ struct MenuBarStack: View {
                 }
                 MenuRow(icon: "plus", title: "Add Item…", shortcut: "⌘N", disabled: !model.isUnlocked) {
                     open()
-                    model.tuckPrefill = ""
-                    model.tuckProject = nil
-                    model.showTuck = true
+                    model.openAddItem()
                 }
             }
             .padding(6)

@@ -81,9 +81,7 @@ struct LibraryView: View {
                 .transition(.opacity.combined(with: .offset(y: 4)))
             Text(emptyLine).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 330)
             Button {
-                model.tuckPrefill = ""
-                model.tuckProject = nil
-                model.showTuck = true
+                model.openAddItem()
             } label: {
                 Label("Add Item", systemImage: "plus")
             }

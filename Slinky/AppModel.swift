@@ -95,6 +95,8 @@ final class AppModel {
     var newProjectFolder: URL?
     var tuckPrefill = ""
     var tuckProject: UUID?
+    /// Unsaved Add Item work, kept in memory so a stray Esc or click doesn't lose it. Cleared on lock.
+    var addDraft: AddItemPanel.Draft?
     var toast: Toast?
     var errorMessage: String?
     var lockNote: String?
@@ -256,6 +258,7 @@ final class AppModel {
         // Prefill can hold a pasted secret (Shortcuts, a drop, ⌘V); it never outlives the unlock.
         tuckPrefill = ""
         tuckProject = nil
+        addDraft = nil
         idleTimer?.invalidate()
         lockNote = reason.note
         phase = .locked
@@ -396,6 +399,26 @@ final class AppModel {
             guard let p = doc.projects.firstIndex(where: { $0.id == projectID }),
                   let v = doc.projects[p].variables.firstIndex(where: { $0.id == variable }) else { return }
             doc.projects[p].variables[v].setValue(value, in: env)
+        }
+    }
+
+    /// Opens Add Item. `prefill` is something handed in (a paste, a drop, Shortcuts); `project` aims it at a project.
+    /// Every way in goes through here, so nothing from an earlier time can linger.
+    func openAddItem(prefill: String = "", project: UUID? = nil) {
+        guard isUnlocked else { return }
+        tuckPrefill = prefill
+        tuckProject = project
+        showTuck = true
+    }
+
+    /// A note and link for a variable that was just added from Add Item.
+    func setDetails(note: String?, link: String?, variableNamed name: String, in projectID: UUID) {
+        guard note != nil || link != nil else { return }
+        change { doc in
+            guard let p = doc.projects.firstIndex(where: { $0.id == projectID }),
+                  let v = doc.projects[p].variables.firstIndex(where: { $0.name == name }) else { return }
+            if let note { doc.projects[p].variables[v].note = note }
+            if let link { doc.projects[p].variables[v].link = link }
         }
     }
 

@@ -123,7 +123,7 @@ struct ProjectView: View {
                     .foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 380)
                 HStack {
                     Button("Import .env File…") { pickEnvFile(p) }
-                    Button("Add Variable…") { model.tuckProject = projectID; model.tuckPrefill = ""; model.showTuck = true }
+                    Button("Add Variable…") { model.openAddItem(project: projectID) }
                 }
                 .glassButton()
             }
@@ -263,9 +263,7 @@ struct ProjectView: View {
     }
 
     private func tuckMissing(_ name: String) {
-        model.tuckProject = projectID
-        model.tuckPrefill = "\(name)="
-        model.showTuck = true
+        model.openAddItem(prefill: "\(name)=", project: projectID)
     }
 
     /// KEY=value lines for one environment, on the clipboard the careful way (private, clears itself).

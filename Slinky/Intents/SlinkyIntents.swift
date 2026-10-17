@@ -97,9 +97,7 @@ struct AddToSlinkyIntent: AppIntent {
         let model = AppModel.shared
         model.openMainWindow?()
         guard model.isUnlocked else { throw SlinkyIntentError.locked }
-        model.tuckPrefill = text
-        model.tuckProject = nil
-        model.showTuck = true
+        model.openAddItem(prefill: text)
         return .result()
     }
 }

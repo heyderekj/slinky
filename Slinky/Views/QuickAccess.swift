@@ -251,7 +251,7 @@ struct QuickAccessView: View {
                 Button("Add Item…") {
                     QuickAccess.shared.close()
                     model.openMainWindow?()
-                    model.showTuck = true
+                    model.openAddItem()
                 }
                 .glassButton()
             }
