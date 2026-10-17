@@ -2,7 +2,7 @@
  * The page's small interactive demos. Every value is fake (EXAMPLE), nothing touches the real clipboard
  * except the install commands, and everything honors Reduced Motion.
  */
-const still = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const still = () => document.documentElement.classList.contains('fmb-still') || matchMedia('(prefers-reduced-motion: reduce)').matches;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, still() ? 0 : ms));
 const $ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = document) => root.querySelector<T>(sel as string) as T | null;
 const $$ = <T extends Element = HTMLElement>(sel: string, root: ParentNode = document) => Array.from(root.querySelectorAll<T>(sel));
