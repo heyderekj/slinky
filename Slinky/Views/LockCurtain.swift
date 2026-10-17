@@ -10,7 +10,7 @@ struct LockSwitch: View {
         Button {
             if !model.hasVault {
                 // Nothing saved yet means nothing to lock. Say so instead of doing nothing.
-                model.show("Slinky can lock once you've saved your first item.")
+                model.show("Slinky can lock once you've saved your first item.", style: .info)
             } else if model.isUnlocked {
                 model.lockAnimated()
             } else {

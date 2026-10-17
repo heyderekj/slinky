@@ -53,9 +53,13 @@ struct RecentItem: Identifiable, Equatable {
 }
 
 struct Toast: Identifiable, Equatable {
+    /// Green checkmarks only for things that worked. Information and removals get quiet icons.
+    enum Style: Equatable { case success, info, removed }
+
     let id = UUID()
     var text: String
     var canUndo = false
+    var style: Style = .success
 }
 
 /// Owns the vault session and every change to it. Views only read `document` and call these methods.
@@ -361,7 +365,7 @@ final class AppModel {
         Clipboard.copy(document.codeSets[s].codes[index])
         change(undoable: true) { $0.codeSets[s].used.insert(index) }
         let left = document.codeSets[s].remaining
-        show("Copied and marked as used. \(left) left." + (left <= 3 ? " Consider generating new codes." : ""), canUndo: true)
+        show("Copied and marked as used. \(left) left." + (left <= 3 ? " Consider generating new codes." : ""), canUndo: true, style: .success)
     }
 
     func markPrinted(_ id: UUID) {
@@ -381,8 +385,9 @@ final class AppModel {
         show("Copied \(label). The clipboard clears in 60 seconds.")
     }
 
-    func show(_ text: String, canUndo: Bool = false) {
-        let t = Toast(text: text, canUndo: canUndo)
+    func show(_ text: String, canUndo: Bool = false, style: Toast.Style? = nil) {
+        // Undoable toasts are removals.
+        let t = Toast(text: text, canUndo: canUndo, style: style ?? (canUndo ? .removed : .success))
         toast = t
         Task {
             try? await Task.sleep(for: .seconds(canUndo ? 5 : 2.6))

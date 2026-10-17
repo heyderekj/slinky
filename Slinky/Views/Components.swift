@@ -92,8 +92,8 @@ struct ToastView: View {
     var body: some View {
         if let toast = model.toast {
             HStack(spacing: 10) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundStyle(.green)
+                Image(systemName: symbol(toast.style))
+                    .foregroundStyle(toast.style == .success ? Color.green : Color.secondary)
                 Text(toast.text).font(.callout)
                 if toast.canUndo {
                     Button("Undo") { model.undo() }
@@ -108,6 +108,14 @@ struct ToastView: View {
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .id(toast.id)
             .animation(.spring(response: 0.4, dampingFraction: 0.75), value: toast.id)
+        }
+    }
+
+    private func symbol(_ style: Toast.Style) -> String {
+        switch style {
+        case .success: "checkmark.circle.fill"
+        case .info: "info.circle.fill"
+        case .removed: "trash.circle.fill"
         }
     }
 }

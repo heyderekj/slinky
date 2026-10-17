@@ -10,11 +10,14 @@ struct MainView: View {
             SidebarView()
                 .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 300)
         } detail: {
-            if model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
-                detail
-            } else {
-                SearchResultsView(query: model.searchText)
+            Group {
+                if model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
+                    detail
+                } else {
+                    SearchResultsView(query: model.searchText)
+                }
             }
+            .overlay(alignment: .bottom) { ToastView() }
         }
         .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search")
         // Add Item floats on its own: the window behind it softens.

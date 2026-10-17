@@ -102,7 +102,8 @@ struct RootView: View {
             }
         }
         .overlay { LockCurtain() }
-        .overlay(alignment: .bottom) { ToastView() }
+        // While unlocked, toasts live over the detail column (MainView) so they center on the content.
+        .overlay(alignment: .bottom) { if model.phase != .unlocked { ToastView() } }
         .toolbar {
             if model.phase != .loading {
                 ToolbarItem(placement: .primaryAction) { LockSwitch() }
