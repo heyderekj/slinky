@@ -381,6 +381,13 @@ function dock() {
       if (m) a.href = `http://localhost:${ports[m[1]]}/`;
     }
   }
+  // On the preview copies (dinky-preview.pages.dev and friends), the Dock moves between the previews.
+  if (/^(dinky|binky|slinky)-preview\.pages\.dev$/.test(location.hostname)) {
+    for (const a of apps) {
+      const m = a.hostname.match(/^(dinky|binky|slinky)files\.com$/);
+      if (m) a.href = `https://${m[1]}-preview.pages.dev/`;
+    }
+  }
   let centers: number[] = [];
   const set = (a: HTMLElement, m: number) => a.style.setProperty('--mag', m.toFixed(3));
   if (matchMedia('(hover: hover)').matches) {
