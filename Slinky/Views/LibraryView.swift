@@ -1,7 +1,7 @@
 import SlinkyCoreShared
 import SwiftUI
 
-/// Layout B: the Shelf. Cards shaped like what they hold.
+/// Layout B: the shelf. Cards shaped like what they hold.
 struct LibraryView: View {
     @Environment(AppModel.self) private var model
     let filter: LibraryFilter
@@ -15,14 +15,14 @@ struct LibraryView: View {
             } else {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
-                        if filter == .all || filter == .keys, !model.document.keys.isEmpty {
+                        if filter != .recovery, !model.document.keys.isEmpty {
                             section(filter == .all ? "Keys & Tokens" : nil) { ForEach(model.document.keys) { KeyCard(key: $0) } }
                         }
-                        if filter == .all || filter == .codes, !model.document.codeSets.isEmpty {
-                            section(filter == .all ? "Recovery Codes" : nil) { ForEach(model.document.codeSets) { CodeSetCard(set: $0) } }
+                        if filter != .keys, !model.document.codeSets.isEmpty {
+                            section("Recovery Codes") { ForEach(model.document.codeSets) { CodeSetCard(set: $0) } }
                         }
-                        if filter == .all || filter == .kept, !model.document.kept.isEmpty {
-                            section(filter == .all ? "Secure Notes" : nil) { ForEach(model.document.kept) { KeptCard(item: $0) } }
+                        if filter != .keys, !model.document.kept.isEmpty {
+                            section("Recovery Keys") { ForEach(model.document.kept) { KeptCard(item: $0) } }
                         }
                     }
                     .padding(18)
@@ -47,29 +47,20 @@ struct LibraryView: View {
     private var isEmpty: Bool {
         switch filter {
         case .all: model.document.keys.isEmpty && model.document.codeSets.isEmpty && model.document.kept.isEmpty
-        case .codes: model.document.codeSets.isEmpty
-        case .kept: model.document.kept.isEmpty
         case .keys: model.document.keys.isEmpty
-        }
-    }
-
-    private var emptyTitle: String {
-        switch filter {
-        case .all: "No items yet"
-        case .codes: "No recovery codes yet"
-        case .kept: "No secure notes yet"
-        case .keys: "No keys or tokens yet"
+        case .recovery: model.document.codeSets.isEmpty && model.document.kept.isEmpty
         }
     }
 
     private var subtitle: String {
         switch filter {
-        case .codes:
+        case .all:
+            return "\(model.document.keys.count + model.document.codeSets.count + model.document.kept.count) items"
+        case .keys:
+            return "API keys and access tokens your software uses"
+        case .recovery:
             let low = model.document.codeSets.filter(\.isLow).count
-            return "\(model.document.codeSets.count) accounts" + (low > 0 ? " · \(low) running low" : "")
-        case .kept: return "Recovery keys, setup keys and other things to keep safe"
-        case .keys: return "API keys and access tokens you use across projects"
-        case .all: return "\(model.document.keys.count + model.document.codeSets.count + model.document.kept.count) items"
+            return "Codes and keys that get you back into your accounts" + (low > 0 ? " · \(low) running low" : "")
         }
     }
 
@@ -92,22 +83,28 @@ struct LibraryView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    /// Lead the animation with the kind of item this view holds.
-    private var samples: [VaultIdleAnimation.Sample] {
-        let all = VaultIdleAnimation.defaultSamples
+    private var emptyTitle: String {
         switch filter {
-        case .all, .keys: return all
-        case .codes: return [all[1], all[0], all[2]]
-        case .kept: return [all[2], all[0], all[1]]
+        case .all: "No items yet"
+        case .keys: "No keys or tokens yet"
+        case .recovery: "No recovery codes or keys yet"
         }
     }
 
     private var emptyLine: String {
         switch filter {
-        case .codes: "Paste the backup codes a website gives you. Click one to copy it, and Slinky marks it as used."
-        case .kept: "For recovery keys, setup keys and anything a website tells you to keep safe."
-        case .keys: "For API keys and access tokens you use across projects."
         case .all: "Paste a key, recovery codes or a .env line with ⌘N. Slinky sorts it for you."
+        case .keys: "For the API keys and access tokens your software and AI tools use."
+        case .recovery: "For backup codes and recovery keys that get you back into your accounts."
+        }
+    }
+
+    /// Lead the animation with the kind of item this view holds.
+    private var samples: [VaultIdleAnimation.Sample] {
+        let s = VaultIdleAnimation.defaultSamples   // API key, project variable, recovery codes, recovery key
+        switch filter {
+        case .all, .keys: return s
+        case .recovery: return [s[2], s[3], s[0], s[1]]
         }
     }
 }

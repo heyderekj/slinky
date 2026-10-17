@@ -30,7 +30,7 @@ struct MainView: View {
                         .labelStyle(.titleAndIcon)
                 }
                 .buttonStyle(.glassProminent)
-                .help("Add a key, recovery codes, a secure note or a project variable (⌘N)")
+                .help("Add a key, a project variable, recovery codes or a recovery key (⌘N)")
             }
             ToolbarItem(placement: .primaryAction) {
                 Button { model.lock(reason: .manual) } label: { Label("Lock", systemImage: "lock") }
@@ -109,8 +109,7 @@ struct SidebarView: View {
         switch filter {
         case .all: model.document.keys.count + model.document.codeSets.count + model.document.kept.count
         case .keys: model.document.keys.count
-        case .codes: model.document.codeSets.count
-        case .kept: model.document.kept.count
+        case .recovery: model.document.codeSets.count + model.document.kept.count
         }
     }
 }

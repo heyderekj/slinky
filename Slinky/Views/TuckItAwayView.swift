@@ -9,7 +9,7 @@ struct TuckItAwayView: View {
     enum ProjectChoice: Hashable { case existing(UUID), new }
 
     @State private var text = ""
-    @State private var destination: Detection.Destination = .kept
+    @State private var destination: Detection.Destination = .key
     @State private var destinationTouched = false
     @State private var name = ""
     @State private var nameTouched = false
@@ -39,7 +39,7 @@ struct TuckItAwayView: View {
                 .background(.background.secondary, in: .rect(cornerRadius: 12))
                 .overlay(alignment: .topLeading) {
                     if text.isEmpty {
-                        Text("Paste a key, a password, recovery codes, or lines from a .env file")
+                        Text("Paste a key, a token, recovery codes, a recovery key or .env lines")
                             .font(.system(size: 13)).foregroundStyle(.tertiary)
                             .padding(.horizontal, 14).padding(.vertical, 16)
                             .allowsHitTesting(false)
@@ -105,7 +105,7 @@ struct TuckItAwayView: View {
         Form {
             switch destination {
             case .kept:
-                TextField("Label", text: nameBinding, prompt: Text("Apple ID recovery key"))
+                TextField("Name", text: nameBinding, prompt: Text("Apple ID recovery key"))
                 TextField("Website or app", text: $from, prompt: Text("Optional"))
             case .key:
                 TextField("Name", text: nameBinding, prompt: Text("GITHUB_TOKEN"))
@@ -192,11 +192,7 @@ struct TuckItAwayView: View {
         let label = name.trimmingCharacters(in: .whitespaces)
         switch destination {
         case .kept:
-            let kind: KeptKind = switch detection?.kind {
-            case .recoveryKey?: .recoveryKey
-            case .setupKey?: .setupKey
-            default: .other
-            }
+            let kind: KeptKind = detection?.kind == .setupKey ? .setupKey : .recoveryKey
             model.addKept(KeptItem(label: label, kind: kind, from: from.isEmpty ? nil : from, value: singleValue))
         case .key:
             model.addKey(Key(name: label, value: singleValue, provider: detection?.provider,

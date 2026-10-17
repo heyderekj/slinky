@@ -144,15 +144,15 @@ public enum KeptKind: String, Codable, CaseIterable, Sendable {
     public var title: String {
         switch self {
         case .recoveryKey: "Recovery key"
-        case .setupKey: "Setup key"
+        case .setupKey: "2FA setup key"
         case .licenseKey: "License key"
         case .password: "Password"
-        case .other: "Secure note"
+        case .other: "Recovery key"
         }
     }
 }
 
-/// Anything a site tells you to "store somewhere safe".
+/// A recovery key or 2FA setup key: one value that gets you back into an account.
 public struct KeptItem: Codable, Identifiable, Hashable, Sendable {
     public var id: UUID
     public var label: String

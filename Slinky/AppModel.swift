@@ -5,14 +5,13 @@ import SlinkyCoreShared
 import SlinkyCoreVault
 
 enum LibraryFilter: String, CaseIterable, Hashable {
-    case all, keys, codes, kept
+    case all, keys, recovery
 
     var title: String {
         switch self {
         case .all: "All Items"
         case .keys: "Keys & Tokens"
-        case .codes: "Recovery Codes"
-        case .kept: "Secure Notes"
+        case .recovery: "Recovery"
         }
     }
 
@@ -20,8 +19,7 @@ enum LibraryFilter: String, CaseIterable, Hashable {
         switch self {
         case .all: "square.grid.2x2"
         case .keys: "key"
-        case .codes: "number.square"
-        case .kept: "note.text"
+        case .recovery: "lifepreserver"
         }
     }
 }
@@ -209,8 +207,8 @@ final class AppModel {
     }
 
     func addKept(_ item: KeptItem) {
-        change("Saved to Secure Notes.") { $0.kept.insert(item, at: 0) }
-        selection = .library(.kept)
+        change("Saved to Recovery.") { $0.kept.insert(item, at: 0) }
+        selection = .library(.recovery)
     }
 
     func addKey(_ key: Key) {
@@ -220,7 +218,7 @@ final class AppModel {
 
     func addCodeSet(_ set: CodeSet) {
         change("Saved \(set.codes.count) recovery codes.") { $0.codeSets.insert(set, at: 0) }
-        selection = .library(.codes)
+        selection = .library(.recovery)
     }
 
     @discardableResult

@@ -5,8 +5,8 @@ import Foundation
 public struct Detection: Equatable, Sendable {
     public enum Kind: Equatable, Sendable {
         case apiKey          // a service key or token → Keys, or a project variable
-        case recoveryKey     // Apple ID / FileVault style → Kept
-        case setupKey        // otpauth:// → Kept
+        case recoveryKey     // Apple ID / FileVault style → Recovery
+        case setupKey        // otpauth:// → Recovery
         case recoveryCodes([String])  // a block of 2FA backup codes → Codes
         case envLines([DotEnvLine])   // KEY=value lines → a project
         case plainConfig     // publishable / public values → a plain project variable
@@ -15,13 +15,13 @@ public struct Detection: Equatable, Sendable {
     }
 
     public enum Destination: String, CaseIterable, Sendable {
-        case kept, key, project, codes
+        case key, project, codes, kept
         public var title: String {
             switch self {
-            case .kept: "Secure Note"
             case .key: "Key or Token"
             case .project: "Project Variable"
             case .codes: "Recovery Codes"
+            case .kept: "Recovery Key"
             }
         }
     }
@@ -35,8 +35,8 @@ public struct Detection: Equatable, Sendable {
 
     public var destination: Destination {
         switch kind {
-        case .apiKey: .key
-        case .recoveryKey, .setupKey, .unknown, .walletSeed: .kept
+        case .apiKey, .unknown: .key
+        case .recoveryKey, .setupKey, .walletSeed: .kept
         case .recoveryCodes: .codes
         case .envLines, .plainConfig: .project
         }
