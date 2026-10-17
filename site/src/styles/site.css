@@ -309,7 +309,8 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mac__sidebar { background: rgb(255 255 255 / 0.5) !important; }
 @media (prefers-color-scheme: dark) { .mac__sidebar { background: rgb(255 255 255 / 0.07) !important; } }
 .mac__sidebar { border-radius: 12px; padding: 0 10px 10px; display: flex; flex-direction: column; gap: 2px; }
-.mac__bar { display: flex; align-items: center; justify-content: space-between; height: 46px; padding: 0 2px 0 6px; flex: none; }
+/* The sidebar's top row and the toolbar are both 38px from the same 8px inset, so lights, toggle and title share a middle. */
+.mac__bar { display: flex; align-items: center; justify-content: space-between; height: 38px; padding: 0 0 0 6px; flex: none; }
 .mac__lights { display: flex; gap: 8px; padding: 4px 6px 14px; }
 .mac__bar .mac__lights { padding: 0; }
 .mac__sbtoggle { display: grid; place-items: center; width: 28px; height: 28px; color: var(--app-secondary); }
@@ -327,8 +328,8 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mac__heading { padding: 14px 8px 4px; font-size: 11px; font-weight: 600; color: var(--app-tertiary); }
 .mac__foot { margin-top: auto; display: flex; align-items: center; gap: 6px; padding: 8px; color: var(--app-secondary); }
 .mac__foot svg { width: 16px; height: 16px; }
-.mac__main { display: flex; flex-direction: column; min-width: 0; padding: 4px 6px 0 14px; }
-.mac__toolbar { display: flex; align-items: center; gap: 12px; height: 46px; flex: none; }
+.mac__main { display: flex; flex-direction: column; min-width: 0; padding: 0 6px 0 14px; }
+.mac__toolbar { display: flex; align-items: center; gap: 12px; height: 38px; flex: none; }
 /* Same glass and height as the lock switch, like every Tahoe toolbar button. */
 .mac__toolbar .sb { width: 34px; height: 34px; flex: none; display: none; place-items: center; border-radius: 50%; color: var(--app-text); }
 .mac__toolbar .sb svg { width: 17px; height: 17px; }
