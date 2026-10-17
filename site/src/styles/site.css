@@ -273,7 +273,6 @@ section { scroll-margin-top: 90px; }
 @media (max-width: 860px) { .section { padding-top: 88px; } }
 
 
-@media (max-width: 860px) { 
 footer { margin-top: 120px; padding: 32px 0 48px; text-align: center; font-size: 14.5px; color: var(--muted); border-top: 1px solid var(--hair); }
 footer a { color: var(--ink-soft); text-decoration: none; }
 footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
