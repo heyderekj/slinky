@@ -7,11 +7,7 @@ struct NewProjectOverlay: View {
 
     var body: some View {
         ZStack {
-            Rectangle()
-                .fill(.black.opacity(0.24))
-                .ignoresSafeArea()
-                .onTapGesture { close() }
-                .accessibilityHidden(true)
+            PanelBackdrop(close: close)
             NewProjectPanel(close: close)
         }
     }

@@ -31,17 +31,30 @@ extension Detection.Destination {
     }
 }
 
+/// What sits behind a floating panel: frosted and dimmed. A layer on top, never a blur of the window itself,
+/// which changes how the window lays out under the toolbar and makes everything jump.
+struct PanelBackdrop: View {
+    let close: () -> Void
+
+    var body: some View {
+        ZStack {
+            Rectangle().fill(.ultraThinMaterial)
+            Rectangle().fill(.black.opacity(0.18))
+        }
+        .ignoresSafeArea()
+        .contentShape(Rectangle())
+        .onTapGesture { close() }
+        .accessibilityHidden(true)
+    }
+}
+
 /// Add Item floats over the window on a soft dim, instead of a sheet.
 struct AddItemOverlay: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         ZStack {
-            Rectangle()
-                .fill(.black.opacity(0.24))
-                .ignoresSafeArea()
-                .onTapGesture { close() }
-                .accessibilityHidden(true)
+            PanelBackdrop(close: close)
             AddItemPanel(close: close)
         }
     }
