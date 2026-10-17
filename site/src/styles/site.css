@@ -646,3 +646,9 @@ button.replay:active { transform: scale(0.97); }
 @media (max-width: 760px) {
   .desktop--hero .mac { max-height: 640px; -webkit-mask-image: linear-gradient(#000 82%, transparent); mask-image: linear-gradient(#000 82%, transparent); }
 }
+
+/* Controls in the recreated app read a touch heavier (macOS draws 13px controls bolder than the web does),
+   and never wrap: a button's label stays on one line. */
+.desktop .pchip, .desktop .touch__btn { font-weight: 500; }
+.pchip, .touch__btn, .additem__foot .save { white-space: nowrap; }
+.additem__foot .save { flex: none; }

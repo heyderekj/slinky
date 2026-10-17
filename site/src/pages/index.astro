@@ -1,4 +1,5 @@
 ---
+import { compare } from '../data/compare';
 import Layout from '../layouts/Layout.astro';
 import MacWindow from '../components/MacWindow.astro';
 import Library from '../components/Library.astro';
@@ -18,17 +19,7 @@ const title = 'Slinky keeps secrets out of files.';
 const description = 'A free, native Mac app for API keys, .env variables and recovery codes. Encrypted on your Mac and opened with Touch ID.';
 const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
 
-const compare = {
-  cols: ['Slinky', 'Apple Passwords', '1Password', '.env files', 'Doppler or Infisical', 'Keychain Access'],
-  rows: [
-    ['Made for API keys and tokens', ['yes', 'no', 'yes', 'part:Plain text', 'yes', 'part:Generic items']],
-    ['A project’s .env, per environment', ['yes', 'no', 'part:With its CLI', 'yes', 'yes', 'no']],
-    ['Recovery codes that cross themselves off', ['yes', 'no', 'no', 'no', 'no', 'no']],
-    ['Stays on your Mac', ['yes', 'part:iCloud', 'no:Their cloud', 'part:Unencrypted', 'no:Their servers', 'yes']],
-    ['Opens with Touch ID', ['yes', 'yes', 'yes', 'no', 'no', 'part:Password']],
-    ['Price', ['Free, open source', 'Free', 'Subscription', 'Free', 'Free tier, then paid', 'Free']],
-  ] as [string, string[]][],
-};
+
 // Each cell is a mark (check, half circle, dash) plus an optional short note. One ink color; Slinky's column
 // carries the brand. The words are there for screen readers.
 const mark = (v: string) => {

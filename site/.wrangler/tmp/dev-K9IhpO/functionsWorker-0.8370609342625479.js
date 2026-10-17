@@ -934,6 +934,7 @@ var process_default = _process;
 globalThis.process = process_default;
 var MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast";
 var MAX_Q = 280;
+var ANSWERS = 2;
 var SECRET = /(sk[-_](?:live|test|proj|ant)[-_A-Za-z0-9]{12,}|\bgh[pousr]_[A-Za-z0-9]{20,}|\bxox[abprs]-[A-Za-z0-9-]{10,}|\bAKIA[0-9A-Z]{16}\b|\bAIza[0-9A-Za-z_-]{30,}|\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|\b(?=[A-Za-z0-9_\-+/=]*\d)(?=[A-Za-z0-9_\-+/=]*[A-Za-z])[A-Za-z0-9_\-+/=]{32,}\b)/;
 var STOP = new Set("a an and are as at be but by can do does for from how i if in is it its me my of on or so that the this to was what when where which who why will with you your".split(" "));
 var words = /* @__PURE__ */ __name2((s) => s.toLowerCase().replace(/[^a-z0-9.]+/g, " ").split(" ").filter((w) => w.length > 2 && !STOP.has(w)).map((w) => w.length > 3 ? w.replace(/s$/, "") : w), "words");
@@ -994,7 +995,7 @@ async function onRequestPost({ request, env: env2, waitUntil }) {
     ]);
   }
   const sources = pickSources(q, site.faq || [], app);
-  const key = new Request(`https://ask.cache/${encodeURIComponent(app)}/${site.version || ""}/${encodeURIComponent(q.toLowerCase())}`);
+  const key = new Request(`https://ask.cache/${encodeURIComponent(app)}/${site.version || ""}/a${ANSWERS}/${encodeURIComponent(q.toLowerCase())}`);
   const cache = caches.default;
   const hit = await cache.match(key);
   if (hit) {
@@ -1004,9 +1005,12 @@ async function onRequestPost({ request, env: env2, waitUntil }) {
   if (!env2.AI) return stream([sse("sources", sources), sse("t", { t: "Answers are switched off right now. The FAQ below should help." }), sse("done", {})]);
   const faqText = (site.faq || []).map((f) => `Q: ${f.q}
 A: ${f.a}`).join("\n\n");
+  const compareText = (site.compare || []).map((c) => `${c.name}:
+${c.text}`).join("\n\n");
   const system = [
     `You answer questions in the Spotlight search bar on the ${app} website (${site.line || ""}). ${app} is a free Mac app by Testament Made, LLC.`,
     `Answer ONLY from the CONTEXT below. If the context doesn't cover it, say you don't know and suggest emailing ${site.email || "derek@testamentmade.com"}.`,
+    `For "how does it compare" questions, use COMPARISONS. With no app named, sum up what sets ${app} apart (from the context) and name a couple of the apps compared. For an app that isn't in COMPARISONS, say what ${app} does differently from the context, without guessing about the other app. Be fair to other apps.`,
     "Keep answers to one to three short sentences of plain text. No markdown, no lists, no headings. Never invent features, prices, versions or promises.",
     `Voice: ${site.voice || "plain and friendly"}`,
     `If the question has nothing to do with ${app}, reply with one short, playful line (a light joke is welcome) that steers back to what ${app} does.`,
@@ -1018,7 +1022,10 @@ FAQ:
 ${faqText}
 
 HOMEPAGE:
-${home}
+${home}${compareText ? `
+
+COMPARISONS:
+${compareText}` : ""}
 
 MORE:
 ${llms}${site.more ? `
