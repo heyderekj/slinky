@@ -18,8 +18,8 @@ extension KeptItem { var iconSubject: IconSubject { IconSubject(name: label, fro
 extension Variable { var iconSubject: IconSubject { IconSubject(name: name, provider: provider, link: link, note: note, choice: icon) } }
 
 /// Picks each item's icon, in this order: the person's own choice, the service's Mac app if it's installed,
-/// the bundled service logo, then initials. Everything here is offline. Website icons come in only when
-/// the person turns them on (WebsiteIcons).
+/// the bundled service logo, the website's own icon (only if one was loaded), then initials. Everything here
+/// is offline except WebsiteIcons, which runs only when the person turns it on or asks for one item.
 @MainActor @Observable
 final class IconResolver {
     static let shared = IconResolver()
@@ -27,6 +27,7 @@ final class IconResolver {
     enum Resolved: Equatable {
         case app(NSImage)
         case logo(Service)
+        case website(NSImage)
         case monogram(String)
     }
 
@@ -36,6 +37,27 @@ final class IconResolver {
     /// Apple Intelligence's guesses, for names the catalog didn't recognize. Memory only.
     private var guesses: [String: String] = [:]
     @ObservationIgnored private var asked: Set<String> = []
+    /// Website icons from the vault, by domain. Only while unlocked.
+    private var siteImages: [String: NSImage] = [:]
+    @ObservationIgnored private var fetched: Set<String> = []
+    /// Saves a fetched website icon into the vault (set by AppModel).
+    @ObservationIgnored var saveSiteIcon: ((String, Data) -> Void)?
+
+    /// Forgets everything it worked out. Called on lock, with the vault's site icons gone too.
+    func reset() {
+        matches = [:]
+        guesses = [:]
+        asked = []
+        siteImages = [:]
+        fetched = []
+    }
+
+    /// Keeps the decoded website icons in step with the vault.
+    func load(siteIcons: [String: Data]?) {
+        let icons = siteIcons ?? [:]
+        guard Set(icons.keys) != Set(siteImages.keys) else { return }
+        siteImages = icons.compactMapValues { NSImage(data: $0) }
+    }
 
     func resolve(_ subject: IconSubject) -> Resolved {
         let initials = subject.provider ?? subject.from ?? subject.name
@@ -46,11 +68,40 @@ final class IconResolver {
             if let s = ServiceCatalog.service(id: id) { return resolved(s, initials: initials) }
         case .monogram?:
             return .monogram(initials)
-        case .website?, .automatic?, nil:
+        case let .website(domain)?:
+            if let image = siteImages[domain] { return .website(image) }
+        case .automatic?, nil:
             break
         }
-        if let s = service(for: subject) { return resolved(s, initials: initials) }
-        return .monogram(initials)
+        let service = service(for: subject)
+        if let service, let r = appOrLogo(service) { return r }
+        if let host = websiteHost(subject), let image = siteImages[host] { return .website(image) }
+        return .monogram(service?.name ?? initials)
+    }
+
+    /// The website an item's icon could come from: its link, else the service's own site.
+    func websiteHost(_ subject: IconSubject) -> String? {
+        if case let .website(domain)? = subject.choice { return domain }
+        return Links.host(of: subject.link) ?? service(for: subject)?.domains.first
+    }
+
+    func hasSiteIcon(_ domain: String) -> Bool { siteImages[domain] != nil }
+
+    /// With "Load icons from websites" on: an item that would otherwise show initials gets its site's icon.
+    func fetchIfAllowed(_ subject: IconSubject) {
+        guard Preferences.shared.loadWebsiteIcons, subject.choice != .monogram,
+              case .monogram = resolve(subject), let host = websiteHost(subject),
+              siteImages[host] == nil, fetched.insert(host).inserted else { return }
+        Task { _ = await loadSiteIcon(host) }
+    }
+
+    /// Fetches one site's icon now and keeps it in the vault. False if the site had none Slinky could use.
+    func loadSiteIcon(_ domain: String) async -> Bool {
+        fetched.insert(domain)
+        guard let png = try? await WebsiteIcons.fetch(domain: domain), let image = NSImage(data: png) else { return false }
+        siteImages[domain] = image
+        saveSiteIcon?(domain, png)
+        return true
     }
 
     /// The service this item is for, if Slinky can tell.
@@ -65,8 +116,12 @@ final class IconResolver {
     }
 
     private func resolved(_ s: Service, initials: String) -> Resolved {
+        appOrLogo(s) ?? .monogram(s.name)
+    }
+
+    private func appOrLogo(_ s: Service) -> Resolved? {
         for id in s.bundleIDs { if let image = appIcon(id) { return .app(image) } }
-        return s.hasLogo ? .logo(s) : .monogram(s.name)
+        return s.hasLogo ? .logo(s) : nil
     }
 
     func appIcon(_ bundleID: String) -> NSImage? {

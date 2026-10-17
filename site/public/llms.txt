@@ -14,7 +14,7 @@
 
 ## What leaves the Mac
 
-Nothing about the person or their vault. Once a day Slinky asks GitHub for the latest release (can be turned off). Updates install in place only if signed by Slinky's developer (team B3U6BXA8KP).
+Nothing about the person or their vault. Once a day Slinky asks GitHub for the latest release (can be turned off). Only if the person turns on Load icons from websites, it asks each saved website directly for its icon (no third-party icon service). Updates install in place only if signed by Slinky's developer (team B3U6BXA8KP).
 
 ## Coming in 1.1
 

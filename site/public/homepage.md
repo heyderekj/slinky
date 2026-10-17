@@ -21,7 +21,7 @@ Needs Attention · Import from 1Password or CSV · Shortcuts actions · Settings
 ## Your things, in plain English
 
 - One encrypted file on your Mac, opened by the Secure Enclave with Touch ID or your printed Recovery Key.
-- No account, no server, no sync. The only network call is a daily update check with GitHub, which you can turn off.
+- No account, no server, no sync. Network calls: a daily update check with GitHub, which you can turn off, and, only if you turn it on, a request to each saved website for its icon.
 
 ## Coming in 1.1
 

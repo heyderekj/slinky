@@ -122,7 +122,15 @@ private struct GeneralPane: View {
             } header: {
                 Text("Updates")
             } footer: {
-                Text("Once a day, Slinky asks GitHub whether there's a newer version. That's the only time it goes online, and nothing about you or your vault is sent.")
+                Text("Once a day, Slinky asks GitHub whether there's a newer version. Nothing about you or your vault is sent.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section {
+                Toggle("Load icons from websites", isOn: $prefs.loadWebsiteIcons)
+            } header: {
+                Text("Icons")
+            } footer: {
+                Text("Slinky shows the app or logo for services it knows, without going online. With this on, for anything else it asks the item's website for its icon. The request goes straight to that website, and the icon is kept in your vault.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section {

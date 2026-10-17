@@ -18,6 +18,18 @@ struct ServiceIcon: View {
                     .interpolation(.high)
                     .frame(width: size * 1.14, height: size * 1.14)
                     .frame(width: size, height: size)
+            case let .website(image):
+                // A site's icon can be any shape, so it sits on a white tile like the others.
+                let shape = RoundedRectangle(cornerRadius: size * 0.26, style: .continuous)
+                Image(nsImage: image)
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .padding(size * 0.14)
+                    .frame(width: size, height: size)
+                    .background(Color.white, in: shape)
+                    .overlay(shape.strokeBorder(Color.black.opacity(0.12), lineWidth: 0.5))
+                    .clipShape(shape)
             case let .logo(service):
                 LogoTile(service: service, size: size)
             case let .monogram(text):
@@ -25,7 +37,10 @@ struct ServiceIcon: View {
             }
         }
         .accessibilityHidden(true)
-        .task(id: subject) { resolver.guessIfNeeded(subject) }
+        .task(id: subject) {
+            resolver.guessIfNeeded(subject)
+            resolver.fetchIfAllowed(subject)
+        }
     }
 }
 

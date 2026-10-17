@@ -277,6 +277,8 @@ private struct DetailScaffold<Content: View>: View {
             .padding(.horizontal, 20)
             .padding(.top, 16)
 
+            WebsiteIconButton(subject: icon, ref: ref)
+
             Form { content }
                 .formStyle(.grouped)
                 .scrollContentBackground(.hidden)
@@ -298,6 +300,42 @@ private struct DetailScaffold<Content: View>: View {
             }
             .padding(.horizontal, 20)
             .padding(.bottom, 14)
+        }
+    }
+}
+
+/// "Load Icon from github.com": one item, one request, only when asked. Shown while the item has no app
+/// icon or logo and the setting to load them automatically is off.
+private struct WebsiteIconButton: View {
+    @Environment(AppModel.self) private var model
+    let subject: IconSubject
+    let ref: LibraryRef
+    @State private var loading = false
+    @State private var failed = false
+
+    var body: some View {
+        let resolver = IconResolver.shared
+        if !Preferences.shared.loadWebsiteIcons, case .monogram = resolver.resolve(subject),
+           subject.choice != .monogram, let host = resolver.websiteHost(subject), !resolver.hasSiteIcon(host) {
+            HStack(spacing: 6) {
+                Button(loading ? "Loading…" : "Load Icon from \(host)") {
+                    loading = true
+                    Task {
+                        let ok = await resolver.loadSiteIcon(host)
+                        loading = false
+                        failed = !ok
+                        if ok { model.setIcon(.website(host), for: ref) }
+                    }
+                }
+                .buttonStyle(.link)
+                .disabled(loading)
+                .help("Asks \(host) for its icon. Nothing else is sent.")
+                if failed { Text("\(host) didn't have one Slinky can use.").foregroundStyle(.secondary) }
+                Spacer()
+            }
+            .font(.caption)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
         }
     }
 }

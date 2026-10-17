@@ -95,7 +95,9 @@ final class AppModel {
     /// The full-window lock and unlock transition (see `LockCurtain`). Views animate it; the model only says which way.
     enum Curtain: Equatable { case none, closing, opening }
     var curtain: Curtain = .none
-    var document = VaultDocument()
+    var document = VaultDocument() {
+        didSet { IconResolver.shared.load(siteIcons: document.siteIcons) }
+    }
     var selection: SidebarItem? = .library(.all)
     var showTuck = false
     var showNewProject = false
@@ -215,6 +217,7 @@ final class AppModel {
     private func didUnlock(_ newSession: VaultSession) {
         session = newSession
         document = newSession.document
+        IconResolver.shared.saveSiteIcon = { [weak self] domain, png in self?.setSiteIcon(domain, png: png) }
         unlockedAt = .now
         lockNote = nil
         errorMessage = nil
@@ -276,6 +279,10 @@ final class AppModel {
         tuckPrefill = ""
         tuckProject = nil
         addDraft = nil
+        librarySelection = nil
+        choosingIcon = nil
+        // Names and website icons it worked out stay only while unlocked.
+        IconResolver.shared.reset()
         idleTimer?.invalidate()
         lockNote = reason.note
         phase = .locked
@@ -467,6 +474,16 @@ final class AppModel {
             case let .codes(id): if let i = doc.codeSets.firstIndex(where: { $0.id == id }) { doc.codeSets[i].icon = choice }
             case let .kept(id): if let i = doc.kept.firstIndex(where: { $0.id == id }) { doc.kept[i].icon = choice }
             }
+        }
+    }
+
+    /// A website's icon, fetched by WebsiteIcons, kept inside the vault.
+    func setSiteIcon(_ domain: String, png: Data) {
+        guard isUnlocked else { return }
+        change { doc in
+            var icons = doc.siteIcons ?? [:]
+            icons[domain] = png
+            doc.siteIcons = icons
         }
     }
 

@@ -41,7 +41,7 @@ Slinky should be the pleasant, HIG-native fix: a real Mac app, plus a `slinky` C
      - Grants are scoped and expire.
      - Everything goes in an activity log.
   4. **Exact-match leak detection.** Slinky knows the real values, so it can find them in staged git diffs, `~/.claude/projects/*.jsonl` transcripts, shell history and MCP configs, with no regex guessing.
-  5. **A Secretive-level trust story:** no dependencies, attested builds, a public threat model, and the only network call is an opt-in update check.
+  5. **A Secretive-level trust story:** no dependencies, attested builds, a public threat model, and the only network calls are the update check (can be turned off) and website icons (off unless turned on).
 
 ## Brand and voice
 - **Metaphor:** to *slink* means to move quietly so nobody notices. Secrets slip into your apps when they're needed and slip back out. Three words: **quiet, sly, kept.**
@@ -75,7 +75,7 @@ Slinky should be the pleasant, HIG-native fix: a real Mac app, plus a `slinky` C
 **Surfaces**
 - **Main window**: three columns, per the HIG for hierarchies deeper than two levels.
   - Sidebar: *Library* (All · Keys · Recovery Codes), *Projects* (badge when something's missing), then Health · Activity · Recently Deleted.
-  - List rows: provider monogram chip (no brand logos, no network), NAME, masked `sk_live_••••4f2a`, LIVE/TEST badge, "used 2h ago by Claude Code".
+  - List rows: service icon (installed app icon, bundled logo, or initials; website icons only when turned on), NAME, masked `sk_live_••••4f2a`, LIVE/TEST badge, "used 2h ago by Claude Code".
   - Detail pane:
     - Hover to peek, as in Passwords; LIVE keys need a click plus Touch ID.
     - Copy, Large Type, Copy Reference (`slinky://harvous/STRIPE_SECRET_KEY`).

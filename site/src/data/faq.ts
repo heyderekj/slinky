@@ -2,7 +2,7 @@
 export const faq: [string, string][] = [
   ['Is Slinky free?', 'Yes. Slinky is free and open source under the MIT License, made by Testament Made, LLC, the same people behind Dinky and Binky.'],
   ['Where are my things stored?', 'In one encrypted file on your Mac. The key that opens it is protected by your Mac’s Secure Enclave and opened with Touch ID. A printed Recovery Key is the backup.'],
-  ['Is there an account or sync?', 'No account, no server and no sync. The only time Slinky goes online is a daily check with GitHub for a newer version, which you can turn off. Time Machine backs up the encrypted file like any other.'],
+  ['Is there an account or sync?', 'No account, no server and no sync. Slinky goes online for a daily check with GitHub for a newer version, which you can turn off, and, only if you turn it on, to ask each saved website for its icon. Time Machine backs up the encrypted file like any other.'],
   ['What if I lose my Mac?', 'Restore your backup on a new Mac and open Slinky with your Recovery Key. Slinky then sets up Touch ID on that Mac.'],
   ['Why does macOS say it can’t check Slinky?', 'Slinky is signed but not notarized yet. The first time, open System Settings › Privacy & Security and click Open Anyway. You only do this once; updates install without asking again.'],
   ['Should I keep passwords in Slinky?', 'No. Website passwords belong in Apple Passwords. Slinky is for the other things: API keys, tokens, .env variables, backup codes and recovery keys.'],
