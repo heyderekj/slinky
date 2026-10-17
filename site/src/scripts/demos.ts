@@ -344,6 +344,20 @@ function dock() {
   }
 }
 
+/** Menu bar clocks show the real day and time, the way macOS writes it ("Fri Oct 17  9:41 AM"). */
+function clocks() {
+  const els = $$('[data-clock]');
+  if (!els.length) return;
+  const tick = () => {
+    const d = new Date();
+    const day = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).replace(',', '');
+    const time = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    for (const el of els) el.textContent = `${day}\u00a0\u00a0${time}`;
+  };
+  tick();
+  setInterval(tick, 15_000);
+}
+
 export function startDemos() {
   reveals();
   copyButtons();
@@ -356,4 +370,5 @@ export function startDemos() {
   install();
   stars();
   dock();
+  clocks();
 }
