@@ -287,3 +287,13 @@ Slinky should be the pleasant, HIG-native fix: a real Mac app, plus a `slinky` C
   - All in `docs/slinky-layouts.html`.
 - **Site headline style:** big stacked declaratives in the family voice ("Paste it. Tuck it. Forget it.").
 - **Quick Access hotkey:** ⌥⌘K. Not ⌃⌥Space, which macOS uses to switch input sources, and not ⇧⌘Space, which macOS 27 uses for Visual Intelligence.
+
+## Idea: the "working" animation (Derek, 2026-10-16)
+While Slinky is busy, the keyhole is absorbed into the asterisk (it scales and fades into the hub), then the asterisk spins. When the work finishes, the spin eases out with a spring and the keyhole reappears.
+- **Where:**
+  - unlocking (waiting for Touch ID)
+  - an agent's `slinky run` in progress
+  - Quick Access and Tuck It Away while saving
+  - the menu bar asterisk while any agent session is active
+- **How:** in SwiftUI it's `KeyholeMark(isWorking:)`, with keyhole scale and opacity going to 0 and a repeating rotation on `AsteriskShape`. The menu bar gets a template-image version of the same frames.
+- **Rules:** honor Reduce Motion (keyhole fade only, no spin). Never spin while idle.
