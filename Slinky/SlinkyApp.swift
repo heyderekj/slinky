@@ -23,7 +23,11 @@ struct SlinkyApp: App {
         .defaultSize(width: 1120, height: 720)
         .commands {
             CommandGroup(replacing: .newItem) {
-                Button("Tuck It Away…") { model.showTuck = true }
+                Button("Add Item…") {
+                    model.tuckPrefill = ""
+                    model.tuckProject = nil
+                    model.showTuck = true
+                }
                     .keyboardShortcut("n")
                     .disabled(!model.isUnlocked)
                 Button("New Project…") { model.showNewProject = true }
@@ -38,7 +42,7 @@ struct SlinkyApp: App {
                 Button("About Slinky") { AboutPanel.show() }
             }
             CommandGroup(after: .appInfo) {
-                Button("Lock Slinky") { model.lock(reason: .manual) }
+                Button("Lock Slinky") { model.lockAnimated() }
                     .keyboardShortcut("l", modifiers: [.command, .control])
                     .disabled(!model.isUnlocked)
             }
@@ -97,7 +101,12 @@ struct RootView: View {
             case .unlocked: MainView()
             }
         }
+        .overlay { LockCurtain() }
         .overlay(alignment: .bottom) { ToastView() }
-        .animation(.spring(response: 0.45, dampingFraction: 0.8), value: model.phase)
+        .toolbar {
+            if model.hasVault {
+                ToolbarItem(placement: .primaryAction) { LockSwitch() }
+            }
+        }
     }
 }

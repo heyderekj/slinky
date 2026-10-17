@@ -66,6 +66,10 @@ final class AppModel {
     }
 
     var phase: Phase = .loading
+
+    /// The full-window lock and unlock transition (see `LockCurtain`). Views animate it; the model only says which way.
+    enum Curtain: Equatable { case none, closing, opening }
+    var curtain: Curtain = .none
     var document = VaultDocument()
     var selection: SidebarItem? = .library(.all)
     var showTuck = false
@@ -176,11 +180,29 @@ final class AppModel {
         unlockedAt = .now
         lockNote = nil
         errorMessage = nil
+        // Set together with the phase so the curtain is already over the window on the first frame.
+        if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { curtain = .opening }
         phase = .unlocked
         startIdleTimer()
     }
 
+    /// Lock from the switch, the menu or ⌃⌘L: frost covers the window first, then the vault locks.
+    /// The lock itself never waits on a view, so it happens even with the window closed.
+    func lockAnimated() {
+        guard phase == .unlocked, hasVault, curtain == .none else { return }
+        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+            lock(reason: .manual)
+            return
+        }
+        curtain = .closing
+        Task {
+            try? await Task.sleep(for: .milliseconds(620))
+            lock(reason: .manual)
+        }
+    }
+
     func lock(reason: LockReason) {
+        curtain = .none
         guard phase == .unlocked, hasVault else { return }
         session = nil
         document = VaultDocument()

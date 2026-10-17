@@ -63,7 +63,7 @@ struct MenuBarStack: View {
             Spacer()
             if model.hasVault {
                 Button {
-                    if model.isUnlocked { model.lock(reason: .manual) } else { model.unlock() }
+                    if model.isUnlocked { model.lockAnimated() } else { model.unlock() }
                 } label: {
                     Image(systemName: model.isUnlocked ? "lock.open.fill" : "lock.fill")
                         .contentTransition(.symbolEffect(.replace))

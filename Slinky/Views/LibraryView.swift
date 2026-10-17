@@ -77,8 +77,9 @@ struct LibraryView: View {
                 Label("Add Item", systemImage: "plus")
             }
             .buttonStyle(.glassProminent)
-            .controlSize(.large)
-            .padding(.top, 4)
+            .controlSize(.extraLarge)
+            .font(.title3.weight(.semibold))
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }

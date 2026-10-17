@@ -17,24 +17,6 @@ struct MainView: View {
             }
         }
         .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search")
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    model.tuckPrefill = ""
-                    model.tuckProject = nil
-                    model.showTuck = true
-                } label: {
-                    Label("Add Item", systemImage: "plus")
-                        .labelStyle(.titleAndIcon)
-                }
-                .buttonStyle(.glassProminent)
-                .help("Add a key, a project variable, recovery codes or a recovery key (⌘N)")
-            }
-            ToolbarItem(placement: .primaryAction) {
-                Button { model.lock(reason: .manual) } label: { Label("Lock", systemImage: "lock") }
-                    .help("Lock Slinky ⌃⌘L")
-            }
-        }
         .sheet(isPresented: $model.showTuck) { TuckItAwayView() }
         .sheet(isPresented: $model.showNewProject) { NewProjectView() }
         .sheet(isPresented: Binding(get: { model.recoveryKeyToShow != nil && !model.showTuck },
