@@ -65,6 +65,8 @@ struct MainView: View {
             LibraryView(filter: filter)
         case .attention?:
             AttentionView()
+        case .trash?:
+            RecentlyDeletedView()
         case nil:
             LibraryView(filter: .all)
         }
@@ -98,6 +100,13 @@ struct SidebarView: View {
                     .badge(attention.count)
                     .tag(SidebarItem.attention)
                     .transition(.opacity)
+                }
+                // Only there when something's waiting to be restored.
+                if !model.document.trashed.isEmpty || model.selection == .trash {
+                    Label("Recently Deleted", systemImage: "trash")
+                        .badge(model.document.trashed.count)
+                        .tag(SidebarItem.trash)
+                        .transition(.opacity)
                 }
             }
             Section {
@@ -184,7 +193,7 @@ struct SidebarView: View {
         return true
     }
 
-    /// One labeled action, like Notes' "New Folder". Items are added from the toolbar's Add Item.
+    /// One labeled action, like Notes' "New Folder". Items are added from the toolbar's Add button (⌘N).
     private var footer: some View {
         VStack(spacing: 0) {
             if Updater.shared.shouldShowBanner {

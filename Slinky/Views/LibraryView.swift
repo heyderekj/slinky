@@ -200,7 +200,7 @@ struct CodeSetCard: View {
                 Menu {
                     Button("Edit…") { model.editing = .codes(set.id) }
                     Divider()
-                    Button("Remove", role: .destructive) { model.deleteCodeSet(set.id) }
+                    Button("Delete", role: .destructive) { model.deleteCodeSet(set.id) }
                 } label: { Image(systemName: "ellipsis") }
                     .menuStyle(.borderlessButton).fixedSize()
             }
@@ -243,7 +243,7 @@ struct KeptCard: View {
                 Menu {
                     Button("Edit…") { model.editing = .kept(item.id) }
                     Divider()
-                    Button("Remove", role: .destructive) { model.deleteKept(item.id) }
+                    Button("Delete", role: .destructive) { model.deleteKept(item.id) }
                 } label: { Image(systemName: "ellipsis") }
                     .menuStyle(.borderlessButton).fixedSize()
             }
@@ -280,7 +280,7 @@ struct KeyCard: View {
                 Menu {
                     Button("Edit…") { model.editing = .key(key.id) }
                     Divider()
-                    Button("Remove", role: .destructive) { model.deleteKey(key.id) }
+                    Button("Delete", role: .destructive) { model.deleteKey(key.id) }
                 } label: { Image(systemName: "ellipsis") }
                     .menuStyle(.borderlessButton).fixedSize()
             }

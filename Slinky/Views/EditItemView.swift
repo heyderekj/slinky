@@ -40,7 +40,6 @@ private struct EditPanel: View {
     @State private var folders: [String] = []
     @State private var loaded = false
     @State private var appeared = false
-    @State private var confirmDelete = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -73,12 +72,6 @@ private struct EditPanel: View {
         .onAppear {
             load()
             withAnimation(.spring(response: 0.38, dampingFraction: 0.84)) { appeared = true }
-        }
-        .confirmationDialog(deleteTitle, isPresented: $confirmDelete) {
-            Button(deleteButton, role: .destructive) { delete() }
-            Button("Cancel", role: .cancel) {}
-        } message: {
-            Text("You can undo this right after.")
         }
     }
 
@@ -206,7 +199,8 @@ private struct EditPanel: View {
 
     private var footer: some View {
         HStack(spacing: 10) {
-            Button(deleteButton, role: .destructive) { confirmDelete = true }
+            // Undoable (Recently Deleted keeps it 30 days), so no confirmation.
+            Button(deleteButton, role: .destructive) { delete() }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.red)
             Spacer()
@@ -250,12 +244,7 @@ private struct EditPanel: View {
 
     private var deleteButton: String {
         if case .project = target { return "Delete Project" }
-        return "Remove"
-    }
-
-    private var deleteTitle: String {
-        if case .project = target { return "Delete \(name) and all its variables?" }
-        return "Remove \(name)?"
+        return "Delete"
     }
 
     private var parsedCodes: [String] { RecoveryCodes.extract(newCodes) }

@@ -211,7 +211,7 @@ struct ProjectView: View {
             if let value { Button("Copy Value") { model.copy(value, label: variable.name) } }
             if let value { Button("Copy as KEY=value") { model.copy("\(variable.name)=\(value)", label: "\(variable.name)=…") } }
             Divider()
-            Button("Remove", role: .destructive) { model.deleteVariable(variable.id, in: projectID) }
+            Button("Delete", role: .destructive) { model.deleteVariable(variable.id, in: projectID) }
         }
     }
 
@@ -372,7 +372,7 @@ struct VariableInspector: View {
                 }
                 .font(.caption)
 
-                Button("Remove from Project", role: .destructive) { model.deleteVariable(variable.id, in: projectID) }
+                Button("Delete Variable", role: .destructive) { model.deleteVariable(variable.id, in: projectID) }
                     .buttonStyle(.borderless)
                     .font(.callout)
             }

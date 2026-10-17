@@ -278,3 +278,53 @@ struct ImportTests {
         #expect(result.candidates.last?.value == "has \"quotes\"")
     }
 }
+
+@Suite("Document format")
+struct DocumentFormatTests {
+    /// A vault written by 1.0: none of the 1.1 fields (links, icons, Recently Deleted, website icons).
+    static let v1JSON = """
+    {"codeSets":[{"account":"GitHub","codes":["aaaa-bbbb","cccc-dddd"],"created":800000000,"id":"7B1B3C2E-0000-4000-8000-000000000001","used":[]}],
+     "formatVersion":1,
+     "keys":[{"agentPolicy":"agentsCanUse","created":800000000,"id":"7B1B3C2E-0000-4000-8000-000000000002","isLive":false,"name":"GITHUB_TOKEN","updated":800000000,"value":"ghp_EXAMPLE"}],
+     "kept":[{"created":800000000,"id":"7B1B3C2E-0000-4000-8000-000000000003","kind":"recoveryKey","label":"Apple Account","printedCopy":true,"value":"EXAMPLE-KEY"}],
+     "projects":[{"created":800000000,"expected":[],"folders":[],"id":"7B1B3C2E-0000-4000-8000-000000000004","name":"harbor","variables":[{"agentPolicy":"agentsCanUse","created":800000000,"id":"7B1B3C2E-0000-4000-8000-000000000005","isPlain":false,"name":"API_KEY","updated":800000000,"values":{"local":"EXAMPLE"}}]}]}
+    """
+
+    @Test("A 1.0 vault opens in 1.1")
+    func opensAVersionOneDocument() throws {
+        let doc = try JSONDecoder().decode(VaultDocument.self, from: Data(Self.v1JSON.utf8))
+        #expect(doc.keys.first?.name == "GITHUB_TOKEN")
+        #expect(doc.keys.first?.link == nil)
+        #expect(doc.codeSets.first?.note == nil)
+        #expect(doc.kept.first?.icon == nil)
+        #expect(doc.trashed.isEmpty)
+        #expect(doc.siteIcons == nil)
+    }
+
+    @Test("Links, notes, icons and Recently Deleted survive a round trip")
+    func newFieldsRoundTrip() throws {
+        var doc = VaultDocument()
+        var key = Key(name: "CLOUDFLARE_TOKEN", value: "EXAMPLE", note: "Workers deploys", link: "https://dash.cloudflare.com")
+        key.icon = .service("cloudflare")
+        doc.keys = [key]
+        doc.trashed = [TrashEntry(.kept(KeptItem(label: "Old key", value: "EXAMPLE")))]
+        doc.siteIcons = ["example.com": Data([1, 2, 3])]
+        let back = try JSONDecoder().decode(VaultDocument.self, from: JSONEncoder().encode(doc))
+        #expect(back == doc)
+        #expect(back.keys.first?.icon == .service("cloudflare"))
+    }
+
+    @Test("Recently Deleted keeps things for 30 days")
+    func trashPurge() {
+        let now = Date(timeIntervalSince1970: 2_000_000_000)
+        var doc = VaultDocument()
+        doc.trashed = [
+            TrashEntry(.kept(KeptItem(label: "Fresh", value: "EXAMPLE")), deletedAt: now.addingTimeInterval(-29 * 86_400)),
+            TrashEntry(.kept(KeptItem(label: "Stale", value: "EXAMPLE")), deletedAt: now.addingTimeInterval(-31 * 86_400)),
+        ]
+        #expect(doc.purgeTrash(now: now) == 1)
+        #expect(doc.trashed.map(\.item.title) == ["Fresh"])
+        doc.purgeTrash(now: now.addingTimeInterval(2 * 86_400))
+        #expect(doc.trash == nil)
+    }
+}

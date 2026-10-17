@@ -28,6 +28,7 @@ enum SidebarItem: Hashable {
     case library(LibraryFilter)
     case attention
     case project(UUID)
+    case trash
 }
 
 enum EditTarget: Hashable {
@@ -198,6 +199,8 @@ final class AppModel {
         unlockedAt = .now
         lockNote = nil
         errorMessage = nil
+        // Recently Deleted keeps things for 30 days.
+        if document.purgeTrash() > 0 { persist() }
         // Set together with the phase so the curtain is already over the window on the first frame.
         if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { curtain = .opening }
         phase = .unlocked
@@ -250,6 +253,9 @@ final class AppModel {
         editing = nil
         importing = nil
         importSource = nil
+        // Prefill can hold a pasted secret (Shortcuts, a drop, ⌘V); it never outlives the unlock.
+        tuckPrefill = ""
+        tuckProject = nil
         idleTimer?.invalidate()
         lockNote = reason.note
         phase = .locked
@@ -394,14 +400,20 @@ final class AppModel {
     }
 
     func deleteVariable(_ variable: UUID, in projectID: UUID) {
-        change("Removed.", undoable: true) { doc in
-            guard let p = doc.projects.firstIndex(where: { $0.id == projectID }) else { return }
+        change(Self.trashToast, undoable: true) { doc in
+            guard let p = doc.projects.firstIndex(where: { $0.id == projectID }),
+                  let v = doc.projects[p].variables.first(where: { $0.id == variable }) else { return }
             doc.projects[p].variables.removeAll { $0.id == variable }
+            doc.trashed.insert(TrashEntry(.variable(v, projectID: projectID, projectName: doc.projects[p].name)), at: 0)
         }
     }
 
     func deleteProject(_ projectID: UUID) {
-        change("Project deleted.", undoable: true) { $0.projects.removeAll { $0.id == projectID } }
+        change(Self.trashToast, undoable: true) { doc in
+            guard let project = doc.projects.first(where: { $0.id == projectID }) else { return }
+            doc.projects.removeAll { $0.id == projectID }
+            doc.trashed.insert(TrashEntry(.project(project)), at: 0)
+        }
         selection = .library(.all)
     }
 
@@ -429,9 +441,70 @@ final class AppModel {
         change("Saved changes to \(project.name).") { $0.projects[i] = project }
     }
 
-    func deleteKept(_ id: UUID) { change("Removed.", undoable: true) { $0.kept.removeAll { $0.id == id } } }
-    func deleteKey(_ id: UUID) { change("Removed.", undoable: true) { $0.keys.removeAll { $0.id == id } } }
-    func deleteCodeSet(_ id: UUID) { change("Removed.", undoable: true) { $0.codeSets.removeAll { $0.id == id } } }
+    // Removing never deletes outright: it moves to Recently Deleted for 30 days (and Undo works right away).
+    static let trashToast = "Moved to Recently Deleted."
+
+    func deleteKept(_ id: UUID) {
+        change(Self.trashToast, undoable: true) { doc in
+            guard let item = doc.kept.first(where: { $0.id == id }) else { return }
+            doc.kept.removeAll { $0.id == id }
+            doc.trashed.insert(TrashEntry(.kept(item)), at: 0)
+        }
+    }
+
+    func deleteKey(_ id: UUID) {
+        change(Self.trashToast, undoable: true) { doc in
+            guard let key = doc.keys.first(where: { $0.id == id }) else { return }
+            doc.keys.removeAll { $0.id == id }
+            doc.trashed.insert(TrashEntry(.key(key)), at: 0)
+        }
+    }
+
+    func deleteCodeSet(_ id: UUID) {
+        change(Self.trashToast, undoable: true) { doc in
+            guard let set = doc.codeSets.first(where: { $0.id == id }) else { return }
+            doc.codeSets.removeAll { $0.id == id }
+            doc.trashed.insert(TrashEntry(.codes(set)), at: 0)
+        }
+    }
+
+    // MARK: Recently Deleted
+
+    /// Puts something back where it was. A variable whose project is gone comes back in a project of that name.
+    func restore(_ entryID: UUID) {
+        guard let entry = document.trashed.first(where: { $0.id == entryID }) else { return }
+        change("Restored \(entry.item.title).") { doc in
+            doc.trashed.removeAll { $0.id == entryID }
+            switch entry.item {
+            case .key(let k): doc.keys.insert(k, at: 0)
+            case .codes(let c): doc.codeSets.insert(c, at: 0)
+            case .kept(let k): doc.kept.insert(k, at: 0)
+            case .project(let p):
+                var p = p
+                if doc.projects.contains(where: { $0.id == p.id }) { p.id = UUID() }
+                doc.projects.append(p)
+            case .variable(let v, let projectID, let projectName):
+                if let i = doc.projects.firstIndex(where: { $0.id == projectID }) {
+                    doc.projects[i].variables.removeAll { $0.name == v.name && $0.id == v.id }
+                    doc.projects[i].variables.append(v)
+                } else {
+                    doc.projects.append(Project(name: projectName, variables: [v]))
+                }
+            }
+        }
+        if document.trashed.isEmpty, selection == .trash { selection = .library(.all) }
+    }
+
+    /// Gone for good. The person confirms this in the view.
+    func deleteNow(_ entryID: UUID) {
+        change("Deleted.") { $0.trashed.removeAll { $0.id == entryID } }
+        if document.trashed.isEmpty, selection == .trash { selection = .library(.all) }
+    }
+
+    func emptyTrash() {
+        change("Recently Deleted is empty.") { $0.trashed = [] }
+        if selection == .trash { selection = .library(.all) }
+    }
 
     /// Copies one recovery code and crosses it off.
     func useCode(_ index: Int, in setID: UUID) {

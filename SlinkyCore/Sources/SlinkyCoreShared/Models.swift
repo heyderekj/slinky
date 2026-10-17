@@ -27,6 +27,20 @@ public enum AgentPolicy: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// Which picture an item shows. `nil` (or `.automatic`) lets Slinky choose: an installed app, a built-in
+/// service logo, a website icon if that's turned on, then initials.
+public enum IconChoice: Codable, Hashable, Sendable {
+    case automatic
+    /// An installed Mac app's icon, by bundle identifier.
+    case app(String)
+    /// A built-in service logo, by catalog id (see `ServiceCatalog`).
+    case service(String)
+    /// The icon saved from a website, by domain.
+    case website(String)
+    /// Just the initials.
+    case monogram
+}
+
 /// One line of a project's .env, with a value per environment.
 public struct Variable: Codable, Identifiable, Hashable, Sendable {
     public var id: UUID
@@ -37,6 +51,9 @@ public struct Variable: Codable, Identifiable, Hashable, Sendable {
     public var provider: String?
     public var agentPolicy: AgentPolicy
     public var note: String?
+    /// A web address that goes with it, like the dashboard where the key was made. Optional (added in 1.1).
+    public var link: String?
+    public var icon: IconChoice?
     public var created: Date
     public var updated: Date
 
@@ -95,11 +112,13 @@ public struct Key: Codable, Identifiable, Hashable, Sendable {
     public var expires: Date?
     public var agentPolicy: AgentPolicy
     public var note: String?
+    public var link: String?
+    public var icon: IconChoice?
     public var created: Date
     public var updated: Date
 
     public init(name: String, value: String, provider: String? = nil, isLive: Bool = false, expires: Date? = nil,
-                agentPolicy: AgentPolicy? = nil, note: String? = nil, now: Date = .now) {
+                agentPolicy: AgentPolicy? = nil, note: String? = nil, link: String? = nil, now: Date = .now) {
         self.id = UUID()
         self.name = name
         self.value = value
@@ -109,6 +128,7 @@ public struct Key: Codable, Identifiable, Hashable, Sendable {
         // Live keys stay human-only unless you say otherwise.
         self.agentPolicy = agentPolicy ?? (isLive ? .neverLeaves : .agentsCanUse)
         self.note = note
+        self.link = link
         self.created = now
         self.updated = now
     }
@@ -122,12 +142,18 @@ public struct CodeSet: Codable, Identifiable, Hashable, Sendable {
     public var codes: [String]
     public var used: Set<Int>
     public var regenerated: Date?
+    public var note: String?
+    public var link: String?
+    public var icon: IconChoice?
     public var created: Date
 
-    public init(account: String, username: String? = nil, codes: [String], regenerated: Date? = .now, now: Date = .now) {
+    public init(account: String, username: String? = nil, codes: [String], regenerated: Date? = .now,
+                note: String? = nil, link: String? = nil, now: Date = .now) {
         self.id = UUID()
         self.account = account
         self.username = username
+        self.note = note
+        self.link = link
         self.codes = codes
         self.used = []
         self.regenerated = regenerated
@@ -160,29 +186,88 @@ public struct KeptItem: Codable, Identifiable, Hashable, Sendable {
     public var from: String?
     public var value: String
     public var note: String?
+    public var link: String?
+    public var icon: IconChoice?
     public var printedCopy: Bool
     public var created: Date
 
-    public init(label: String, kind: KeptKind = .other, from: String? = nil, value: String, note: String? = nil, now: Date = .now) {
+    public init(label: String, kind: KeptKind = .other, from: String? = nil, value: String, note: String? = nil,
+                link: String? = nil, now: Date = .now) {
         self.id = UUID()
         self.label = label
         self.kind = kind
         self.from = from
         self.value = value
         self.note = note
+        self.link = link
         self.printedCopy = false
         self.created = now
     }
 }
 
+/// Something that was removed, kept for 30 days so it can be restored.
+public enum TrashedItem: Codable, Hashable, Sendable {
+    case key(Key)
+    case codes(CodeSet)
+    case kept(KeptItem)
+    /// A variable, with the project it came from (by id, and its name for display if that project is gone).
+    case variable(Variable, projectID: UUID, projectName: String)
+    case project(Project)
+
+    public var title: String {
+        switch self {
+        case .key(let k): k.name
+        case .codes(let c): "\(c.account) recovery codes"
+        case .kept(let k): k.label
+        case .variable(let v, _, let p): "\(v.name) (\(p))"
+        case .project(let p): p.name
+        }
+    }
+}
+
+public struct TrashEntry: Codable, Identifiable, Hashable, Sendable {
+    public var id: UUID
+    public var item: TrashedItem
+    public var deletedAt: Date
+
+    public init(_ item: TrashedItem, deletedAt: Date = .now) {
+        self.id = UUID()
+        self.item = item
+        self.deletedAt = deletedAt
+    }
+}
+
 public struct VaultDocument: Codable, Sendable, Equatable {
-    public var formatVersion: Int = 1
+    public var formatVersion: Int = 2
     public var projects: [Project] = []
     public var keys: [Key] = []
     public var codeSets: [CodeSet] = []
     public var kept: [KeptItem] = []
+    // Added in 1.1. Optional so vaults written by 1.0 open unchanged (a missing key decodes as nil).
+    /// Recently Deleted.
+    public var trash: [TrashEntry]?
+    /// Website icons the person chose to load: 64 px PNGs by domain. Inside the vault, so the list of
+    /// services someone uses is never on disk in the clear.
+    public var siteIcons: [String: Data]?
 
     public init() {}
+
+    /// How long removed items wait in Recently Deleted.
+    public static let trashDays = 30
+
+    public var trashed: [TrashEntry] {
+        get { trash ?? [] }
+        set { trash = newValue.isEmpty ? nil : newValue }
+    }
+
+    /// Drops Recently Deleted entries older than 30 days. Returns how many went.
+    @discardableResult
+    public mutating func purgeTrash(now: Date = .now) -> Int {
+        let cutoff = now.addingTimeInterval(-Double(Self.trashDays) * 86_400)
+        let before = trashed.count
+        trashed = trashed.filter { $0.deletedAt > cutoff }
+        return before - trashed.count
+    }
 
     public var isEmpty: Bool { projects.isEmpty && keys.isEmpty && codeSets.isEmpty && kept.isEmpty }
     public var secretCount: Int {
