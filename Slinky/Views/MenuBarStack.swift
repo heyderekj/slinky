@@ -13,12 +13,12 @@ struct MenuBarStack: View {
                     Circle().fill(model.isUnlocked ? Color.green : Color.orange).frame(width: 9, height: 9)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(model.isUnlocked ? "Unlocked" : "Locked").font(.headline)
-                        Text(model.isUnlocked ? "Locks after 10 quiet minutes, or on sleep" : "Touch ID to peek")
+                        Text(model.isUnlocked ? "Locks after 10 minutes of inactivity" : "Unlock with Touch ID")
                             .font(.caption).foregroundStyle(.secondary)
                     }
                     Spacer()
                     if model.isUnlocked {
-                        Button("Lock Now") { model.lock(reason: .manual) }.buttonStyle(.glass).controlSize(.small)
+                        Button("Lock") { model.lock(reason: .manual) }.buttonStyle(.glass).controlSize(.small)
                     } else {
                         Button("Unlock…") { model.unlock() }.buttonStyle(.glassProminent).controlSize(.small)
                     }
@@ -46,7 +46,7 @@ struct MenuBarStack: View {
                 } label: {
                     HStack {
                         Image(systemName: "plus")
-                        Text("Tuck It Away…")
+                        Text("Add Item…")
                         Spacer()
                         Text("⌘N").foregroundStyle(.secondary)
                     }

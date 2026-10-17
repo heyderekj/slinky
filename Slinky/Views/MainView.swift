@@ -16,7 +16,7 @@ struct MainView: View {
             case let .library(filter)?:
                 LibraryView(filter: filter)
             case nil:
-                LibraryView(filter: .kept)
+                LibraryView(filter: .all)
             }
         }
         .toolbar {
@@ -26,11 +26,11 @@ struct MainView: View {
                     model.tuckProject = nil
                     model.showTuck = true
                 } label: {
-                    Label("Tuck It Away", systemImage: "plus")
+                    Label("Add Item", systemImage: "plus")
                         .labelStyle(.titleAndIcon)
                 }
                 .buttonStyle(.glassProminent)
-                .help("Paste anything. Slinky figures out where it goes. ⌘N")
+                .help("Add a key, recovery codes, a secure note or a project variable (⌘N)")
             }
             ToolbarItem(placement: .primaryAction) {
                 Button { model.lock(reason: .manual) } label: { Label("Lock", systemImage: "lock") }
@@ -52,83 +52,61 @@ struct SidebarView: View {
     var body: some View {
         @Bindable var model = model
         List(selection: $model.selection) {
-            Section {
-                HStack(spacing: 6) {
-                    ForEach(LibraryFilter.allCases, id: \.self) { filter in
-                        CategoryTile(filter: filter, count: count(filter), selected: model.selection == .library(filter)) {
-                            model.selection = .library(filter)
-                        }
-                    }
+            Section("Library") {
+                ForEach(LibraryFilter.allCases, id: \.self) { filter in
+                    Label(filter.title, systemImage: filter.symbol)
+                        .badge(count(filter))
+                        .tag(SidebarItem.library(filter))
                 }
-                .listRowInsets(EdgeInsets(top: 4, leading: 6, bottom: 8, trailing: 6))
-                .listRowBackground(Color.clear)
             }
             Section("Projects") {
+                if model.document.projects.isEmpty {
+                    Text("No projects")
+                        .foregroundStyle(.tertiary)
+                        .selectionDisabled()
+                }
                 ForEach(model.document.projects) { project in
                     Label(project.name, systemImage: "folder")
-                        .badge(project.missing.isEmpty ? Text("\(project.variables.count)") : Text("\(project.missing.count) missing").foregroundStyle(.orange))
+                        .badge(project.variables.count)
                         .tag(SidebarItem.project(project.id))
                         .contextMenu {
-                            Button("Remove Project", role: .destructive) { model.deleteProject(project.id) }
+                            Button("Delete Project", role: .destructive) { model.deleteProject(project.id) }
                         }
                 }
-                Button {
-                    model.showNewProject = true
-                } label: {
-                    Label("New Project…", systemImage: "plus.circle")
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.secondary)
             }
         }
         .listStyle(.sidebar)
-        .safeAreaInset(edge: .bottom) {
-            Text(model.hasVault ? "\(model.document.secretCount) secrets · \(model.document.projects.count) projects · 0 lying around" : "No vault yet. It appears with your first secret.")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 10)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            HStack {
+                Menu {
+                    Button("New Item…") {
+                        model.tuckPrefill = ""
+                        model.tuckProject = nil
+                        model.showTuck = true
+                    }
+                    Button("New Project…") { model.showNewProject = true }
+                } label: {
+                    Image(systemName: "plus")
+                        .frame(width: 22, height: 22)
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .fixedSize()
+                .help("Add an item or a project")
+                Spacer()
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
         }
     }
 
     private func count(_ filter: LibraryFilter) -> Int {
         switch filter {
+        case .all: model.document.keys.count + model.document.codeSets.count + model.document.kept.count
         case .keys: model.document.keys.count
         case .codes: model.document.codeSets.count
         case .kept: model.document.kept.count
         }
-    }
-}
-
-/// Apple Reminders-style tile with a count.
-struct CategoryTile: View {
-    var filter: LibraryFilter
-    var count: Int
-    var selected: Bool
-    var action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Image(systemName: filter.symbol)
-                        .foregroundStyle(selected ? Color.white : Color.accentColor)
-                    Spacer()
-                    Text("\(count)")
-                        .font(.system(.title3, design: .rounded).weight(.semibold))
-                        .monospacedDigit()
-                }
-                Text(filter.title).font(.caption).foregroundStyle(selected ? Color.white.opacity(0.9) : Color.secondary)
-            }
-            .padding(9)
-            .frame(maxWidth: .infinity)
-            .foregroundStyle(selected ? Color.white : Color.primary)
-            .background(selected ? AnyShapeStyle(Color.accentColor) : AnyShapeStyle(.background.secondary), in: .rect(cornerRadius: 11))
-            .overlay(RoundedRectangle(cornerRadius: 11).strokeBorder(.separator.opacity(selected ? 0 : 0.5), lineWidth: 0.5))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("\(filter.title), \(count)")
     }
 }
 
@@ -140,7 +118,7 @@ struct NewProjectView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            Text("New project").font(.headline)
+            Text("New Project").font(.headline)
             TextField("Name, like harvous", text: $name)
                 .textFieldStyle(.roundedBorder)
             HStack {
@@ -161,7 +139,7 @@ struct NewProjectView: View {
                     }
                 }
             }
-            Text("Linking the folder lets Slinky read its .env.example and spot missing keys. Slinky never writes into it.")
+            Text("If you link the project folder, Slinky reads its .env.example to show which variables are missing. Slinky never changes files in it.")
                 .font(.caption).foregroundStyle(.secondary)
             HStack {
                 Spacer()

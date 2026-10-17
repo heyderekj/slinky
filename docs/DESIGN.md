@@ -7,9 +7,9 @@ Read this before any design work. Every visual decision should trace back to som
 2. **Native Tahoe first.** Use system components (`NavigationSplitView`, inspector, toolbar, sheets, glass buttons) before inventing. Custom only where Slinky has something to say: the `.env` view, recovery-code chips, Quick Access, approval cards.
 3. **Glass on chrome, paper under values.** Liquid Glass belongs to sidebars, toolbars, floating panels, menu bar cards and toasts. Secret values always sit on opaque cool paper (`Color.paper`), in monospace, at 4.5:1 contrast or better. Never glass on glass.
 4. **Ice, not blue.** The brand is clear, glassy and white, with glacier/ice blue. Accent `#4a7aa3` light / `#a9c7dc` dark, used once per view on the primary action. No saturated blue in UI chrome.
-5. **The family way of teaching.** Like Dinky and Binky, there's **no welcome screen and no wizard**. The app opens into itself. Empty states teach by doing ("Nothing to hide. Yet."), and setup happens in context (the vault is created on the first save, and the Recovery Key appears right then as a sheet).
+5. **The family way of teaching.** Like Dinky and Binky, there's **no welcome screen and no wizard**. The app opens into itself. Empty states teach by doing ("No items yet. Add your first item with ⌘N."), and setup happens in context (the vault is created on the first save, and the Recovery Key appears right then as a sheet).
 6. **Calm motion.** Springs, not bounces for their own sake. Motion explains a change (things slink in and out). Everything honors Reduce Motion.
-7. **Honest copy.** See `VOICE.md`. Dry, warm, one-liners, Slinky is the actor, no exclamation points, no fear-selling.
+7. **Plain, serious copy.** See `VOICE.md`. Clear and kind for everyone, non-technical first, no clever labels or wordplay in the app, no exclamation points, no fear.
 
 ## Before shipping any UI change
 - Check light and dark, both ends of the macOS 27 transparency slider, Reduce Transparency, Increase Contrast and Reduce Motion.
@@ -21,7 +21,7 @@ Read this before any design work. Every visual decision should trace back to som
 ## References, and what we take from each
 | Reference | What we take | Where it shows up |
 |---|---|---|
-| **Dinky / Binky** (`~/dinky`, `~/binky`) | Contextual banners instead of onboarding; empty states with rotating lines; Window-scene Settings with a `NavigationSplitView` and grouped Forms; transparent title bar (Binky's `TransparentWindow`); the family voice. The sticker icon recipe inspired our first icons. | App structure, `TransparentTitlebar`, empty states, `VOICE.md` |
+| **Dinky / Binky** (`~/dinky`, `~/binky`) | Contextual banners instead of onboarding; empty states that teach; Window-scene Settings with a `NavigationSplitView` and grouped Forms; transparent title bar (Binky's `TransparentWindow`); the family voice. The sticker icon recipe inspired our first icons. | App structure, `TransparentTitlebar`, empty states, `VOICE.md` |
 | **Apple Passwords** | Hover-to-reveal, click-to-copy codes, sidebar category tiles with counts, the opt-in menu bar mini app | `RevealField`, `CategoryTile`, menu bar |
 | **macOS 26/27 system apps** (Mail, Finder, Photos, Reminders) | Edge-to-edge sidebars in 27, uniform toolbars, tiles with counts, a real toolbar over content | `MainView` |
 | **Raycast** | ↵ / ⌘↵ / ⌘K action model, one field plus a list | Quick Access |
@@ -42,6 +42,8 @@ Read this before any design work. Every visual decision should trace back to som
 - **Window:** transparent title bar, toolbar background hidden, ice as the window background. No opaque title strip.
 - **Layouts:** see `docs/slinky-layouts.html`. A = project `.env` view, B = Library shelf, C = Quick Access (default), E = Rising Shelf (challenger), D = agent receipts, F = menu bar stack, G = widget.
 - **Hotkey:** ⌥⌘K for Quick Access (not ⌃⌥Space, not ⇧⌘Space).
+- **Sidebar:** a standard macOS list, not tiles. Library (All Items, Keys & Tokens, Recovery Codes, Secure Notes) with SF Symbols and quiet counts, then Projects. A small + menu at the bottom. Derek rejected the Reminders-style tiles (2026-10-16).
+- **Naming:** Keys & Tokens, Recovery Codes, Secure Notes, Projects, Add Item. No "Kept" or "Tuck It Away".
 - **Working state:** the keyhole is absorbed into the asterisk, which spins (see `docs/plan.md`).
 
 ## Live documents

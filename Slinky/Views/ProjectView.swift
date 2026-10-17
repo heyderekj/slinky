@@ -20,7 +20,7 @@ struct ProjectView: View {
                 if !project.missing.isEmpty {
                     HStack(spacing: 10) {
                         Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-                        Text("**.env.example** lists \(project.missing.count) key\(project.missing.count == 1 ? "" : "s") Slinky doesn't have yet.")
+                        Text("**.env.example** lists \(project.missing.count) variable\(project.missing.count == 1 ? "" : "s") that \(project.missing.count == 1 ? "isn't" : "aren't") saved in Slinky yet.")
                         Spacer()
                     }
                     .font(.callout)
@@ -100,12 +100,12 @@ struct ProjectView: View {
         if p.variables.isEmpty && p.missing.isEmpty {
             VStack(spacing: 12) {
                 Image(systemName: "doc.text").font(.system(size: 34)).foregroundStyle(.tertiary)
-                Text("Drop a .env file here").font(.title3.weight(.semibold))
-                Text("Slinky tucks every line away and sorts secrets from plain config. Then the file can go.")
+                Text("Import a .env file").font(.title3.weight(.semibold))
+                Text("Drop a .env file here, or choose one. Slinky stores each variable encrypted and separates secrets from public settings.")
                     .foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 380)
                 HStack {
                     Button("Import .env File…") { pickEnvFile(p) }
-                    Button("Tuck One Away…") { model.tuckProject = projectID; model.tuckPrefill = ""; model.showTuck = true }
+                    Button("Add Variable…") { model.tuckProject = projectID; model.tuckPrefill = ""; model.showTuck = true }
                 }
                 .buttonStyle(.glass)
             }
@@ -175,7 +175,7 @@ struct ProjectView: View {
                         .font(.system(size: 12.5, design: .monospaced))
                         .foregroundStyle(.secondary)
                         .lineLimit(1).truncationMode(.middle)
-                    if variable.isPlain { Chip(text: "plain", style: .plain) }
+                    if variable.isPlain { Chip(text: "public", style: .plain) }
                     if detection?.isLive == true { Chip(text: "live", style: .live) }
                 } else {
                     Text("not in \(env.title)").font(.callout).foregroundStyle(.orange)
@@ -211,7 +211,7 @@ struct ProjectView: View {
             .frame(width: 130)
             HStack(spacing: 8) {
                 Text("missing").foregroundStyle(.orange)
-                Button("Tuck It Away") { tuckMissing(name) }
+                Button("Add") { tuckMissing(name) }
                     .buttonStyle(.glass).controlSize(.small)
             }
             .padding(.leading, 12)
@@ -230,16 +230,15 @@ struct ProjectView: View {
         } else if let name = selectedMissing {
             VStack(alignment: .leading, spacing: 12) {
                 Text(name).font(.system(.headline, design: .monospaced))
-                Text("Listed in .env.example. Not in Slinky yet.").foregroundStyle(.secondary)
-                Text("When an agent needs it, it'll ask here, never in the chat.").font(.callout).foregroundStyle(.secondary)
-                Button("Tuck It Away…") { tuckMissing(name) }.buttonStyle(.glassProminent)
+                Text("Listed in .env.example but not saved in Slinky.").foregroundStyle(.secondary)
+                Button("Add Value…") { tuckMissing(name) }.buttonStyle(.glassProminent)
                 Spacer()
             }
             .padding(18)
         } else {
             VStack(spacing: 8) {
                 Image(systemName: "cursorarrow.click").font(.title).foregroundStyle(.tertiary)
-                Text("Pick a line to see it.").foregroundStyle(.secondary)
+                Text("Select a variable to see its details.").foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
@@ -255,8 +254,8 @@ struct ProjectView: View {
         let panel = NSOpenPanel()
         panel.showsHiddenFiles = true
         panel.allowsMultipleSelection = false
-        panel.prompt = "Tuck Away"
-        panel.message = "Choose a .env file. Slinky reads it and stores each line encrypted. A .env.example only marks what's missing."
+        panel.prompt = "Import"
+        panel.message = "Choose a .env file to import. Choosing a .env.example only marks which variables are missing."
         if let folder = p.folders.first { panel.directoryURL = URL(fileURLWithPath: folder) }
         if panel.runModal() == .OK, let url = panel.url { model.importEnvFile(url, into: projectID, env: env) }
     }
@@ -312,7 +311,7 @@ struct VariableInspector: View {
 
                 if !variable.isPlain {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Agents").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                        Text("AI agents").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
                         Picker("Agents", selection: Binding(
                             get: { variable.agentPolicy },
                             set: { model.setPolicy($0, variable: variable.id, in: projectID) })) {
@@ -367,9 +366,9 @@ struct VariableInspector: View {
 
     private var policyNote: String {
         switch variable.agentPolicy {
-        case .agentsCanUse: "Agents can use it with your OK per command. They never see the value."
-        case .askEveryTime: "Agents must ask, with Touch ID, every time."
-        case .neverLeaves: "Never leaves Slinky. Agents can't ask for it."
+        case .agentsCanUse: "AI agents can use this value with your approval. They never see it."
+        case .askEveryTime: "AI agents must ask, and you confirm with Touch ID each time."
+        case .neverLeaves: "Never shared with AI agents."
         }
     }
 }

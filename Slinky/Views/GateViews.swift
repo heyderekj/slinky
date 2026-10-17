@@ -12,8 +12,8 @@ struct RecoveryKeySheet: View {
             HStack(spacing: 12) {
                 KeyholeMark(size: 44)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Your vault is set.").font(.title3.weight(.bold))
-                    Text("Here's the key that opens it anywhere.").foregroundStyle(.secondary)
+                    Text("Save your Recovery Key").font(.title3.weight(.bold))
+                    Text("Your vault is ready. Keep this key somewhere safe.").foregroundStyle(.secondary)
                 }
             }
             Text(key)
@@ -24,7 +24,7 @@ struct RecoveryKeySheet: View {
                 .padding(.vertical, 16)
                 .background(.paper, in: .rect(cornerRadius: 14))
                 .overlay(RoundedRectangle(cornerRadius: 14).strokeBorder(.separator.opacity(0.6), lineWidth: 0.5))
-            Text("It opens your vault on a new Mac, or if this one forgets Touch ID. Slinky never stores it. Print it, or keep it in Apple Passwords. Never in Slinky.")
+            Text("You need this key to open your vault on another Mac, or if Touch ID stops working. Slinky doesn't keep a copy, so print it or store it in Apple Passwords.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -36,7 +36,7 @@ struct RecoveryKeySheet: View {
             .buttonStyle(.glass)
             Divider()
             HStack {
-                Toggle("I've saved it somewhere safe, outside Slinky", isOn: $saved)
+                Toggle("I've saved my Recovery Key", isOn: $saved)
                     .toggleStyle(.checkbox)
                 Spacer()
                 Button("Done") { model.recoveryKeyToShow = nil }
@@ -76,7 +76,7 @@ struct LockView: View {
     var body: some View {
         VStack(spacing: 14) {
             KeyholeMark(size: 72).floating()
-            Text("Locked. Touch ID to peek.")
+            Text("Slinky is locked")
                 .font(.title3.weight(.semibold))
             if let note = model.lockNote {
                 Text(note).font(.callout).foregroundStyle(.secondary)

@@ -91,7 +91,7 @@ extension AppModel {
             }
         }
         for item in document.kept {
-            items.append(QuickItem(id: item.id.uuidString, kind: .kept, title: item.label, subtitle: item.from.map { "Kept · \($0)" } ?? item.kind.title,
+            items.append(QuickItem(id: item.id.uuidString, kind: .kept, title: item.label, subtitle: item.from.map { "\(item.kind.title) · \($0)" } ?? item.kind.title,
                                    value: item.value, provider: item.from, isLive: false, mono: false))
         }
         for set in document.codeSets {
@@ -131,7 +131,7 @@ struct QuickAccessView: View {
     private var locked: some View {
         VStack(spacing: 14) {
             KeyholeMark(size: 64)
-            Text("Locked. Touch ID to peek.").font(.title3.weight(.semibold))
+            Text("Slinky is locked").font(.title3.weight(.semibold))
             Button { model.unlock() } label: { Label(model.unlockLabel, systemImage: "touchid") }
                 .buttonStyle(.glassProminent)
                 .controlSize(.large)
@@ -147,7 +147,7 @@ struct QuickAccessView: View {
         return VStack(spacing: 0) {
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass").font(.title3).foregroundStyle(.secondary)
-                TextField("Find a key, a code, anything kept", text: $query)
+                TextField("Search keys, codes and notes", text: $query)
                     .textFieldStyle(.plain)
                     .font(.system(size: 20))
                     .focused($focused)
@@ -175,7 +175,7 @@ struct QuickAccessView: View {
                                     .onTapGesture(count: 2) { copy(item, asLine: false) }
                             }
                             if items.isEmpty {
-                                Text(model.document.isEmpty ? "Nothing tucked away yet." : "Nothing matches.")
+                                Text(model.document.isEmpty ? "No items yet." : "No matches.")
                                     .foregroundStyle(.secondary).padding(.top, 30)
                             }
                         }
@@ -234,11 +234,11 @@ struct QuickAccessView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.paper, in: .rect(cornerRadius: 11))
                 if item.isLive {
-                    Label("Live key. Handle with care.", systemImage: "exclamationmark.triangle").font(.callout).foregroundStyle(.red)
+                    Label("This is a live key.", systemImage: "exclamationmark.triangle").font(.callout).foregroundStyle(.red)
                 }
                 Spacer()
                 Label {
-                    Text("**Return copies this one.** ") + Text(isCodes(item) ? "The next unused code, then it's crossed off." : "Clipboard clears in 60s.")
+                    Text("**Return copies this item.** ") + Text(isCodes(item) ? "The next unused code is copied and marked as used." : "The clipboard clears in 60 seconds.")
                 } icon: { Image(systemName: "checkmark.circle") }
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -247,8 +247,8 @@ struct QuickAccessView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         } else {
             VStack(spacing: 10) {
-                Text("Nothing to hide. Yet.").font(.headline)
-                Button("Tuck It Away…") {
+                Text("No items yet").font(.headline)
+                Button("Add Item…") {
                     QuickAccess.shared.close()
                     model.openMainWindow?()
                     model.showTuck = true

@@ -74,7 +74,7 @@ struct RevealField: View {
                 .truncationMode(.middle)
             Spacer(minLength: 0)
             if !revealed {
-                Text("hover to peek").font(.caption2).foregroundStyle(.tertiary)
+                Text("Hover to show").font(.caption2).foregroundStyle(.tertiary)
             }
         }
         .padding(.horizontal, 10)

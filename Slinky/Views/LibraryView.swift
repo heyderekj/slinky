@@ -14,11 +14,15 @@ struct LibraryView: View {
                 empty
             } else {
                 ScrollView {
-                    LazyVGrid(columns: columns, alignment: .leading, spacing: 14) {
-                        switch filter {
-                        case .codes: ForEach(model.document.codeSets) { CodeSetCard(set: $0) }
-                        case .kept: ForEach(model.document.kept) { KeptCard(item: $0) }
-                        case .keys: ForEach(model.document.keys) { KeyCard(key: $0) }
+                    VStack(alignment: .leading, spacing: 22) {
+                        if filter == .all || filter == .keys, !model.document.keys.isEmpty {
+                            section(filter == .all ? "Keys & Tokens" : nil) { ForEach(model.document.keys) { KeyCard(key: $0) } }
+                        }
+                        if filter == .all || filter == .codes, !model.document.codeSets.isEmpty {
+                            section(filter == .all ? "Recovery Codes" : nil) { ForEach(model.document.codeSets) { CodeSetCard(set: $0) } }
+                        }
+                        if filter == .all || filter == .kept, !model.document.kept.isEmpty {
+                            section(filter == .all ? "Secure Notes" : nil) { ForEach(model.document.kept) { KeptCard(item: $0) } }
                         }
                     }
                     .padding(18)
@@ -30,11 +34,31 @@ struct LibraryView: View {
         .navigationSubtitle(subtitle)
     }
 
+    @ViewBuilder
+    private func section<Content: View>(_ title: String?, @ViewBuilder _ content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            if let title {
+                Text(title).font(.headline).foregroundStyle(.secondary).padding(.leading, 2)
+            }
+            LazyVGrid(columns: columns, alignment: .leading, spacing: 14) { content() }
+        }
+    }
+
     private var isEmpty: Bool {
         switch filter {
+        case .all: model.document.keys.isEmpty && model.document.codeSets.isEmpty && model.document.kept.isEmpty
         case .codes: model.document.codeSets.isEmpty
         case .kept: model.document.kept.isEmpty
         case .keys: model.document.keys.isEmpty
+        }
+    }
+
+    private var emptyTitle: String {
+        switch filter {
+        case .all: "No items yet"
+        case .codes: "No recovery codes yet"
+        case .kept: "No secure notes yet"
+        case .keys: "No keys or tokens yet"
         }
     }
 
@@ -43,18 +67,19 @@ struct LibraryView: View {
         case .codes:
             let low = model.document.codeSets.filter(\.isLow).count
             return "\(model.document.codeSets.count) accounts" + (low > 0 ? " · \(low) running low" : "")
-        case .kept: return "Things a site told you to keep safe"
-        case .keys: return "Personal tokens and keys that aren't tied to one project"
+        case .kept: return "Recovery keys, setup keys and other things to keep safe"
+        case .keys: return "API keys and access tokens you use across projects"
+        case .all: return "\(model.document.keys.count + model.document.codeSets.count + model.document.kept.count) items"
         }
     }
 
     private var empty: some View {
         VStack(spacing: 14) {
             KeyholeMark(size: 72)
-            Text("Nothing to hide. Yet.").font(.title2.weight(.bold))
+            Text(emptyTitle).font(.title2.weight(.bold))
             Text(emptyLine).foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 400)
             if !model.hasVault {
-                Text("Your vault is created the first time you tuck something away. Touch ID guards it from then on.")
+                Text("Slinky creates your encrypted vault when you save your first item. After that, Touch ID unlocks it.")
                     .font(.callout).foregroundStyle(.tertiary).multilineTextAlignment(.center).frame(maxWidth: 400)
             }
             Button {
@@ -62,7 +87,7 @@ struct LibraryView: View {
                 model.tuckProject = nil
                 model.showTuck = true
             } label: {
-                Label("Tuck It Away", systemImage: "plus")
+                Label("Add Item", systemImage: "plus")
             }
             .buttonStyle(.glassProminent)
             .controlSize(.large)
@@ -72,9 +97,10 @@ struct LibraryView: View {
 
     private var emptyLine: String {
         switch filter {
-        case .codes: "Paste the block of recovery codes a site gave you. Click one to copy it, and Slinky crosses it off."
-        case .kept: "Recovery keys, setup keys, the router password. Anything a site said to store somewhere safe."
-        case .keys: "Personal tokens and API keys you use across projects."
+        case .codes: "When a website gives you backup codes for two-step verification, paste them here. Click a code to copy it, and Slinky marks it as used."
+        case .kept: "Store recovery keys, setup keys, license keys and anything else a website tells you to keep somewhere safe."
+        case .keys: "Store API keys and personal access tokens you use across projects."
+        case .all: "Add your first item with ⌘N, or create a project for a .env file."
         }
     }
 }
@@ -112,7 +138,7 @@ struct CodeSetCard: View {
                 }
             }
             if set.isLow {
-                Label("\(set.remaining) codes left. Time for fresh ones.", systemImage: "exclamationmark.triangle.fill")
+                Label("Only \(set.remaining) codes left. Consider generating new ones.", systemImage: "exclamationmark.triangle.fill")
                     .font(.caption).foregroundStyle(.orange)
             }
             LazyVGrid(columns: [GridItem(.flexible(), spacing: 6), GridItem(.flexible(), spacing: 6)], spacing: 6) {
@@ -137,7 +163,7 @@ struct CodeSetCard: View {
             }
             HStack {
                 if let date = set.regenerated {
-                    Text("Saved \(date.formatted(date: .abbreviated, time: .omitted))").font(.caption2).foregroundStyle(.tertiary)
+                    Text("Added \(date.formatted(date: .abbreviated, time: .omitted))").font(.caption2).foregroundStyle(.tertiary)
                 }
                 Spacer()
                 Menu {
@@ -170,9 +196,9 @@ struct KeptCard: View {
                     .buttonStyle(.glass).controlSize(.small)
                 if item.kind == .recoveryKey {
                     if item.printedCopy {
-                        Label("Printed copy", systemImage: "checkmark").font(.caption).foregroundStyle(.secondary)
+                        Label("Printed", systemImage: "checkmark").font(.caption).foregroundStyle(.secondary)
                     } else {
-                        Button("Print a Copy…") {
+                        Button("Print…") {
                             RecoveryPrinter.print(item.value)
                             model.markPrinted(item.id)
                         }
@@ -198,7 +224,7 @@ struct KeyCard: View {
             HStack(alignment: .top, spacing: 10) {
                 Monogram(text: key.provider ?? key.name)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("KEY").font(.system(size: 9.5, weight: .bold)).tracking(0.5).foregroundStyle(.tertiary)
+                    Text("KEY OR TOKEN").font(.system(size: 9.5, weight: .bold)).tracking(0.5).foregroundStyle(.tertiary)
                     Text(key.name).font(.system(size: 13, weight: .semibold, design: .monospaced))
                     if let provider = key.provider { Text(provider).font(.caption).foregroundStyle(.secondary) }
                 }

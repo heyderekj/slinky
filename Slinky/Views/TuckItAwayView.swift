@@ -26,9 +26,9 @@ struct TuckItAwayView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("Tuck It Away").font(.title3.weight(.bold))
+                Text("Add Item").font(.title3.weight(.bold))
                 Spacer()
-                Text("Paste anything. Slinky figures out where it goes.").font(.callout).foregroundStyle(.secondary)
+                Text("Paste it, and Slinky suggests where it belongs.").font(.callout).foregroundStyle(.secondary)
             }
 
             TextEditor(text: $text)
@@ -39,7 +39,7 @@ struct TuckItAwayView: View {
                 .background(.background.secondary, in: .rect(cornerRadius: 12))
                 .overlay(alignment: .topLeading) {
                     if text.isEmpty {
-                        Text("Paste a key, a block of codes, a KEY=value line…")
+                        Text("Paste a key, a password, recovery codes, or lines from a .env file")
                             .font(.system(size: 13)).foregroundStyle(.tertiary)
                             .padding(.horizontal, 14).padding(.vertical, 16)
                             .allowsHitTesting(false)
@@ -56,7 +56,7 @@ struct TuckItAwayView: View {
             }
 
             if detection?.kind != .walletSeed {
-                Picker("Goes in", selection: Binding(get: { destination }, set: { destination = $0; destinationTouched = true })) {
+                Picker("Save as", selection: Binding(get: { destination }, set: { destination = $0; destinationTouched = true })) {
                     ForEach(Detection.Destination.allCases, id: \.self) { Text($0.title).tag($0) }
                 }
                 .pickerStyle(.segmented)
@@ -65,12 +65,12 @@ struct TuckItAwayView: View {
             }
 
             HStack {
-                Text("Values are encrypted the moment you save. Nothing is written to disk in plain text.")
+                Text("Saved items are encrypted on this Mac.")
                     .font(.caption).foregroundStyle(.tertiary)
                 Spacer()
                 Button("Cancel") { dismiss() }
                     .keyboardShortcut(.cancelAction)
-                Button("Tuck It Away") { save() }
+                Button("Save") { save() }
                     .buttonStyle(.glassProminent)
                     .keyboardShortcut(.defaultAction)
                     .disabled(!canSave)
@@ -101,7 +101,7 @@ struct TuckItAwayView: View {
             switch destination {
             case .kept:
                 TextField("Label", text: nameBinding, prompt: Text("Apple ID recovery key"))
-                TextField("From", text: $from, prompt: Text("Where it came from, optional"))
+                TextField("Website or app", text: $from, prompt: Text("Optional"))
             case .key:
                 TextField("Name", text: nameBinding, prompt: Text("GITHUB_TOKEN"))
                 Toggle("Expires", isOn: $hasExpiry)

@@ -5,21 +5,23 @@ import SlinkyCoreShared
 import SlinkyCoreVault
 
 enum LibraryFilter: String, CaseIterable, Hashable {
-    case keys, codes, kept
+    case all, keys, codes, kept
 
     var title: String {
         switch self {
-        case .keys: "Keys"
-        case .codes: "Codes"
-        case .kept: "Kept"
+        case .all: "All Items"
+        case .keys: "Keys & Tokens"
+        case .codes: "Recovery Codes"
+        case .kept: "Secure Notes"
         }
     }
 
     var symbol: String {
         switch self {
+        case .all: "square.grid.2x2"
         case .keys: "key"
-        case .codes: "lifepreserver"
-        case .kept: "lock.rectangle.stack"
+        case .codes: "number.square"
+        case .kept: "note.text"
         }
     }
 }
@@ -34,11 +36,11 @@ enum LockReason {
 
     var note: String {
         switch self {
-        case .manual: "Locked."
+        case .manual: "You locked Slinky."
         case .screenLocked: "Locked when your screen locked."
         case .sleep: "Locked when your Mac went to sleep."
-        case .idle: "Locked after 10 quiet minutes."
-        case .timeLimit: "Locked after 12 hours. Fresh start."
+        case .idle: "Locked after 10 minutes of inactivity."
+        case .timeLimit: "Locked after 12 hours."
         }
     }
 }
@@ -58,7 +60,7 @@ final class AppModel {
 
     var phase: Phase = .loading
     var document = VaultDocument()
-    var selection: SidebarItem? = .library(.kept)
+    var selection: SidebarItem? = .library(.all)
     var showTuck = false
     var showNewProject = false
     var tuckPrefill = ""
@@ -142,13 +144,13 @@ final class AppModel {
     @discardableResult
     func unlock(recoveryText: String) -> Bool {
         guard let key = RecoveryKey(recoveryText) else {
-            errorMessage = "That doesn't look like a Recovery Key. It's 8 groups of 4."
+            errorMessage = "That isn't a valid Recovery Key. It has 8 groups of 4 characters."
             return false
         }
         do {
             try enclave.ensureKey()
             didUnlock(try store.unlock(recovery: key))
-            show("Unlocked with your Recovery Key. Touch ID works on this Mac from now on.")
+            show("Unlocked with your Recovery Key. Touch ID is set up on this Mac again.")
             return true
         } catch {
             errorMessage = Self.friendly(error)
@@ -192,21 +194,21 @@ final class AppModel {
         document = snapshot
         undoSnapshot = nil
         persist()
-        show("Put back.")
+        show("Restored.")
     }
 
     func addKept(_ item: KeptItem) {
-        change("Tucked away in Kept.") { $0.kept.insert(item, at: 0) }
+        change("Saved to Secure Notes.") { $0.kept.insert(item, at: 0) }
         selection = .library(.kept)
     }
 
     func addKey(_ key: Key) {
-        change("Tucked away in Keys.") { $0.keys.insert(key, at: 0) }
+        change("Saved to Keys & Tokens.") { $0.keys.insert(key, at: 0) }
         selection = .library(.keys)
     }
 
     func addCodeSet(_ set: CodeSet) {
-        change("Tucked away \(set.codes.count) codes. The .txt can go.") { $0.codeSets.insert(set, at: 0) }
+        change("Saved \(set.codes.count) recovery codes.") { $0.codeSets.insert(set, at: 0) }
         selection = .library(.codes)
     }
 
@@ -223,7 +225,7 @@ final class AppModel {
 
     func addVariables(_ lines: [DotEnvLine], to projectID: UUID, env: AppEnvironment) {
         guard let p = document.projects.firstIndex(where: { $0.id == projectID }) else { return }
-        change(lines.count == 1 ? "Tucked away \(lines[0].name) in \(document.projects[p].name)." : "Tucked away \(lines.count). The .env can go.") { doc in
+        change(lines.count == 1 ? "Saved \(lines[0].name) to \(document.projects[p].name)." : "Imported \(lines.count) variables to \(document.projects[p].name).") { doc in
             for line in lines {
                 if let v = doc.projects[p].variables.firstIndex(where: { $0.name == line.name }) {
                     doc.projects[p].variables[v].setValue(line.value, in: env)
@@ -243,7 +245,7 @@ final class AppModel {
             return
         }
         if url.lastPathComponent.hasSuffix(".example") {
-            change("Read \(url.lastPathComponent). Missing keys are marked.") { doc in
+            change("Read \(url.lastPathComponent). Missing variables are marked.") { doc in
                 guard let p = doc.projects.firstIndex(where: { $0.id == projectID }) else { return }
                 doc.projects[p].expected = DotEnv.names(text)
             }
@@ -291,8 +293,8 @@ final class AppModel {
     }
 
     func deleteProject(_ projectID: UUID) {
-        change("Project removed.", undoable: true) { $0.projects.removeAll { $0.id == projectID } }
-        selection = .library(.kept)
+        change("Project deleted.", undoable: true) { $0.projects.removeAll { $0.id == projectID } }
+        selection = .library(.all)
     }
 
     func deleteKept(_ id: UUID) { change("Removed.", undoable: true) { $0.kept.removeAll { $0.id == id } } }
@@ -307,7 +309,7 @@ final class AppModel {
         Clipboard.copy(document.codeSets[s].codes[index])
         change(undoable: true) { $0.codeSets[s].used.insert(index) }
         let left = document.codeSets[s].remaining
-        show("Copied and crossed off. \(left) left." + (left <= 3 ? " Time for fresh ones." : ""), canUndo: true)
+        show("Copied and marked as used. \(left) left." + (left <= 3 ? " Consider generating new codes." : ""), canUndo: true)
     }
 
     func markPrinted(_ id: UUID) {
@@ -319,7 +321,7 @@ final class AppModel {
 
     func copy(_ value: String, label: String) {
         Clipboard.copy(value)
-        show("Copied \(label). Clears in 60s.")
+        show("Copied \(label). The clipboard clears in 60 seconds.")
     }
 
     func show(_ text: String, canUndo: Bool = false) {
@@ -374,14 +376,14 @@ final class AppModel {
     static func friendly(_ error: Error) -> String {
         if let la = error as? LAError {
             switch la.code {
-            case .userCancel, .appCancel, .systemCancel: return "Cancelled. Still locked."
-            case .authenticationFailed: return "Touch ID didn't go through. Try again."
+            case .userCancel, .appCancel, .systemCancel: return "Unlock was cancelled."
+            case .authenticationFailed: return "Touch ID didn't recognize you. Try again."
             default: return la.localizedDescription
             }
         }
         if let vault = error as? VaultError { return vault.description }
         let ns = error as NSError
-        if ns.domain == "CryptoTokenKit" || ns.code == -2 { return "Cancelled. Still locked." }
+        if ns.domain == "CryptoTokenKit" || ns.code == -2 { return "Unlock was cancelled." }
         return error.localizedDescription
     }
 }

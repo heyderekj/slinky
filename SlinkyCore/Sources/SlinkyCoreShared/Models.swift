@@ -147,7 +147,7 @@ public enum KeptKind: String, Codable, CaseIterable, Sendable {
         case .setupKey: "Setup key"
         case .licenseKey: "License key"
         case .password: "Password"
-        case .other: "Kept"
+        case .other: "Secure note"
         }
     }
 }

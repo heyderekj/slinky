@@ -1,6 +1,6 @@
 # Slinky — Agent Rules
 
-**Slinky keeps secrets out of your files.** The third app in Derek Castelli's family (Dinky makes files smaller, Binky sorts your files). Native macOS 26+ app for developer secrets: API keys, project .env variables, 2FA recovery codes, and anything a site says to "store somewhere safe". Agents use secrets without seeing them (CLI and MCP land in the agents milestone).
+**Slinky keeps secrets out of your files.** The third app in Derek Castelli's family (Dinky makes files smaller, Binky sorts your files). Native macOS 26+ app for developer secrets: API keys, project .env variables, 2FA recovery codes, and anything a website says to store somewhere safe. Agents use secrets without seeing them (CLI and MCP land in the agents milestone).
 
 ## Security rules (non-negotiable)
 - Secret values never go into: UserDefaults/@AppStorage, logs, print(), notifications, crash reports, Spotlight, file names, URLs, or test fixtures that look real. Tests use obviously fake values (`EXAMPLE`).
@@ -8,7 +8,7 @@
 - The vault key lives in memory only while unlocked (`VaultSession`); locking drops it.
 - Clipboard writes go through `Clipboard.copy` (concealed, transient, current-host-only, auto-clear).
 - Nothing in an MCP/CLI response may contain or be derived from a value (no hashes, lengths, prefixes beyond `Peek`).
-- Copy that promises safety must stay honest: "out of the model and off your disk. It isn't a sandbox."
+- Copy that promises safety must stay honest and plain. Never overclaim what Slinky protects against.
 
 ## Size and dependencies (from the family rules)
 - Apple frameworks only. No SPM or CocoaPods dependencies without Derek's approval and a size justification. No web views, no Electron.
@@ -28,5 +28,5 @@
 ## Design
 - Brand: clear, glassy, white, glacier/ice blue. Accent `#4a7aa3` light / `#a9c7dc` dark. Glass on chrome (sidebars, toolbars, panels, cards that float); values on opaque cool "paper" (`Color.paper`).
 - Layouts from `docs/slinky-layouts.html`: A (.env project view), B (Library shelf), C (Quick Access ⌥⌘K), D (agent receipts, later), F (menu bar stack).
-- Voice: see `VOICE.md`.
+- Voice: see `VOICE.md`. Plain, serious, non-technical, for everyone. No clever labels in the app.
 - **Design: read `docs/DESIGN.md` before any UI work.** It holds the principles, every reference and what we took from it, and decisions already made. No welcome screens or wizards (family rule).

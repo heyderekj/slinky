@@ -18,10 +18,10 @@ public struct Detection: Equatable, Sendable {
         case kept, key, project, codes
         public var title: String {
             switch self {
-            case .kept: "Kept"
-            case .key: "Key"
-            case .project: "Project variable"
-            case .codes: "Recovery codes"
+            case .kept: "Secure Note"
+            case .key: "Key or Token"
+            case .project: "Project Variable"
+            case .codes: "Recovery Codes"
             }
         }
     }
@@ -59,7 +59,7 @@ public enum Detector {
         Rule(pattern: #"^sk_test_[A-Za-z0-9]{8,}"#, provider: "Stripe", label: "Looks like a Stripe test key.", name: "STRIPE_SECRET_KEY"),
         Rule(pattern: #"^rk_(live|test)_[A-Za-z0-9]{8,}"#, provider: "Stripe", label: "Looks like a Stripe restricted key.", name: "STRIPE_RESTRICTED_KEY"),
         Rule(pattern: #"^whsec_[A-Za-z0-9]{8,}"#, provider: "Stripe", label: "Looks like a Stripe webhook secret.", name: "STRIPE_WEBHOOK_SECRET"),
-        Rule(pattern: #"^pk_(live|test)_[A-Za-z0-9]{8,}"#, provider: "Stripe", label: "Looks like a Stripe publishable key. That one isn't secret.", name: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", plain: true),
+        Rule(pattern: #"^pk_(live|test)_[A-Za-z0-9]{8,}"#, provider: "Stripe", label: "Looks like a Stripe publishable key. These are public, not secret.", name: "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY", plain: true),
         Rule(pattern: #"^sk-ant-[A-Za-z0-9_\-]{8,}"#, provider: "Anthropic", label: "Looks like an Anthropic key.", name: "ANTHROPIC_API_KEY"),
         Rule(pattern: #"^sk-(proj|svcacct|admin)-[A-Za-z0-9_\-]{8,}"#, provider: "OpenAI", label: "Looks like an OpenAI key.", name: "OPENAI_API_KEY"),
         Rule(pattern: #"^sk-[A-Za-z0-9]{20,}"#, provider: "OpenAI", label: "Looks like an OpenAI key.", name: "OPENAI_API_KEY"),
@@ -71,10 +71,10 @@ public enum Detector {
         Rule(pattern: #"^hf_[A-Za-z0-9]{20,}"#, provider: "Hugging Face", label: "Looks like a Hugging Face token.", name: "HF_TOKEN"),
         Rule(pattern: #"^xox[abpr]-[A-Za-z0-9\-]{10,}"#, provider: "Slack", label: "Looks like a Slack token.", name: "SLACK_BOT_TOKEN"),
         Rule(pattern: #"^sb_secret_[A-Za-z0-9_\-]{8,}"#, provider: "Supabase", label: "Looks like a Supabase secret key.", name: "SUPABASE_SECRET_KEY"),
-        Rule(pattern: #"^sb_publishable_[A-Za-z0-9_\-]{8,}"#, provider: "Supabase", label: "Looks like a Supabase publishable key. That one isn't secret.", name: "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", plain: true),
+        Rule(pattern: #"^sb_publishable_[A-Za-z0-9_\-]{8,}"#, provider: "Supabase", label: "Looks like a Supabase publishable key. These are public, not secret.", name: "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", plain: true),
         Rule(pattern: #"^nfp_[A-Za-z0-9]{8,}"#, provider: "Netlify", label: "Looks like a Netlify token.", name: "NETLIFY_AUTH_TOKEN"),
         Rule(pattern: #"^vercel_[A-Za-z0-9]{8,}"#, provider: "Vercel", label: "Looks like a Vercel token.", name: "VERCEL_TOKEN"),
-        Rule(pattern: #"^phc_[A-Za-z0-9]{8,}"#, provider: "PostHog", label: "Looks like a PostHog project key. That one isn't secret.", name: "NEXT_PUBLIC_POSTHOG_KEY", plain: true),
+        Rule(pattern: #"^phc_[A-Za-z0-9]{8,}"#, provider: "PostHog", label: "Looks like a PostHog project key. These are public, not secret.", name: "NEXT_PUBLIC_POSTHOG_KEY", plain: true),
         Rule(pattern: #"^(postgres|postgresql|mysql|mongodb(\+srv)?|redis)://"#, provider: "Database", label: "Looks like a database URL.", name: "DATABASE_URL"),
         Rule(pattern: #"^eyJ[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+"#, provider: "JWT", label: "Looks like a JWT. Maybe a Supabase key.", name: "SUPABASE_SERVICE_ROLE_KEY"),
     ]
@@ -93,7 +93,7 @@ public enum Detector {
         }
         if isWalletSeed(text) {
             return Detection(kind: .walletSeed, provider: nil,
-                             label: "That looks like a wallet seed. It belongs on paper, not on a computer an agent can reach.", suggestedName: nil)
+                             label: "This looks like a crypto wallet recovery phrase. For your safety, Slinky doesn't store these. Keep it on paper or a hardware wallet.", suggestedName: nil)
         }
         if text.lowercased().hasPrefix("otpauth://") {
             return Detection(kind: .setupKey, provider: nil, label: "Looks like a 2FA setup key.", suggestedName: "2FA setup key")
@@ -115,7 +115,7 @@ public enum Detector {
             return Detection(kind: rule.plain ? .plainConfig : .apiKey, provider: rule.provider, label: rule.label,
                              suggestedName: rule.name, isLive: rule.live)
         }
-        return Detection(kind: .unknown, provider: nil, label: "Doesn't look like anything Slinky knows. Name it yourself.", suggestedName: nil)
+        return Detection(kind: .unknown, provider: nil, label: "Slinky doesn't recognize this format. Give it a name below.", suggestedName: nil)
     }
 
     /// 12, 15, 18, 21 or 24 short lowercase words. We don't ship the BIP-39 word list; the shape is enough to say no.
