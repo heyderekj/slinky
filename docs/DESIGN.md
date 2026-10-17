@@ -79,6 +79,13 @@ Read this before any design work. Every visual decision should trace back to som
   - Finder's rules, tested: a background picture can't follow light/dark mode; with a picture, icon labels are always black; transparent parts are filled with white even in dark mode. So the background has to be light enough for black labels, and "system background plus a pattern" isn't possible. Only Finder's plain default background follows the mode, and it can't show art.
 - **Working state:** the keyhole is absorbed into the asterisk, which spins (see `docs/plan.md`).
 
+## Website (slinkyfiles.com, `site/`)
+- Astro on Cloudflare Pages, like heyderekj.com and testamentmade.com. Family type and motion: Figtree, paper/ink tokens, `--ease`, squircles.
+- **Wallpaper:** a mesh gradient drawn in WebGL2 (`site/src/scripts/glass.ts`). Mostly ice white with hints of glacier blue; never purple (Derek, 2026-10-17). Dark mode is deep glacier navy.
+- **Glass:** the same shader refracts the wallpaper under every `[data-glass]` element, so it works in Safari. Kept subtle: light bending, soft rim. Things that float over page content (family tabs, bottom bar, toasts) use CSS blur (`.float-glass`) instead.
+- **Navigation:** family tabs across the top (Dinky, Binky, Slinky; the current app raised), and the site's own links in a glass bar at the bottom. Dinky and Binky move to the same pattern.
+- **No screenshots:** the app is rebuilt in HTML with small demos (Add Item, a project's .env, recovery codes, Quick Access, the lock).
+
 ## Live documents
 - Brief: https://claude.ai/artifact/McGgBjGnbNoYo5WwDqKURU (`docs/slinky-brief.html`)
 - Layouts: https://claude.ai/artifact/8YhiTxEgrAT4oewnE1D37c (`docs/slinky-layouts.html`)
