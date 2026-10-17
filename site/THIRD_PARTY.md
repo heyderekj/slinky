@@ -7,3 +7,5 @@ The site's wallpaper and Liquid Glass (`src/scripts/glass.ts`) are Slinky's own 
 - **Liquid Glass refraction:** a convex squircle bezel with refraction, specular rim and colour fringing, after Kube's "Liquid Glass in CSS and SVG" (https://kube.io/blog/liquid-glass-css-svg/) and Shu Ding's liquid-glass demo (MIT, https://github.com/shuding/liquid-glass).
 - **Family design language:** tokens, motion and the mesh card palette format from heyderekj.com and testamentmade.com (Testament Made, LLC).
 - **Font:** Figtree by Erik Kennedy, served by Google Fonts (SIL Open Font License).
+
+- **App icons in the menu bar joke** (`public/menubar-apps/`): Google Chrome, Figma, Slack, Xcode, Zoom, Discord, Notion, Arc, Cursor, Visual Studio Code, Microsoft Edge, Steam, OBS and Firefox icons belong to their owners. They appear small, only to name those apps in the battery menu's "Using Significant Energy" list, as macOS itself would.
