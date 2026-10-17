@@ -9,6 +9,8 @@ struct AttentionItem: Identifiable {
     let title: String
     let detail: String
     let target: SidebarItem
+    /// Set for a recovery key with no copy outside Slinky: the row offers Print… and "I Have a Copy".
+    var recoveryKeyID: UUID?
 }
 
 extension AppModel {
@@ -28,6 +30,13 @@ extension AppModel {
                 title: "\(project.name) is missing \(n) \(n == 1 ? "variable" : "variables")",
                 detail: project.missing.prefix(4).joined(separator: ", ") + (n > 4 ? " and \(n - 4) more" : ""),
                 target: .project(project.id)))
+        }
+        for item in document.kept where item.kind == .recoveryKey && !item.printedCopy {
+            items.append(AttentionItem(
+                id: "copy-\(item.id)", symbol: "printer",
+                title: "\(item.label) has no copy outside Slinky",
+                detail: "If you lose this Mac and your Recovery Key, a printed copy is your way back in.",
+                target: .library(.recovery), recoveryKeyID: item.id))
         }
         let soon = Date.now.addingTimeInterval(14 * 86_400)
         for key in document.keys {
@@ -80,6 +89,7 @@ struct AttentionView: View {
 }
 
 private struct AttentionRow: View {
+    @Environment(AppModel.self) private var model
     let item: AttentionItem
     let show: () -> Void
 
@@ -95,7 +105,17 @@ private struct AttentionRow: View {
                 Text(item.detail).font(.callout).foregroundStyle(.secondary).lineLimit(2)
             }
             Spacer(minLength: 8)
-            Button("Show", action: show)
+            if let id = item.recoveryKeyID, let kept = model.document.kept.first(where: { $0.id == id }) {
+                Button("I Have a Copy") { model.markPrinted(id) }
+                    .help("You've saved it somewhere else, like on paper or in Apple Passwords")
+                Button("Print…") {
+                    RecoveryPrinter.print(kept.value, title: kept.label)
+                    model.markPrinted(id)
+                }
+                .buttonStyle(.glassProminent)
+            } else {
+                Button("Show", action: show)
+            }
         }
         .padding(12)
         .glassEffect(.regular, in: .rect(cornerRadius: 14))

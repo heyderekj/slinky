@@ -114,6 +114,14 @@ struct AddItemPanel: View {
                 if let detection {
                     detectionLine(detection).padding(.top, 12)
                 }
+                if let duplicate = duplicateNote {
+                    Label(duplicate, systemImage: "exclamationmark.triangle")
+                        .font(.callout)
+                        .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 6)
+                        .transition(.opacity)
+                }
                 if !isSeed {
                     chips.padding(.top, 12)
                 }
@@ -527,6 +535,25 @@ struct AddItemPanel: View {
     }
 
     // MARK: Derived values
+
+    /// "Already saved in Keys & Tokens, as GITHUB_TOKEN." Saving again is allowed; this just says so.
+    private var duplicateNote: String? {
+        guard captured, !isSeed else { return nil }
+        if destination == .codes {
+            let places = model.places(ofCodes: codes)
+            return places.isEmpty ? nil : "Some of these codes are already saved: \(places.joined(separator: "; "))."
+        }
+        if envLines.count > 1 {
+            let repeated = envLines.filter { !model.places(of: $0.value).isEmpty }.count
+            guard repeated > 0 else { return nil }
+            return repeated == envLines.count
+                ? "All of these values are already saved in Slinky."
+                : "\(repeated) of these values \(repeated == 1 ? "is" : "are") already saved in Slinky."
+        }
+        let places = model.places(of: singleValue)
+        guard let first = places.first else { return nil }
+        return "Already saved in \(first)" + (places.count > 1 ? " and \(places.count - 1) more \(places.count == 2 ? "place" : "places")." : ".")
+    }
 
     private var nameBinding: Binding<String> {
         Binding(get: { name }, set: { name = $0; nameTouched = true })

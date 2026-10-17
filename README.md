@@ -10,7 +10,9 @@ The family: [Dinky](https://github.com/heyderekj/dinky) makes files smaller. [Bi
 - **Projects for `.env` files.** Drop a project folder and Slinky reads its `.env` files, sorts them into Local, Preview and Production, checks they're in `.gitignore`, and uses `.env.example` to show what's missing.
 - **Recovery codes that cross themselves off.** Copy a backup code and Slinky marks it used, and tells you when you're running low.
 - **Quick Access, ⌥⌘K.** Find and copy anything from any app. Copies are marked private, so clipboard history apps skip them, and they clear themselves.
-- **Needs Attention.** Low codes, missing variables and keys about to expire, in one place.
+- **Needs Attention.** Low codes, missing variables, keys about to expire and recovery keys with no printed copy, in one place.
+- **No accidental doubles.** Paste something you've already saved and Slinky tells you where it is.
+- **Switching from 1Password?** Import a `.1pux` export or a CSV (1Password, Apple Passwords, Bitwarden, or a sheet of keys). Slinky picks out keys, tokens, backup codes and recovery keys, and leaves passwords for Apple Passwords.
 - **Locks itself.** Touch ID to open. Locks with your screen, on sleep, when you're away, and after 12 hours.
 - **Shortcuts.** Add to Slinky, Copy from Slinky (Touch ID every time), Open Quick Access and Lock Slinky.
 

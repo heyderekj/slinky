@@ -91,6 +91,12 @@ struct LibraryView: View {
             .controlSize(.extraLarge)
             .font(.title3.weight(.semibold))
             .padding(.top, 8)
+            if filter == .all {
+                Button("Switching from 1Password? Import your keys…") { model.beginImport() }
+                    .buttonStyle(.link)
+                    .font(.callout)
+                    .padding(.top, 2)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
@@ -227,7 +233,7 @@ struct KeptCard: View {
                         Label("Printed", systemImage: "checkmark").font(.caption).foregroundStyle(.secondary)
                     } else {
                         Button("Print…") {
-                            RecoveryPrinter.print(item.value)
+                            RecoveryPrinter.print(item.value, title: item.label)
                             model.markPrinted(item.id)
                         }
                         .buttonStyle(.glass).controlSize(.small)

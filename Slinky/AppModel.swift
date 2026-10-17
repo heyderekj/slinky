@@ -87,6 +87,9 @@ final class AppModel {
     var showNewProject = false
     /// The item open in the Edit panel, if any.
     var editing: EditTarget?
+    /// What an import file contained, while the import panel is open.
+    var importing: Importer.Result?
+    var importSource: URL?
     /// A folder to start New Project with (from a drop on the sidebar).
     var newProjectFolder: URL?
     var tuckPrefill = ""
@@ -245,6 +248,8 @@ final class AppModel {
         showTuck = false
         showNewProject = false
         editing = nil
+        importing = nil
+        importSource = nil
         idleTimer?.invalidate()
         lockNote = reason.note
         phase = .locked
@@ -438,6 +443,52 @@ final class AppModel {
         change(undoable: true) { $0.codeSets[s].used.insert(index) }
         let left = document.codeSets[s].remaining
         show("Copied and marked as used. \(left) left." + (left <= 3 ? " Consider generating new codes." : ""), canUndo: true, style: .success)
+    }
+
+    // MARK: Duplicates and import
+
+    /// Everywhere this exact value is already saved, in plain words ("Keys & Tokens, as GITHUB_TOKEN").
+    /// Compared in memory only, while unlocked. Nothing about the value is stored for this.
+    func places(of raw: String) -> [String] {
+        let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !value.isEmpty else { return [] }
+        var out: [String] = []
+        for key in document.keys where key.value == value { out.append("Keys & Tokens, as \(key.name)") }
+        for item in document.kept where item.value == value { out.append("Recovery, as \(item.label)") }
+        for set in document.codeSets where set.codes.contains(value) { out.append("Recovery, in \(set.account) codes") }
+        for project in document.projects {
+            for variable in project.variables {
+                let envs = AppEnvironment.allCases.filter { variable.value(in: $0) == value }
+                if !envs.isEmpty { out.append("\(project.name), as \(variable.name) (\(envs.map(\.title).joined(separator: ", ")))") }
+            }
+        }
+        return out
+    }
+
+    /// The same check for a set of codes: any overlap with a saved set.
+    func places(ofCodes codes: [String]) -> [String] {
+        let wanted = Set(codes)
+        return document.codeSets.filter { !wanted.isDisjoint(with: $0.codes) }.map { "Recovery, in \($0.account) codes" }
+    }
+
+    /// Saves what the person picked on the import screen, in one change with one message.
+    func importItems(_ items: [Importer.Candidate]) {
+        guard !items.isEmpty else { return }
+        change("Imported \(items.count) \(items.count == 1 ? "item" : "items").") { doc in
+            for item in items {
+                switch item.kind {
+                case let .key(provider, isLive, expires):
+                    doc.keys.append(Key(name: item.name, value: item.value, provider: provider, isLive: isLive,
+                                        expires: expires, note: item.note))
+                case let .codes(codes):
+                    doc.codeSets.append(CodeSet(account: item.name, codes: codes))
+                case let .recoveryKey(kind):
+                    doc.kept.append(KeptItem(label: item.name, kind: kind, value: item.value, note: item.note))
+                }
+            }
+        }
+        Sounds.play(.imported)
+        selection = .library(.all)
     }
 
     func markPrinted(_ id: UUID) {

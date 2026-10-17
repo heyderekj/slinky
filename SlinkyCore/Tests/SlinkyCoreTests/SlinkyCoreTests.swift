@@ -206,3 +206,75 @@ struct ProjectScanTests {
         #expect(ProjectScan.isIgnored(".env.production", by: ["**/.env.*"]))
     }
 }
+
+@Suite("Import")
+struct ImportTests {
+    private let export = """
+    {"accounts":[{"attrs":{"name":"Derek"},"vaults":[{"attrs":{"name":"Personal"},"items":[
+      {"uuid":"a","categoryUuid":"112","overview":{"title":"OpenAI"},"details":{"sections":[{"fields":[
+        {"id":"credential","value":{"concealed":"sk-proj-EXAMPLEEXAMPLEEXAMPLE"}},
+        {"id":"expires","value":{"date":1893456000}}]}]}},
+      {"uuid":"b","categoryUuid":"001","overview":{"title":"GitHub","url":"https://github.com"},
+       "details":{"loginFields":[{"designation":"password","value":"EXAMPLE-password"}],
+                  "notesPlain":"Backup codes\\nab12c-3de45\\nfg67h-8ij90\\nkl12m-3no45\\npq67r-8st90"}},
+      {"uuid":"c","categoryUuid":"001","overview":{"title":"Netflix"},"details":{"loginFields":[{"designation":"password","value":"EXAMPLE"}]}},
+      {"uuid":"d","categoryUuid":"003","overview":{"title":"Stripe"},"details":{"sections":[{"fields":[
+        {"id":"x","value":{"concealed":"sk_live_EXAMPLEEXAMPLE"}}]}]}},
+      {"uuid":"e","categoryUuid":"003","overview":{"title":"Old"},"state":"archived","details":{"notesPlain":"ABCD-EFGH-JKLM-NPQR-STUV-WXYZ-2345"}}
+    ]}]}]}
+    """
+
+    @Test func onePasswordFindsKeysAndCodesAndSkipsPasswords() throws {
+        let result = try Importer.onePassword(Data(export.utf8))
+        #expect(result.candidates.count == 3)
+        let openAI = try #require(result.candidates.first { $0.name == "OpenAI" })
+        if case let .key(provider, _, expires) = openAI.kind {
+            #expect(provider == "OpenAI")
+            #expect(expires != nil)
+        } else { Issue.record("OpenAI should be a key") }
+        let github = try #require(result.candidates.first { $0.name == "GitHub" })
+        if case let .codes(codes) = github.kind { #expect(codes.count == 4) } else { Issue.record("GitHub should be codes") }
+        let stripe = try #require(result.candidates.first { $0.value.hasPrefix("sk_live_") })
+        #expect(stripe.name == "STRIPE_SECRET_KEY")
+        #expect(!result.candidates.contains { $0.value.contains("password") })
+        #expect(result.skippedPasswords == 1)   // Netflix
+    }
+
+    @Test func readsAOnePuxZip() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("slinky-1pux-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        try Data(export.utf8).write(to: dir.appendingPathComponent("export.data"))
+        let zip = dir.appendingPathComponent("test.1pux")
+        let p = Process()
+        p.executableURL = URL(fileURLWithPath: "/usr/bin/zip")
+        p.currentDirectoryURL = dir
+        p.arguments = ["-q", zip.path, "export.data"]
+        try p.run(); p.waitUntilExit()
+        let result = try Importer.read(zip)
+        #expect(result.candidates.count == 3)
+    }
+
+    @Test func csvFromAPasswordManagerKeepsOnlyKeysAndCodes() {
+        let text = """
+        Title,URL,Username,Password,Notes,OTPAuth
+        GitHub,https://github.com,derek,EXAMPLE-password,"Codes:
+        ab12c-3de45
+        fg67h-8ij90
+        kl12m-3no45
+        pq67r-8st90",
+        Anthropic,https://console.anthropic.com,derek,sk-ant-EXAMPLEEXAMPLE,,
+        Bank,https://bank.example,derek,EXAMPLE,,
+        """
+        let result = Importer.csv(text, source: "Passwords")
+        #expect(result.candidates.count == 2)
+        #expect(result.candidates.contains { if case .codes = $0.kind { return $0.name == "GitHub" }; return false })
+        #expect(result.candidates.contains { $0.name == "ANTHROPIC_API_KEY" })
+        #expect(result.skippedPasswords == 1)
+    }
+
+    @Test func plainNameValueSheet() {
+        let result = Importer.csv("name,value\nMY_SERVICE_TOKEN,EXAMPLE123\n\"Quoted, name\",\"has \"\"quotes\"\"\"\n", source: "keys")
+        #expect(result.candidates.map(\.name) == ["MY_SERVICE_TOKEN", "Quoted, name"])
+        #expect(result.candidates.last?.value == "has \"quotes\"")
+    }
+}

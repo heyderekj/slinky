@@ -59,16 +59,28 @@ struct RecoveryKeySheet: View {
 }
 
 enum RecoveryPrinter {
-    static func print(_ key: String) {
+    /// With no title, prints Slinky's own Recovery Key. With a title, prints a saved account recovery key.
+    static func print(_ key: String, title: String? = nil) {
         let text = NSTextView(frame: NSRect(x: 0, y: 0, width: 468, height: 300))
-        text.string = """
-        Slinky Recovery Key
+        let date = Date.now.formatted(date: .long, time: .omitted)
+        if let title {
+            text.string = """
+            \(title)
 
-        \(key)
+            \(key)
 
-        Opens your Slinky vault on any Mac. Keep this somewhere safe and offline.
-        Printed \(Date.now.formatted(date: .long, time: .omitted)).
-        """
+            Printed from Slinky on \(date). Keep this somewhere safe and offline.
+            """
+        } else {
+            text.string = """
+            Slinky Recovery Key
+
+            \(key)
+
+            Opens your Slinky vault on any Mac. Keep this somewhere safe and offline.
+            Printed \(date).
+            """
+        }
         text.font = .monospacedSystemFont(ofSize: 14, weight: .regular)
         NSPrintOperation(view: text).run()
     }

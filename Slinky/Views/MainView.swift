@@ -42,11 +42,14 @@ struct MainView: View {
                 NewProjectOverlay().transition(.opacity)
             } else if let target = model.editing {
                 EditOverlay(target: target).transition(.opacity)
+            } else if let result = model.importing {
+                ImportOverlay(result: result).transition(.opacity)
             }
         }
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showTuck)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showNewProject)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.editing)
+        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.importing != nil)
         .sheet(isPresented: Binding(get: { model.recoveryKeyToShow != nil && !model.showTuck },
                                     set: { if !$0 { model.recoveryKeyToShow = nil } })) {
             if let key = model.recoveryKeyToShow { RecoveryKeySheet(key: key) }

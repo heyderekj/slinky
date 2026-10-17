@@ -35,6 +35,10 @@ struct SlinkyApp: App {
                 Button("New Project…") { model.showNewProject = true }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
+                Divider()
+                Button("Import from 1Password or CSV…") { model.beginImport() }
+                    .keyboardShortcut("i", modifiers: [.command, .shift])
+                    .disabled(!model.isUnlocked)
             }
             CommandGroup(after: .newItem) {
                 Button("Quick Access") { QuickAccess.shared.show() }
