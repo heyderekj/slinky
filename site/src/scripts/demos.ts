@@ -314,6 +314,14 @@ function dock() {
   const d = $('[data-dock]');
   if (!d) return;
   const apps = $$<HTMLAnchorElement>('.dock__app', d);
+  // On this Mac the Dock opens the other sites' local servers, so switching can be tried before they're live.
+  if (location.hostname === 'localhost') {
+    const ports: Record<string, number> = { dinky: 4343, binky: 4342, slinky: 4329 };
+    for (const a of apps) {
+      const m = a.hostname.match(/^(dinky|binky|slinky)files\.com$/);
+      if (m) a.href = `http://localhost:${ports[m[1]]}/`;
+    }
+  }
   let centers: number[] = [];
   const set = (a: HTMLElement, m: number) => a.style.setProperty('--mag', m.toFixed(3));
   if (matchMedia('(hover: hover)').matches) {
