@@ -445,9 +445,17 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .badge { display: inline-flex; height: 24px; align-items: center; padding: 0 10px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: color-mix(in oklch, var(--brand) 16%, transparent); color: var(--brand-ink); }
 @media (max-width: 860px) { .next { grid-template-columns: 1fr; } .next__term { overflow-x: auto; } }
 
-.plain { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+/* Two plain columns split by a hairline, no cards. */
+.plain { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; }
+.plain .tile { border-radius: 0; padding: 4px 40px; }
+.plain .tile:first-child { padding-left: 0; }
+.plain .tile + .tile { border-left: 1px solid color-mix(in oklch, var(--ink) 12%, transparent); padding-right: 0; }
 .plain .tile ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-soft); font-size: 15px; display: grid; gap: 6px; }
-@media (max-width: 760px) { .plain { grid-template-columns: 1fr; } }
+@media (max-width: 760px) {
+  .plain { grid-template-columns: 1fr; }
+  .plain .tile { padding: 0; }
+  .plain .tile + .tile { border-left: 0; border-top: 1px solid color-mix(in oklch, var(--ink) 12%, transparent); margin-top: 28px; padding-top: 28px; }
+}
 
 .faq { margin-top: 40px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
 .faq details { border-radius: 20px; padding: 0; }
