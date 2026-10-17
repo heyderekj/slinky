@@ -18,7 +18,8 @@ const projects = [
 <div class={`mac ${sidebar ? '' : 'mac--small'} ${cls}`} data-glass="window" id={id} role="img" aria-label={`A recreation of Slinky's ${title} window`}>
   {sidebar && (
     <aside class="mac__sidebar" data-glass="panel">
-      <div class="mac__lights"><i></i><i></i><i></i></div>
+      {/* Like Binky and the real window: traffic lights, and the sidebar toggle at the sidebar's top right. */}
+      <div class="mac__bar"><div class="mac__lights"><i></i><i></i><i></i></div><span class="mac__sbtoggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" aria-hidden="true"><rect x="2.8" y="4.6" width="18.4" height="14.8" rx="3.4"/><path d="M9.3 4.8v14.4M5.3 8.4h1.6M5.3 10.9h1.6M5.3 13.4h1.6"/></svg></span></div>
       <div class="mac__search"><Icon name="search" /> Search</div>
       {rows.map((r) => (
         <div class={`mac__row ${selected === r.id ? 'is-on' : ''}`}><Icon name={r.icon} />{r.label}<span class="count">{r.count}</span></div>
