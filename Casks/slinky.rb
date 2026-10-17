@@ -7,6 +7,7 @@ cask "slinky" do
   desc "Keeps secrets out of files: API keys, .env variables and recovery codes"
   homepage "https://slinkyfiles.com"
 
+  depends_on arch: :arm64
   depends_on macos: :tahoe
 
   app "Slinky.app"

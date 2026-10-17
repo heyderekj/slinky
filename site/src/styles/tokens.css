@@ -24,14 +24,14 @@
 
   /* Slinky's mesh (the "desktop wallpaper"). Five points, same format as the testamentmade app cards. */
   /* Mostly ice white, with hints of glacier blue. No purple: Slinky is ice. */
-  --c1: #8fc5ee;   /* glacier, softened */
-  --c2: #f7fbff;   /* ice, nearly white */
-  --c3: #b4dcf6;   /* sky */
-  --c4: #e3f1fc;   /* frost */
-  --c5: #eef7fe;   /* pale ice */
-  --brand: #4a7aa3; /* the app's accent: carries white text at about 4.6:1 */
-  --brand-ink: #1f5f93;
-  --glow: rgb(30 100 170 / 0.45);
+  --c1: #7fdbe8;   /* glacier cyan, softened */
+  --c2: #f6fdfe;   /* ice, nearly white */
+  --c3: #a8ebf2;   /* meltwater */
+  --c4: #def6f9;   /* frost */
+  --c5: #ecfafc;   /* pale ice */
+  --brand: #0b7f8f; /* the app's accent, glacier cyan: carries white text at about 4.7:1 */
+  --brand-ink: #0a6b78;
+  --glow: rgb(10 150 170 / 0.45);
 
   /* Inside the recreated app: Slinky's paper under values, and Tahoe-ish greys. */
   --app-paper: #fbfcfe;
@@ -53,13 +53,13 @@
     --shadow-lift: 0 2px 4px rgb(0 0 0 / 0.3), 0 18px 40px -18px rgb(0 0 0 / 0.7);
     color-scheme: dark;
 
-    --c1: #1d5a8f;
-    --c2: #0a1622;
-    --c3: #23608f;
-    --c4: #0f2333;
-    --c5: #0d1d2c;
-    --brand-ink: #9fd0f2;
-    --glow: rgb(20 90 160 / 0.55);
+    --c1: #0f6b78;
+    --c2: #071a1e;
+    --c3: #127480;
+    --c4: #0c262b;
+    --c5: #0b1f24;
+    --brand-ink: #8ee3ec;
+    --glow: rgb(10 140 160 / 0.55);
 
     --app-paper: #16171a;
     --app-text: #f5f5f7;

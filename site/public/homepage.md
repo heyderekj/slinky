@@ -2,7 +2,7 @@
 
 A free Mac app for API keys, .env variables and recovery codes. Encrypted on your Mac, opened with Touch ID.
 
-[Download for Mac](https://github.com/heyderekj/slinky/releases/latest) · [GitHub](https://github.com/heyderekj/slinky) · macOS 26 Tahoe or later · Apple silicon and Intel
+[Download for Mac](https://github.com/heyderekj/slinky/releases/latest) · [GitHub](https://github.com/heyderekj/slinky) · macOS 26 Tahoe or later · Apple silicon
 
 ## Everything you're told to "store somewhere safe"
 

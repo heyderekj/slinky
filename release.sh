@@ -53,6 +53,7 @@ echo "→ Building Release…"
 xcodebuild -project Slinky.xcodeproj -scheme Slinky -configuration Release -destination 'platform=macOS' \
   -derivedDataPath build/release clean build | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
 codesign --verify --deep --strict "$APP"
+[ "$(lipo -archs "$APP/Contents/MacOS/Slinky")" = "arm64" ] || { echo "✘ Expected an Apple silicon-only build"; exit 1; }
 echo "→ Signed: $(codesign -dvv "$APP" 2>&1 | grep -E '^Authority=Apple Development' | head -1)"
 
 # 4. Package

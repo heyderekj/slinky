@@ -4,15 +4,15 @@ import SwiftUI
 /// Provider initials on a soft tinted square. No brand logos, no network.
 /// A small Mac-app-icon tile for a service, project or account: a continuous squircle with a vibrant gradient,
 /// a soft top sheen, a hairline rim and a white letter. Colors come from a short curated palette that sits
-/// well next to Slinky's glacier blue. With no name yet, it shows Slinky's own asterisk on glacier blue.
+/// well next to Slinky's glacier cyan. With no name yet, it shows Slinky's own asterisk on glacier cyan.
 struct Monogram: View {
     var text: String
     var size: CGFloat = 30
 
     /// (top, bottom) gradient stops. Glacier first: it's Slinky's own color.
     private static let palette: [(Color, Color)] = [
-        (Color(red: 0.55, green: 0.80, blue: 0.96), Color(red: 0.18, green: 0.50, blue: 0.80)),   // glacier
-        (Color(red: 0.42, green: 0.88, blue: 0.86), Color(red: 0.05, green: 0.56, blue: 0.62)),   // teal
+        (Color(red: 0.50, green: 0.89, blue: 0.95), Color(red: 0.04, green: 0.56, blue: 0.66)),   // glacier cyan
+        (Color(red: 0.55, green: 0.76, blue: 0.98), Color(red: 0.16, green: 0.42, blue: 0.84)),   // sky
         (Color(red: 0.56, green: 0.92, blue: 0.66), Color(red: 0.12, green: 0.62, blue: 0.40)),   // mint
         (Color(red: 0.62, green: 0.66, blue: 1.00), Color(red: 0.30, green: 0.30, blue: 0.86)),   // indigo
         (Color(red: 0.80, green: 0.64, blue: 1.00), Color(red: 0.50, green: 0.28, blue: 0.86)),   // violet
@@ -168,22 +168,22 @@ struct KeyholeMark: View {
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: size * 0.225, style: .continuous)
-                .fill(LinearGradient(colors: [Color(red: 0.55, green: 0.80, blue: 0.95), Color(red: 0.20, green: 0.52, blue: 0.78)],
+                .fill(LinearGradient(colors: [Color(red: 0.52, green: 0.89, blue: 0.95), Color(red: 0.06, green: 0.62, blue: 0.72)],
                                      startPoint: .topLeading, endPoint: .bottomTrailing))
             // Only the asterisk turns. The keyhole always stays upright.
             AsteriskShape()
                 .stroke(Color.white, style: StrokeStyle(lineWidth: size * 0.146, lineCap: .round))
-                .shadow(color: Color(red: 0.05, green: 0.2, blue: 0.35).opacity(0.45), radius: size * 0.04, x: size * 0.012, y: size * 0.018)
+                .shadow(color: Color(red: 0.02, green: 0.22, blue: 0.27).opacity(0.45), radius: size * 0.04, x: size * 0.012, y: size * 0.018)
                 .padding(size * 0.21)
                 .rotationEffect(.degrees(-8 + spin))
             ZStack {
                 Capsule()
-                    .fill(LinearGradient(colors: [Color(red: 0.06, green: 0.16, blue: 0.27), Color(red: 0.14, green: 0.30, blue: 0.45)],
+                    .fill(LinearGradient(colors: [Color(red: 0.03, green: 0.16, blue: 0.19), Color(red: 0.07, green: 0.31, blue: 0.36)],
                                          startPoint: .top, endPoint: .bottom))
                     .frame(width: size * 0.053, height: size * 0.15)
                     .offset(y: size * 0.03)
                     .overlay(Circle()
-                        .fill(Color(red: 0.06, green: 0.16, blue: 0.27))
+                        .fill(Color(red: 0.03, green: 0.16, blue: 0.19))
                         .frame(width: size * 0.12)
                         .offset(y: -size * 0.07))
                     .scaleEffect(keyholeScale)

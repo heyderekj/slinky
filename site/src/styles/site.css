@@ -59,7 +59,7 @@ p { margin: 0; text-wrap: pretty; }
 
 /* ---------- Desktops: little Mac screens where the mesh wallpaper lives ---------- */
 .desktop {
-  --menubar-hole: #eaf4fc;
+  --menubar-hole: #e6f7f9;
   position: relative; border-radius: 14px; overflow: hidden; isolation: isolate;
   box-shadow: 0 0 0 1px var(--hair), var(--shadow);
   background: var(--c5);
@@ -104,7 +104,7 @@ p { margin: 0; text-wrap: pretty; }
 }
 .desktop__stage { position: relative; display: grid; place-items: center; padding: 44px 36px 48px; }
 @media (max-width: 640px) { .desktop__stage { padding: 28px 14px 32px; } }
-@media (prefers-color-scheme: dark) { .desktop { --menubar-hole: #0d1d2c; } }
+@media (prefers-color-scheme: dark) { .desktop { --menubar-hole: #0b1f24; } }
 
 /* Plain family cards for everything that isn't on a desktop */
 .card-plain { background: var(--card); box-shadow: 0 0 0 1px var(--hair), var(--shadow); border-radius: 22px; }
@@ -121,7 +121,7 @@ p { margin: 0; text-wrap: pretty; }
 .dock.is-tracking .dock__app { transition: none; }
 .dock__app img {
   width: 54px; height: 54px; border-radius: 23%; transform-origin: 50% 100%;
-  box-shadow: 0 6px 14px -6px rgb(10 40 80 / 0.4);
+  box-shadow: 0 6px 14px -6px rgb(5 50 60 / 0.4);
   scale: var(--mag, 1); translate: 0 calc((var(--mag, 1) - 1) * -10px);
   transition: scale 0.12s linear, translate 0.12s linear;
 }

@@ -31,7 +31,8 @@
 - `spike/` — the throwaway feasibility test. Don't build on it.
 
 ## Design
-- Brand: clear, glassy, white, glacier/ice blue. Accent `#4a7aa3` in light and dark mode (it carries white text). Glass on chrome (sidebars, toolbars, panels, cards that float); values on opaque cool "paper" (`Color.paper`).
+- Brand: clear, glassy, white, **glacier cyan** (changed from ice blue on 2026-10-17 so Slinky holds its own spot next to Harvous's blue in the Testament Made suite). Accent `#0b7f8f` in light and dark mode (it carries white text). Icon fill `#1ac8db`.
+- Apple silicon only (arm64). Set at the project level and checked by `release.sh`. Glass on chrome (sidebars, toolbars, panels, cards that float); values on opaque cool "paper" (`Color.paper`).
 - Layouts from `docs/slinky-layouts.html`: A (.env project view), B (Library shelf), C (Quick Access ⌥⌘K), D (agent receipts, later), F (menu bar stack).
 - Voice: see `VOICE.md`. Plain, serious, non-technical, for everyone. No clever labels in the app.
 - **Design: read `docs/DESIGN.md` before any UI work.** It holds the principles, every reference and what we took from it, and decisions already made. No welcome screens or wizards (family rule).

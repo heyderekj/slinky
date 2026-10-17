@@ -26,7 +26,7 @@ Slinky doesn't store passwords (that's Apple Passwords) or crypto wallet recover
 
 ## Install
 
-**Requires macOS 26 (Tahoe) or later.**
+**Requires a Mac with Apple silicon and macOS 26 (Tahoe) or later.**
 
 Download the latest DMG from [Releases](https://github.com/heyderekj/slinky/releases/latest), drag Slinky to Applications and open it.
 
