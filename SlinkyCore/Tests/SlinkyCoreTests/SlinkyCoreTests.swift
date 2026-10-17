@@ -137,3 +137,57 @@ struct VaultTests {
         #expect(RecoveryKey("too-short") == nil)
     }
 }
+
+@Suite("Project scan")
+struct ProjectScanTests {
+    private func folder(_ files: [String: String]) throws -> URL {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("slinky-scan-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        for (name, text) in files {
+            if name.hasSuffix("/") {
+                try FileManager.default.createDirectory(at: dir.appendingPathComponent(name), withIntermediateDirectories: true)
+            } else {
+                try text.write(to: dir.appendingPathComponent(name), atomically: true, encoding: .utf8)
+            }
+        }
+        return dir
+    }
+
+    @Test func findsEnvFilesAndGuessesEnvironments() throws {
+        let dir = try folder([
+            ".env.local": "A=EXAMPLE\nB=EXAMPLE",
+            ".env.production": "A=EXAMPLE",
+            ".env.staging": "A=EXAMPLE",
+            ".env.example": "A=\nB=\nC=",
+            "package.json": "{}",
+        ])
+        let scan = ProjectScan.scan(dir)
+        #expect(scan.envFiles.map(\.fileName) == [".env.local", ".env.staging", ".env.production"])
+        #expect(scan.envFiles.map(\.environment) == [.local, .preview, .production])
+        #expect(scan.envFiles[0].names == ["A", "B"])
+        #expect(scan.exampleFile == ".env.example")
+        #expect(scan.expected == ["A", "B", "C"])
+        #expect(!scan.isGitRepo)
+        #expect(scan.envFiles.allSatisfy { $0.ignoredByGit == nil })
+    }
+
+    @Test func checksGitignore() throws {
+        let dir = try folder([
+            ".git/": "",
+            ".gitignore": "node_modules/\n.env*.local\n# comment\n",
+            ".env.local": "A=EXAMPLE",
+            ".env.production": "A=EXAMPLE",
+        ])
+        let scan = ProjectScan.scan(dir)
+        #expect(scan.isGitRepo)
+        #expect(scan.envFiles.first { $0.fileName == ".env.local" }?.ignoredByGit == true)
+        #expect(scan.envFiles.first { $0.fileName == ".env.production" }?.ignoredByGit == false)
+    }
+
+    @Test func gitignoreNegationAndAnchors() {
+        #expect(ProjectScan.isIgnored(".env", by: ["/.env"]))
+        #expect(ProjectScan.isIgnored(".env.local", by: [".env*"]))
+        #expect(!ProjectScan.isIgnored(".env.local", by: [".env*", "!.env.local"]))
+        #expect(ProjectScan.isIgnored(".env.production", by: ["**/.env.*"]))
+    }
+}

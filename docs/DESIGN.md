@@ -59,6 +59,11 @@ Read this before any design work. Every visual decision should trace back to som
   - On paste the value lands straight away: it becomes a slab on paper with the monogram, an editable name, and the value turning into dots left to right, settling into a short form (`sk_live_••••••••4f2a`). An eye shows it; an × clears it. `.env` pastes show `NAME=••••` rows; codes show a dotted grid; a wallet phrase turns the slab orange and saves nothing.
   - Under it: what Slinky thinks it is ("Looks like a GitHub token."), then the details as chips: where it goes (menu), expiry date, project and environment, website or username. Dashed chips are options you can add; tinted chips hold a choice.
   - Footer: "Encrypted on this Mac", Cancel, and "Save to Keys & Tokens ↵", so you always know where it's going.
+- **New Project** (`NewProjectView.swift`, 2026-10-17): the same floating glass panel as Add Item. A big name field with a live monogram, then the project folder: a dashed drop zone ("Drop the project folder here", Choose Folder…) or, once chosen, its path with a git chip. Slinky reads the folder (`ProjectScan`, read-only) and lists what it found:
+  - each `.env` file with a checkbox, its variable count and first few names (never values), and an environment chip guessed from the file name (`.env.local` → Local, `.env.staging` → Preview, `.env.production` → Production), which can be changed;
+  - an orange "Not in .gitignore" chip on files git could commit, with one plain line of advice (Slinky never edits .gitignore itself);
+  - `.env.example` (or .sample/.template/.dist) as the list of expected names, with "Still missing after import: …".
+  - The button says what happens: "Create and Import 21 Variables ↵". Dropping a folder or .env file on the sidebar opens this panel with the folder already read.
 - **Working state:** the keyhole is absorbed into the asterisk, which spins (see `docs/plan.md`).
 
 ## Live documents

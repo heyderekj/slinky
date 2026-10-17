@@ -21,12 +21,16 @@ struct MainView: View {
         }
         .searchable(text: $model.searchText, placement: .sidebar, prompt: "Search")
         // Add Item floats on its own: the window behind it softens.
-        .blur(radius: model.showTuck ? 10 : 0)
+        .blur(radius: model.showTuck || model.showNewProject ? 10 : 0)
         .overlay {
-            if model.showTuck { AddItemOverlay().transition(.opacity) }
+            if model.showTuck {
+                AddItemOverlay().transition(.opacity)
+            } else if model.showNewProject {
+                NewProjectOverlay().transition(.opacity)
+            }
         }
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showTuck)
-        .sheet(isPresented: $model.showNewProject) { NewProjectView() }
+        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showNewProject)
         .sheet(isPresented: Binding(get: { model.recoveryKeyToShow != nil && !model.showTuck },
                                     set: { if !$0 { model.recoveryKeyToShow = nil } })) {
             if let key = model.recoveryKeyToShow { RecoveryKeySheet(key: key) }
@@ -215,58 +219,10 @@ struct ProjectsEmptyCard: View {
             for provider in providers {
                 _ = provider.loadObject(ofClass: URL.self) { url, _ in
                     guard let url else { return }
-                    Task { @MainActor in model.createProject(dropped: url) }
+                    Task { @MainActor in model.startProject(dropped: url) }
                 }
             }
             return true
         }
-    }
-}
-
-struct NewProjectView: View {
-    @Environment(AppModel.self) private var model
-    @Environment(\.dismiss) private var dismiss
-    @State private var name = ""
-    @State private var folder: URL?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("New Project").font(.headline)
-            TextField("Name, like harvous", text: $name)
-                .textFieldStyle(.roundedBorder)
-            HStack {
-                Text(folder?.path(percentEncoded: false) ?? "No folder linked yet")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                    .truncationMode(.head)
-                Spacer()
-                Button("Choose Folder…") {
-                    let panel = NSOpenPanel()
-                    panel.canChooseDirectories = true
-                    panel.canChooseFiles = false
-                    panel.prompt = "Link"
-                    if panel.runModal() == .OK, let url = panel.url {
-                        folder = url
-                        if name.isEmpty { name = url.lastPathComponent }
-                    }
-                }
-            }
-            Text("If you link the project folder, Slinky reads its .env.example to show which variables are missing. Slinky never changes files in it.")
-                .font(.caption).foregroundStyle(.secondary)
-            HStack {
-                Spacer()
-                Button("Cancel") { dismiss() }
-                Button("Create") {
-                    model.createProject(name: name.trimmingCharacters(in: .whitespaces), folder: folder)
-                    dismiss()
-                }
-                .buttonStyle(.borderedProminent)
-                .keyboardShortcut(.defaultAction)
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
-            }
-        }
-        .padding(22)
-        .frame(width: 460)
     }
 }

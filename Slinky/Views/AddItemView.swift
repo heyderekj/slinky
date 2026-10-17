@@ -594,7 +594,7 @@ struct Keycap: View {
     }
 }
 
-private struct ChipLabel: View {
+struct ChipLabel: View {
     let symbol: String
     let text: String
     var menu = false
@@ -654,7 +654,7 @@ struct ChipButtonStyle: ButtonStyle {
 }
 
 /// A chip you type into, for the one-line details (website, username, new project name).
-private struct ChipField: View {
+struct ChipField: View {
     let symbol: String
     let prompt: String
     @Binding var text: String
@@ -673,7 +673,7 @@ private struct ChipField: View {
     }
 }
 
-private struct IconButton: View {
+struct IconButton: View {
     let symbol: String
     let help: String
     let action: () -> Void

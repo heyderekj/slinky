@@ -81,6 +81,8 @@ final class AppModel {
     var selection: SidebarItem? = .library(.all)
     var showTuck = false
     var showNewProject = false
+    /// A folder to start New Project with (from a drop on the sidebar).
+    var newProjectFolder: URL?
     var tuckPrefill = ""
     var tuckProject: UUID?
     var toast: Toast?
@@ -266,31 +268,45 @@ final class AppModel {
         return project.id
     }
 
-    /// A folder becomes a linked project; a .env file becomes a project named after its folder, with the file imported.
-    @discardableResult
-    func createProject(dropped url: URL) -> UUID {
+    /// A dropped folder or .env file opens New Project with that folder already read, so it can be checked first.
+    func startProject(dropped url: URL) {
         var isDir: ObjCBool = false
-        if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
-            return createProject(name: url.lastPathComponent, folder: url)
+        let isFolder = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir) && isDir.boolValue
+        newProjectFolder = isFolder ? url : url.deletingLastPathComponent()
+        showTuck = false
+        showNewProject = true
+    }
+
+    /// Creates a project and imports its variables in one step, with one message.
+    @discardableResult
+    func createProject(name: String, folder: URL?, expected: [String], imports: [(lines: [DotEnvLine], env: AppEnvironment)]) -> UUID {
+        var project = Project(name: name, folders: folder.map { [$0.path] } ?? [])
+        project.expected = expected
+        for item in imports { Self.merge(item.lines, into: &project, env: item.env) }
+        let count = Set(project.variables.map(\.name)).count
+        change(count == 0 ? "Created \(name)." : "Created \(name) with \(count) \(count == 1 ? "variable" : "variables").") {
+            $0.projects.append(project)
         }
-        let folder = url.deletingLastPathComponent()
-        let id = createProject(name: folder.lastPathComponent, folder: folder)
-        importEnvFile(url, into: id, env: .local)
-        return id
+        selection = .project(project.id)
+        return project.id
+    }
+
+    private static func merge(_ lines: [DotEnvLine], into project: inout Project, env: AppEnvironment) {
+        for line in lines {
+            if let v = project.variables.firstIndex(where: { $0.name == line.name }) {
+                project.variables[v].setValue(line.value, in: env)
+            } else {
+                project.variables.append(Variable(
+                    name: line.name, values: [env: line.value], isPlain: line.isPlain,
+                    provider: Detector.detect(line.value)?.provider))
+            }
+        }
     }
 
     func addVariables(_ lines: [DotEnvLine], to projectID: UUID, env: AppEnvironment) {
         guard let p = document.projects.firstIndex(where: { $0.id == projectID }) else { return }
         change(lines.count == 1 ? "Saved \(lines[0].name) to \(document.projects[p].name)." : "Imported \(lines.count) variables to \(document.projects[p].name).") { doc in
-            for line in lines {
-                if let v = doc.projects[p].variables.firstIndex(where: { $0.name == line.name }) {
-                    doc.projects[p].variables[v].setValue(line.value, in: env)
-                } else {
-                    doc.projects[p].variables.append(Variable(
-                        name: line.name, values: [env: line.value], isPlain: line.isPlain,
-                        provider: Detector.detect(line.value)?.provider))
-                }
-            }
+            Self.merge(lines, into: &doc.projects[p], env: env)
         }
         selection = .project(projectID)
     }
