@@ -1,6 +1,7 @@
 ---
 // The app's monogram tiles: a squircle with a vibrant gradient and white initials,
 // same palette and initials rule as Monogram in Slinky/Views/Components.swift.
+import { logos } from '../data/logos';
 interface Props { text: string; size?: number }
 const { text, size = 30 } = Astro.props;
 const palette: [string, string][] = [
@@ -14,6 +15,8 @@ const palette: [string, string][] = [
   ['#ffd675', '#f08f24'], // amber
 ];
 const trimmed = text.trim();
+const lower = trimmed.toLowerCase();
+const logo = Object.entries(logos).find(([name]) => lower === name || lower.startsWith(name + ' '))?.[1];
 const words = trimmed.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : (trimmed[0] ?? '').toUpperCase();
 let sum = 0;
@@ -21,4 +24,8 @@ for (const ch of trimmed.toLowerCase()) sum = (Math.imul(sum, 31) + ch.codePoint
 const [top, bottom] = initials ? palette[sum % palette.length] : palette[0];
 const font = initials.length > 1 ? 0.38 : 0.48;
 ---
-<span class="mono-tile" style={`--s:${size}px;background:linear-gradient(${top},${bottom});--mono-shadow:${bottom}66;font-size:${(size * font).toFixed(1)}px`} aria-hidden="true">{initials}</span>
+{logo ? (
+  <span class="mono-tile mono-tile--logo" style={`--s:${size}px;background:${logo.color};--mono-shadow:${logo.color}66`} aria-hidden="true">
+    <svg viewBox={logo.viewBox} fill={logo.dark ? 'rgb(0 0 0 / 0.82)' : '#fff'} style={`width:${(size * 0.56).toFixed(1)}px;height:${(size * 0.56).toFixed(1)}px;position:relative;z-index:1`}>{logo.d.map((d) => <path d={d} />)}</svg>
+  </span>
+) : <span class="mono-tile" style={`--s:${size}px;background:linear-gradient(${top},${bottom});--mono-shadow:${bottom}66;font-size:${(size * font).toFixed(1)}px`} aria-hidden="true">{initials}</span>
