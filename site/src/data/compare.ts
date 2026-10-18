@@ -6,7 +6,7 @@ export const compare = {
     ['Made for API keys and tokens', ['yes', 'no', 'yes', 'part:Plain text', 'yes', 'part:Generic items']],
     ['A project’s .env, per environment', ['yes', 'no', 'part:With its CLI', 'yes', 'yes', 'no']],
     ['A command that runs your app', ['yes', 'no', 'yes:op run', 'no', 'yes', 'part:Prints values']],
-    ['AI agents use keys without seeing them', ['yes', 'no', 'part:With its CLI', 'no:In the clear', 'part:With its CLI', 'no']],
+    ['AI agents use keys without seeing them', ['yes', 'no', 'part:With op run', 'no:In the clear', 'part:Infisical’s proxy', 'no']],
     ['Recovery codes that cross themselves off', ['yes', 'no', 'no', 'no', 'no', 'no']],
     ['Stays on your Mac', ['yes', 'part:iCloud', 'no:Their cloud', 'part:Unencrypted', 'no:Their servers', 'yes']],
     ['Opens with Touch ID', ['yes', 'yes', 'yes', 'no', 'no', 'part:Password']],
