@@ -11,14 +11,20 @@
 - **Locking:** Touch ID to open; locks with the screen, on sleep, when idle, and after 12 hours.
 - **Import:** 1Password .1pux or CSV (Apple Passwords, Bitwarden, a sheet of keys). Passwords are skipped.
 - **Shortcuts:** Add to Slinky, Copy from Slinky (Touch ID every time; never returns the value), Open Quick Access, Lock Slinky.
+- **The `slinky` command:** `slinky run -- npm run dev` injects a project's variables after Touch ID (no .env on disk); `slinky env --export`, `slinky xcconfig`, `slinky run --file NAME` (secret file as a 0600 temp file), `slinky check`, `slinky guard` (pre-commit check), an optional zsh hook that loads variables on cd. The command is the app's own signed binary; the app checks the caller's signature.
+- **AI agents:** an MCP server (`slinky mcp`) for Claude Code, Cursor, Codex and Claude: list_secrets, check_env, request_secret, describe_policy. Names only, never values. Agents run commands through `slinky run`, approved with Touch ID showing the command; live keys, never-for-agents items, shells, inline code, env/printenv, curl/ssh, git push and publishing are refused. Connect in Settings › Command Line & Agents.
+- **Health:** exact-match search for saved values in linked projects and their git history, Claude Code/Codex/Cursor conversations and shell history, on the Mac, names and places only; one-click fixes; keys unused for 60 days and values saved twice.
+- **Apple developer files:** App Store Connect .p8 keys, certificates, service-account JSON (up to 256 KB) in the vault; save a notarytool keychain profile; app-specific passwords recognised.
+- **Rotation and hosts:** "Make New Key on <service>" opens the service's key page and replaces the key wherever it's used; Send to Host pushes a project's variables to Vercel, Netlify, Cloudflare Workers/Pages or Fly.io via their CLIs (values on stdin).
+- **Activity:** what was copied or used, when and by whom; names only, inside the vault.
 
 ## What leaves the Mac
 
-Nothing about the person or their vault. Once a day Slinky asks GitHub for the latest release (can be turned off). Only if the person turns on Load icons from websites, it asks each saved website directly for its icon (no third-party icon service). Updates install in place only if signed by Slinky's developer (team B3U6BXA8KP).
+Nothing about the person or their vault. Once a day Slinky asks GitHub for the latest release (can be turned off). Only if the person turns on Load icons from websites, it asks each saved website directly for its icon (no third-party icon service). Updates install in place only if signed by Slinky's developer (team B3U6BXA8KP). When the person chooses Send to Host, that host's own command-line tool sends the values they picked to that service.
 
-## Coming in 1.1
+## Coming next
 
-A `slinky` command and an MCP server so AI coding tools can run apps with real keys while only seeing masked values, with approval and receipts.
+A Raycast extension, and sync between Macs once Slinky has a Developer ID.
 
 ## Download
 

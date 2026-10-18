@@ -176,6 +176,25 @@ const mark = (v: string) => {
           <p>Keep it somewhere safe, away from your Mac.</p>
         </div>
       </Guided>
+
+      <Editorial eyebrow="AI agents" title="Agents use your keys.<br />They never see them." features={[
+        { icon: 'terminal', title: 'slinky run', text: 'Claude Code, Cursor and Codex start your app through slinky run. You approve each command with Touch ID, and the keys never reach the chat.' },
+        { icon: 'sparkle', title: 'Names, never values', text: 'Connected agents can list names and ask for what’s missing. Live keys stay out, and so do shells and tools that send things off your Mac.' },
+        { icon: 'plusc', title: 'Paste it here, not in the chat', text: 'When an agent needs a key Slinky doesn’t have, Slinky opens with the name filled in, for you to paste.' },
+      ]}>
+        <div class="agent-demo">
+          <pre class="agent-term" aria-hidden="true"><span>&gt; start the dev server</span>
+⏺ Bash(slinky run -- npm run dev)
+  ✓ started with 4 secrets from Acme
+  STRIPE_SECRET_KEY=••••••••</pre>
+          <div class="touch" data-glass="panel">
+            <span class="touch__fp"><Icon name="touchid" /></span>
+            <h4>Slinky</h4>
+            <p>Slinky wants to let Claude Code run “npm run dev” with 4 secrets from Acme.</p>
+            <span class="touch__btn">Use Password…</span>
+          </div>
+        </div>
+      </Editorial>
     </section>
 
     <section class="section wrap" aria-labelledby="also-heading">
@@ -193,12 +212,22 @@ const mark = (v: string) => {
         <div class="b-tile card-plain"><Icon name="feather" class="feature-icon" /><h3>A {release.sizeMB} MB download</h3><p>Native Swift and Apple frameworks only. No web views, no dependencies.</p><p class="b-big">{release.sizeMB}<span>MB</span></p></div>
         <div class="b-tile card-plain"><Icon name="update" class="feature-icon" /><h3>Updates in place</h3><p>One click, and only if the update is signed by Slinky’s developer.</p>
           <div class="b-art b-update" aria-hidden="true"><span>Slinky {release.version}</span><span class="b-pill">Up to date</span></div></div>
-        <div class="b-tile card-plain"><Icon name="gear" class="feature-icon" /><h3>Settings that matter</h3><p>When to lock, how long until the clipboard clears, sounds, open at login.</p>
-          <div class="b-art b-settings" aria-hidden="true"><div><span>Clear clipboard after</span><b>60 seconds</b></div><div><span>Lock when away</span><i class="b-switch"></i></div></div></div>
-        <div class="b-tile b-tile--dark card-plain"><Icon name="key" class="feature-icon" /><h3>AI agents, next</h3><p>Coming in 1.1: tools like Claude Code run your app with the real keys while only ever seeing dots.</p>
+        <div class="b-tile card-plain"><Icon name="heart" class="feature-icon" /><h3>Health</h3><p>Finds your saved keys where they shouldn’t be, with one-click fixes and a check before each commit.</p>
+          <div class="b-art b-settings" aria-hidden="true"><div><span>.env in acme-web</span><b>Move into Slinky</b></div><div><span>A Claude Code conversation</span><b>Make a new key</b></div></div></div>
+        <div class="b-tile b-tile--dark card-plain"><Icon name="key" class="feature-icon" /><h3>The slinky command</h3><p>Run your app with a project’s variables after Touch ID, with no .env on disk. For you and your agents.</p>
           <pre class="b-art b-term" aria-hidden="true">$ slinky run -- npm start
 STRIPE_SECRET_KEY=••••••••
 ✓ started with 4 keys</pre></div>
+        <div class="b-tile b-tile--pair-last card-plain"><Icon name="file" class="feature-icon" /><h3>Apple developer files</h3><p>App Store Connect .p8 keys, certificates and service accounts, in the vault. Save a notarytool profile without the .p8 lying around.</p></div>
+        <div class="b-tile b-tile--wide card-plain">
+          <div><Icon name="cloudup" class="feature-icon" /><h3>Make a new key, send it where it runs</h3><p>“Make New Key on GitHub…” opens the right page and replaces it everywhere it’s used. Send a project’s variables to Vercel, Netlify, Cloudflare or Fly through their own tools.</p></div>
+          <div class="b-art b-import" aria-hidden="true">
+            {[['Vercel', 'Production'], ['Netlify', 'All deploys'], ['Cloudflare', 'Workers, Pages'], ['Fly.io', 'acme-api']].map(([n, c], i) => (
+              <div class="b-src"><span class="b-dot" style={`--h:${190 + i * 35}`}>{n[0]}</span><b>{n}</b><small>{c}</small></div>
+            ))}
+            <p class="b-note">Values go on stdin, never in the command line</p>
+          </div>
+        </div>
         <div class="b-tile b-tile--wide b-tile--row card-plain"><Icon name="github" class="feature-icon" /><div><h3>Free and open source</h3><p>MIT licensed, made by Testament Made. Read every line on GitHub.</p></div><span class="b-pill b-pill--gh"><Icon name="github" /> heyderekj/slinky</span></div>
       </div>
     </section>
@@ -231,7 +260,7 @@ STRIPE_SECRET_KEY=••••••••
       <div class="section-head"><p class="eyebrow">Privacy</p><h2 class="section-title" id="privacy-heading">Your things, in plain English</h2></div>
       <div class="plain">
         <div class="tile"><Icon name="shield" /><h3>Where they live</h3><ul><li>One encrypted file on your Mac.</li><li>Opened by your Mac’s Secure Enclave with Touch ID, or your printed Recovery Key.</li><li>Locked means the key isn’t in memory at all.</li></ul></div>
-        <div class="tile"><Icon name="update" /><h3>What leaves your Mac</h3><ul><li>Nothing about you or your vault.</li><li>Once a day, a check with GitHub for a newer version. You can turn it off.</li><li>Only if you turn it on, a request to each saved website for its icon.</li><li>No account, no analytics in the app, no server.</li></ul></div>
+        <div class="tile"><Icon name="update" /><h3>What leaves your Mac</h3><ul><li>Nothing about you or your vault.</li><li>Once a day, a check with GitHub for a newer version. You can turn it off.</li><li>Only if you turn it on, a request to each saved website for its icon.</li><li>When you choose Send to Host, the values you pick go to that host, through its own tool.</li><li>No account, no analytics in the app, no server.</li></ul></div>
       </div>
     </section>
 

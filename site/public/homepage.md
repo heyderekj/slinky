@@ -13,18 +13,19 @@ API keys, each project's .env, backup codes and recovery keys. Paste it, and Sli
 - **Backup codes, ready when you're locked out.** Copy a code and Slinky crosses it off. It tells you when you're running low.
 - **⌥⌘K, from anywhere.** Find a key by name and press Return. Copies are private and clear themselves after a minute.
 - **Locks itself.** Touch ID to open. Locks with your screen, on sleep, when you're away, and after 12 hours.
+- **AI agents use your keys without seeing them.** Claude Code, Cursor and Codex run your app through `slinky run`. You approve each command with Touch ID; agents only ever see names.
 
 ## Also in Slinky
 
-Needs Attention · Import from 1Password or CSV · Shortcuts actions · Settings for locking and the clipboard · Updates that install in place · Native Swift, a 5 MB download, no dependencies.
+The slinky command · Health (finds keys in project files, git history, AI conversations and shell history) · Apple developer files and notarytool profiles · Make a new key, send it to your host · Activity · Import from 1Password or CSV · Shortcuts actions · Settings for locking and the clipboard · Updates that install in place · Native Swift, a 5 MB download, no dependencies.
 
 ## Your things, in plain English
 
 - One encrypted file on your Mac, opened by the Secure Enclave with Touch ID or your printed Recovery Key.
-- No account, no server, no sync. Network calls: a daily update check with GitHub, which you can turn off, and, only if you turn it on, a request to each saved website for its icon.
+- No account, no server, no sync. Network calls: a daily update check with GitHub, which you can turn off, and, only if you turn it on, a request to each saved website for its icon. When you choose Send to Host, the values you pick go to that host through its own tool.
 
-## Coming in 1.1
+## Coming next
 
-AI agents use your keys without seeing them: a `slinky` command and an MCP connection, with approval and a record of what each agent used.
+A Raycast extension, and sync between Macs once Slinky has a Developer ID.
 
 Made by Testament Made, LLC · derek@testamentmade.com · MIT License

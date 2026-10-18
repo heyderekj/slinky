@@ -9,7 +9,10 @@ export const faq: [string, string][] = [
   ['Does Slinky change my project files?', 'No. It reads your .env files and .gitignore to set things up. It only writes a file when you choose Save .env.example, which has names and no values.'],
   ['What about clipboard history apps?', 'Everything Slinky copies is marked private, so Raycast, Paste, Maccy and others skip it, and the clipboard clears itself after 60 seconds.'],
   ['Can I bring my keys from another app?', 'Yes. Import a 1Password export or a CSV from Apple Passwords, Bitwarden or a spreadsheet. Slinky picks out keys, tokens and codes, and leaves passwords behind.'],
-  ['Will it work with AI coding tools?', 'That’s next. Slinky 1.1 adds a slinky command and an MCP connection, so tools like Claude Code can run your app with the real keys while only ever seeing dots.'],
+  ['Will it work with AI coding tools?', 'Yes. Connect Claude Code, Cursor, Codex or Claude in Settings. Agents see names, never values: they run your app through slinky run, you approve each command with Touch ID, and live keys stay out. Holding back keys this way keeps them out of the model, not out of a determined program; Slinky isn’t a sandbox.'],
+  ['Does Slinky read my files?', 'Only to help, and only on your Mac. Health looks for exact copies of your saved values in linked projects and their git history, AI tools’ saved conversations and your shell history, and reports names and places. Nothing is sent anywhere.'],
+  ['Can it send my variables to Vercel or Cloudflare?', 'Yes, when you choose Send to Host in a project. Slinky uses the host’s own command-line tool, signed in as you: Vercel, Netlify, Cloudflare Workers or Pages, or Fly.io. You see the names first, and Touch ID confirms it.'],
+  ['Does it help with App Store Connect and notarization?', 'Yes. Keep your App Store Connect .p8 key in Slinky, add its Issuer ID, and save a notarytool profile from it, so the key isn’t lying in a folder. App-specific passwords are recognised when you paste them.'],
 ];
 
 /** A stable anchor for each question, e.g. "Is Slinky free?" → "faq-is-slinky-free". */
