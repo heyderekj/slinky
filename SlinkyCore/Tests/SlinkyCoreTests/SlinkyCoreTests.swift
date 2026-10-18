@@ -394,3 +394,70 @@ struct ServiceTests {
         #expect(ServiceCatalog.all.filter(\.hasLogo).allSatisfy { $0.color != nil })
     }
 }
+
+@Suite("Agents and CLI")
+struct BrokerTests {
+    @Test func agentsCantRunShellsOrSendThingsOff() {
+        #expect(Broker.agentRefusal(["npm", "run", "dev"]) == nil)
+        #expect(Broker.agentRefusal(["make", "test"]) == nil)
+        #expect(Broker.agentRefusal(["env"]) != nil)
+        #expect(Broker.agentRefusal(["/usr/bin/printenv"]) != nil)
+        #expect(Broker.agentRefusal(["sh", "-c", "echo $KEY"]) != nil)
+        #expect(Broker.agentRefusal(["node", "-e", "console.log(process.env)"]) != nil)
+        #expect(Broker.agentRefusal(["node", "server.js"]) == nil)
+        #expect(Broker.agentRefusal(["curl", "https://example.com"]) != nil)
+        #expect(Broker.agentRefusal(["git", "push"]) != nil)
+        #expect(Broker.agentRefusal(["npm", "publish"]) != nil)
+    }
+
+    @Test func injectionVariablesAreStripped() {
+        #expect(Broker.isStripped("NODE_OPTIONS"))
+        #expect(Broker.isStripped("DYLD_INSERT_LIBRARIES"))
+        #expect(!Broker.isStripped("STRIPE_SECRET_KEY"))
+    }
+
+    @Test func shellExportsQuoteAnything() {
+        let out = Broker.shellExports(["A_KEY": "it's EXAMPLE $HOME `x`"])
+        #expect(out.contains(#"export A_KEY='it'\''s EXAMPLE $HOME `x`'"#))
+        #expect(out.contains("export _SLINKY_NAMES='A_KEY'"))
+    }
+
+    @Test func xcconfigKeepsURLs() {
+        let out = Broker.xcconfig(["API_URL": "https://api.example.com"], project: "Demo")
+        #expect(out.contains("API_URL = https:/$()/api.example.com"))
+    }
+
+    @Test func pathsInsideLinkedFolders() {
+        #expect(Broker.path("/tmp/demo/src", isInside: ["/tmp/demo"]))
+        #expect(!Broker.path("/tmp/demo2", isInside: ["/tmp/demo"]))
+    }
+}
+
+@Suite("Leak finder")
+struct LeakTests {
+    let secrets = [LeakScanner.Secret(name: "STRIPE_SECRET_KEY", value: "sk_test_EXAMPLE1234"),
+                   LeakScanner.Secret(name: "SHORT", value: "abc")]
+
+    @Test func findsExactValuesOnly() {
+        #expect(LeakScanner.matches(in: "key=sk_test_EXAMPLE1234 and abc", secrets: secrets) == ["STRIPE_SECRET_KEY"])
+        #expect(LeakScanner.matches(in: "sk_test_EXAMPLE123", secrets: secrets).isEmpty)
+    }
+
+    @Test func cleansHistory() {
+        let (text, removed) = LeakScanner.removingLines(containing: ["sk_test_EXAMPLE1234"], from: "ls\nexport K=sk_test_EXAMPLE1234\ngit status")
+        #expect(removed == 1)
+        #expect(text == "ls\ngit status")
+        #expect(LeakScanner.lines(of: "git", in: "ls\ngit status") == [2])
+    }
+}
+
+@Suite("Secret files")
+struct SecretFileTests {
+    @Test func recognisesAppStoreConnectKeys() {
+        let p8 = Data("-----BEGIN PRIVATE KEY-----\nEXAMPLE\n-----END PRIVATE KEY-----\n".utf8)
+        #expect(SecretFile.guessKind(filename: "AuthKey_ABCD1234EF.p8", data: p8) == .appStoreConnectKey)
+        #expect(SecretFile.keyID(fromFilename: "AuthKey_ABCD1234EF.p8") == "ABCD1234EF")
+        #expect(SecretFile.guessKind(filename: "dev.pem", data: p8) == .certificate)
+        #expect(SecretFile.guessKind(filename: "sa.json", data: Data(#"{"type": "service_account", "private_key": "EXAMPLE"}"#.utf8)) == .serviceAccount)
+    }
+}

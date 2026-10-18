@@ -6,7 +6,7 @@ import SwiftUI
 /// Small on purpose. No secret, name or value is ever stored here.
 struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
-        case general, security, recovery, about
+        case general, security, recovery, agents, about
         var id: String { rawValue }
 
         var title: String {
@@ -14,6 +14,7 @@ struct SettingsView: View {
             case .general: "General"
             case .security: "Security"
             case .recovery: "Recovery Key"
+            case .agents: "Command Line & Agents"
             case .about: "About"
             }
         }
@@ -23,6 +24,7 @@ struct SettingsView: View {
             case .general: "gearshape"
             case .security: "lock"
             case .recovery: "lifepreserver"
+            case .agents: "terminal"
             case .about: "info.circle"
             }
         }
@@ -38,7 +40,7 @@ struct SettingsView: View {
         NavigationSplitView {
             List(selection: Binding(get: { pane }, set: { select($0) })) {
                 Section("Settings") {
-                    ForEach([Pane.general, .security, .recovery]) { row($0) }
+                    ForEach([Pane.general, .security, .recovery, .agents]) { row($0) }
                 }
                 Section("Slinky") {
                     row(.about)
@@ -56,6 +58,7 @@ struct SettingsView: View {
                     case .general: GeneralPane()
                     case .security: SecurityPane()
                     case .recovery: RecoveryKeyPane()
+                    case .agents: AgentsPane()
                     case .about: AboutPane()
                     }
                 }

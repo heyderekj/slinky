@@ -1,7 +1,19 @@
 import AppKit
 import SwiftUI
 
+/// One binary, two jobs: started with `--slinky-cli` (by the installed `slinky` script) it's the command-line tool
+/// and never opens a window; otherwise it's the app.
 @main
+enum Entry {
+    static func main() {
+        let args = CommandLine.arguments
+        if args.count > 1, args[1] == Command.marker {
+            exit(Command.run(Array(args.dropFirst(2))))
+        }
+        SlinkyApp.main()
+    }
+}
+
 struct SlinkyApp: App {
     @State private var model = AppModel.shared
     @State private var prefs = Preferences.shared

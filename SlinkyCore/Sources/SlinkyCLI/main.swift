@@ -1,8 +1,8 @@
 import Foundation
 import SlinkyCoreShared
 
-// `slinky` — placeholder until the agent milestone (run, ls, check, import, mcp).
-// For now it can check what a value looks like, without storing anything.
+// A development helper. The real `slinky` command is the app's own binary (Slinky/Agents/Command.swift), installed
+// from Slinky › Settings › Command Line & Agents, so the app can check by code signature that it's really Slinky.
 
 let args = Array(CommandLine.arguments.dropFirst())
 
@@ -23,6 +23,7 @@ default:
     usage:
       slinky detect <value>   Say what a value looks like and where Slinky would put it.
 
-    Coming next: slinky run, ls, check, import, mcp.
+    The full command (run, env, xcconfig, ls, check, guard, hook, mcp) comes with the app:
+    Slinky › Settings › Command Line & Agents › Install.
     """)
 }

@@ -249,8 +249,24 @@ public struct VaultDocument: Codable, Sendable, Equatable {
     /// Website icons the person chose to load: 64 px PNGs by domain. Inside the vault, so the list of
     /// services someone uses is never on disk in the clear.
     public var siteIcons: [String: Data]?
+    // Added in 1.2.
+    /// What was copied or used, when and by whom. Names only, never values. Newest first, capped.
+    public var activity: [ActivityEntry]?
+    // Added in 1.4.
+    /// Small secret files: App Store Connect .p8 keys, certificates, service-account JSON.
+    public var files: [SecretFile]?
 
     public init() {}
+
+    public var log: [ActivityEntry] {
+        get { activity ?? [] }
+        set { activity = newValue.isEmpty ? nil : Array(newValue.prefix(ActivityEntry.limit)) }
+    }
+
+    public var secretFiles: [SecretFile] {
+        get { files ?? [] }
+        set { files = newValue.isEmpty ? nil : newValue }
+    }
 
     /// How long removed items wait in Recently Deleted.
     public static let trashDays = 30
@@ -269,7 +285,7 @@ public struct VaultDocument: Codable, Sendable, Equatable {
         return before - trashed.count
     }
 
-    public var isEmpty: Bool { projects.isEmpty && keys.isEmpty && codeSets.isEmpty && kept.isEmpty }
+    public var isEmpty: Bool { projects.isEmpty && keys.isEmpty && codeSets.isEmpty && kept.isEmpty && secretFiles.isEmpty }
     public var secretCount: Int {
         projects.reduce(0) { $0 + $1.variables.filter { !$0.isPlain }.count } + keys.count + kept.count
     }

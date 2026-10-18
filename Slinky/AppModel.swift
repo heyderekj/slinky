@@ -30,6 +30,7 @@ enum SidebarItem: Hashable {
     case attention
     case project(UUID)
     case trash
+    case activity
 }
 
 enum EditTarget: Hashable {
@@ -134,6 +135,10 @@ final class AppModel {
 
     @ObservationIgnored private var session: VaultSession?
     @ObservationIgnored private let enclave = EnclaveWrapper()
+    /// The `slinky` command's line in (Agents/BrokerServer.swift).
+    @ObservationIgnored private var broker: BrokerServer?
+    /// Approvals a person gave from their own terminal or Xcode, reused for an hour. Never for agents. Cleared on lock.
+    @ObservationIgnored var grants: [String: Date] = [:]
     @ObservationIgnored private lazy var store = VaultStore(url: VaultStore.defaultURL, enclave: enclave)
     @ObservationIgnored private var unlockedAt: Date?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
@@ -148,6 +153,10 @@ final class AppModel {
     func start() {
         guard phase == .loading else { return }
         hasVault = store.exists
+        if broker == nil {
+            broker = BrokerServer { request, peer in await AppModel.shared.handle(request, peer: peer) }
+            broker?.start()
+        }
         // No welcome screen: with no vault yet, open straight into the (empty) app.
         phase = hasVault ? .locked : .unlocked
         observeLocks()
@@ -232,6 +241,49 @@ final class AppModel {
         Sounds.play(.unlocked)
         phase = .unlocked
         startIdleTimer()
+    }
+
+    // MARK: Requests from the slinky command
+
+    /// Unlocks for a request from the `slinky` command: one Touch ID, with the reason saying what's asking for what.
+    func unlockForRequest(reason: String) async -> Bool {
+        guard hasVault else { return false }
+        if isUnlocked { return true }
+        let store = self.store
+        let result: Result<VaultSession, Error> = await Task.detached {
+            let ctx = LAContext()
+            ctx.localizedReason = reason
+            do { return .success(try store.unlock(context: ctx)) } catch { return .failure(error) }
+        }.value
+        guard case let .success(session) = result else { return false }
+        didUnlock(session)
+        return true
+    }
+
+    /// Asks the person, with Touch ID (or their password), whether to allow what `reason` describes.
+    /// Unlocking for it counts as the yes, so there's never a second prompt.
+    func approve(reason: String) async -> Bool {
+        if !isUnlocked { return await unlockForRequest(reason: reason) }
+        let context = LAContext()
+        do {
+            try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: reason)
+            return true
+        } catch {
+            return false
+        }
+    }
+
+    func clearActivity() {
+        document.log = []
+        persist()
+        if selection == .activity { selection = .library(.all) }
+    }
+
+    /// Adds a line to Activity. Names only.
+    func record(_ entry: ActivityEntry) {
+        guard isUnlocked else { return }
+        document.log.insert(entry, at: 0)
+        persist()
     }
 
     /// Settings › Recovery Key. Confirms it's you, then returns the new key to show exactly once.
@@ -351,6 +403,7 @@ final class AppModel {
         librarySelection = nil
         choosingIcon = nil
         showRestore = false
+        grants = [:]
         // Names and website icons it worked out stay only while unlocked.
         IconResolver.shared.reset()
         idleTimer?.invalidate()
@@ -370,7 +423,8 @@ final class AppModel {
     }
 
     func undo() {
-        guard let snapshot = undoSnapshot else { return }
+        guard var snapshot = undoSnapshot else { return }
+        snapshot.activity = document.activity   // Undo restores items, not history.
         document = snapshot
         undoSnapshot = nil
         persist()
@@ -674,6 +728,7 @@ final class AppModel {
               !document.codeSets[s].used.contains(index) else { return }
         Clipboard.copy(document.codeSets[s].codes[index], clearAfter: Double(Preferences.shared.clipboardSeconds))
         Preferences.shared.copyCount += 1
+        record(ActivityEntry(action: .codeUsed, names: ["\(document.codeSets[s].account) recovery code"]))
         change(undoable: true) { $0.codeSets[s].used.insert(index) }
         let left = document.codeSets[s].remaining
         show("Copied and marked as used. \(left) left." + (left <= 3 ? " Consider generating new codes." : ""), canUndo: true, style: .success)
@@ -735,6 +790,7 @@ final class AppModel {
     func copy(_ value: String, label: String, provider: String? = nil, remember: Bool = true) {
         Clipboard.copy(value, clearAfter: Double(Preferences.shared.clipboardSeconds))
         Preferences.shared.copyCount += 1
+        record(ActivityEntry(action: .copied, names: [label]))
         if remember {
             recent.removeAll { $0.title == label }
             recent.insert(RecentItem(title: label, provider: provider, value: value), at: 0)
@@ -756,7 +812,7 @@ final class AppModel {
         }
     }
 
-    private func persist() {
+    func persist() {
         guard var current = session else {
             if !hasVault { createVaultWithCurrentDocument() }
             return

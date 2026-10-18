@@ -105,6 +105,8 @@ struct MainView: View {
             AttentionView().shrinkable()
         case .trash?:
             RecentlyDeletedView().shrinkable()
+        case .activity?:
+            ActivityView().shrinkable()
         case nil:
             LibraryView(filter: .all)
         }
@@ -138,6 +140,12 @@ struct SidebarView: View {
                     .badge(attention.count)
                     .tag(SidebarItem.attention)
                     .transition(.opacity)
+                }
+                // Only there once something's been copied or used.
+                if !model.document.log.isEmpty || model.selection == .activity {
+                    Label("Activity", systemImage: "clock.arrow.circlepath")
+                        .tag(SidebarItem.activity)
+                        .transition(.opacity)
                 }
                 // Only there when something's waiting to be restored.
                 if !model.document.trashed.isEmpty || model.selection == .trash {
