@@ -98,7 +98,7 @@ p { margin: 0; text-wrap: pretty; }
 .mb-clock { font-variant-numeric: tabular-nums; padding-right: 8px; }
 @media (max-width: 640px) { .mb-more { display: none; } .mb-item { padding: 0 6px; } }
 /* Small phones: the essentials only. Search lives in the Dock. */
-@media (max-width: 480px) { .menubar [data-mb="edit"], .menubar [data-mb="view"], .menubar [data-mb="spotlight"], .mb-day { display: none; } .mb-item { padding: 0 5px; } }
+@media (max-width: 480px) { .menubar [data-mb="edit"], .menubar [data-mb="view"], .menubar [data-mb="spotlight"], .mb-day { display: none; } .mb-item { padding: 0 6px; } }
 @media (prefers-color-scheme: dark) {
   .menubar { --mb-ink: rgb(255 255 255 / 0.92); }
   .mb-item:hover { background: rgb(255 255 255 / 0.14); }
