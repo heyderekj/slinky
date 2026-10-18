@@ -1,6 +1,6 @@
 # Slinky
 
-> Slinky keeps secrets out of files. A free, open-source, native Mac app (Apple silicon, macOS 26 Tahoe or later) for API keys and tokens, each project's .env variables, two-step backup codes and recovery keys. Everything is in one encrypted file on the Mac, opened with Touch ID (Secure Enclave), with a printed Recovery Key as the backup. No account, no server, no sync.
+> Slinky keeps secrets out of files. A free, open-source, native Mac app (Apple silicon, macOS 15 Sequoia or later) for API keys and tokens, each project's .env variables, two-step backup codes and recovery keys. Everything is in one encrypted file on the Mac, opened with Touch ID (Secure Enclave), with a printed Recovery Key as the backup. No account, no server, no sync.
 
 ## What it does
 

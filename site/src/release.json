@@ -2,6 +2,6 @@
   "version": "1.0.0",
   "dmg": "https://github.com/heyderekj/slinky/releases/download/v1.0.0/Slinky-1.0.0.dmg",
   "zip": "https://github.com/heyderekj/slinky/releases/download/v1.0.0/Slinky-1.0.0.zip",
-  "sizeMB": 5,
-  "minOS": "macOS 26 Tahoe"
+  "sizeMB": 4,
+  "minOS": "macOS 15 Sequoia"
 }

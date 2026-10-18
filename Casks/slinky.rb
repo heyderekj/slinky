@@ -1,6 +1,6 @@
 cask "slinky" do
   version "1.0.0"
-  sha256 "371ed4068cefd12d43fff39870b6d9677411fdf75fdba4abf788c0058bfdc1f5"
+  sha256 "858b5b314447486a7993f67efbaad55ced4e1d6fbb835fa07e244b985443a869"
 
   url "https://github.com/heyderekj/slinky/releases/download/v#{version}/Slinky-#{version}.zip"
   name "Slinky"
@@ -8,7 +8,7 @@ cask "slinky" do
   homepage "https://slinkyfiles.com"
 
   depends_on arch: :arm64
-  depends_on macos: :tahoe
+  depends_on macos: :sequoia
 
   app "Slinky.app"
 end
