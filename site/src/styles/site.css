@@ -240,27 +240,29 @@ body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
   .g-row .desktop__stage { min-height: 400px; }
 }
 /* Small scene parts: Needs Attention rows, a printed Recovery Key, the Touch ID prompt. */
-/* Health, small: the ring of checks, a tile per check, then what was found. */
-.health { display: grid; gap: 14px; }
+/* Health, small: the ring of checks, a tile per check, then what was found. Calm by default: neutral tiles and a
+   soft ring, with orange only where something needs a person (the same rule as the app). */
+.health { display: grid; gap: 16px; }
 .health__sum { display: flex; align-items: center; gap: 16px; }
 .health__ring { width: 72px; height: 72px; flex: none; }
-.health__ring path { fill: none; stroke: color-mix(in oklch, var(--green) 85%, transparent); stroke-width: 9; stroke-linecap: round; }
+.health__ring path { fill: none; stroke: color-mix(in oklch, var(--app-text) 14%, transparent); stroke-width: 8; stroke-linecap: round; }
+.health__ring path.is-ok { stroke: color-mix(in oklch, var(--brand) 62%, transparent); }
 .health__ring path.is-found { stroke: var(--orange); }
-.health__ring text { font: 600 30px ui-rounded, var(--app-font); fill: var(--orange); }
+.health__ring text { font: 600 28px ui-rounded, var(--app-font); fill: var(--app-text); }
 .health__sum b { display: block; font-size: 17px; font-weight: 650; }
 .health__sum small { display: block; font-size: 12px; color: var(--app-secondary); margin-top: 2px; }
 .health__tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
-.health__tile { display: grid; gap: 3px; padding: 9px 10px; border-radius: 11px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); font-size: 11.5px; }
-.health__tile .icon { width: 14px; height: 14px; color: var(--brand); }
-.health__tile b { font-weight: 600; line-height: 1.2; }
-.health__tile .ok { color: var(--green); font-weight: 600; font-size: 10.5px; }
-.health__tile .found { color: var(--orange); font-weight: 600; font-size: 10.5px; }
-.health__tile.is-found { box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--orange) 45%, transparent); }
-.health__tile.is-found .icon { color: var(--orange); }
+.health__tile { display: grid; grid-template-rows: auto 1fr auto; gap: 8px; padding: 10px; border-radius: 12px; background: var(--app-paper); box-shadow: inset 0 0 0 0.5px var(--app-sep); font-size: 11.5px; }
+.health__tile .icon { width: 24px; height: 24px; padding: 5px; border-radius: 7px; color: var(--app-secondary); background: var(--app-fill); }
+.health__tile b { font-weight: 600; line-height: 1.2; align-self: start; }
+.health__tile .ok { color: var(--app-secondary); font-weight: 500; font-size: 10.5px; }
+.health__tile .found { justify-self: start; color: var(--orange); background: color-mix(in oklch, var(--orange) 14%, transparent); font-weight: 650; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; }
+.health__tile.is-found { box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--orange) 38%, transparent); }
+.health__tile.is-found .icon { color: var(--orange); background: color-mix(in oklch, var(--orange) 14%, transparent); }
 @media (max-width: 480px) { .health__tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .att { display: grid; gap: 8px; margin-top: 4px; }
-.att__row { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); }
-.att__row .icon { width: 16px; height: 16px; color: var(--orange); justify-self: center; }
+.att__row { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); }
+.att__row .icon { width: 32px; height: 32px; padding: 8px; border-radius: 9px; color: var(--orange); background: color-mix(in oklch, var(--orange) 14%, transparent); }
 .att__row b { display: block; font-size: 13px; font-weight: 600; }
 .att__row small { display: block; font-size: 11.5px; color: var(--app-secondary); margin-top: 1px; }
 .att__row .copy { height: 24px; }
