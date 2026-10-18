@@ -643,6 +643,14 @@ button.replay:active { transform: scale(0.97); }
 .cmd { display: flex; align-items: center; gap: 10px; margin: 8px 0; padding: 10px 10px 10px 14px; border-radius: 12px; background: color-mix(in oklch, var(--ink) 6%, transparent); font-family: var(--mono); font-size: 13px; }
 .cmd code { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
 .cmd button { flex: none; font-family: var(--font); font-size: 12.5px; font-weight: 600; min-height: 32px; padding: 0 12px; border-radius: 999px; background: var(--card); white-space: nowrap; }
+.modal__lead { margin-top: 10px; font-size: 15.5px; color: var(--ink-soft); }
+.modal__note { margin: 12px 0 4px; font-size: 14.5px; line-height: 1.55; color: var(--muted); }
+.modal__note code { font-family: var(--mono); font-size: 12.5px; padding: 2px 6px; border-radius: 5px; background: color-mix(in oklch, var(--ink) 6%, transparent); }
+.modal__note a, .modal__fallback a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.modal__fallback { display: block; margin-top: 4px; font-size: 14px; color: var(--muted); }
+.modal__callout { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 12px 14px; border-radius: 14px; background: color-mix(in oklch, var(--ink) 5%, transparent); font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
+.modal__callout .icon { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--brand); }
+.modal__callout p { margin: 0; }
 .modal__close { float: right; width: 32px; height: 32px; border-radius: 50%; background: color-mix(in oklch, var(--ink) 7%, transparent); font-size: 18px; line-height: 1; }
 
 /* GitHub star burst (the family's, simplified) */

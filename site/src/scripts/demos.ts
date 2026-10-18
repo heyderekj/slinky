@@ -344,6 +344,7 @@ function install() {
   const close = () => modal.classList.remove('is-open');
   for (const a of $$('[data-download]')) a.addEventListener('click', () => { track(a.dataset.track ?? 'Download macOS'); setTimeout(open, 300); });
   for (const b of $$('[data-open-install]')) b.addEventListener('click', () => { track('install_modal_from_version'); open(); });
+  for (const a of $$<HTMLAnchorElement>('.modal__fallback a')) a.addEventListener('click', () => track(a.dataset.track ?? 'Download macOS install-fallback'));
   $('[data-close-install]', modal)?.addEventListener('click', close);
   modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
