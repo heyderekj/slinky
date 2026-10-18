@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Slinky's sounds, synthesized: a spring toy that locks things away.
+"""Slinky's sounds, synthesized: the real sound of a Slinky, and a lock that feels solid.
 
-Two ingredients. The spring: a stretched coil rings as a falling "sproing" chirp with a little wobble
-(the sound a real Slinky makes, and where the classic laser "pew" came from). The latch: a short, dry,
-solid click with a low body, so it feels secure rather than cute.
+Two ingredients, both literal and quiet. The coil: a Slinky's coils settling against each other make a fast,
+soft ripple of tiny metallic ticks, never a "boing". The latch: a damped mechanical click with a low body and
+no ringing tone, like a well-made latch or a safe's bolt. No pitch glides, no wobble, nothing cartoon.
 
     python3 design/sounds/make_sounds.py   → Slinky/Sounds/*.caf (AAC, mono, a few KB each)
 """
@@ -16,50 +16,54 @@ import numpy as np
 SR = 44100
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / 'Slinky' / 'Sounds'
-rng = np.random.default_rng(7)
+rng = np.random.default_rng(11)
 
 
-def t(seconds):
-    return np.arange(int(SR * seconds)) / SR
-
-
-def env(n, attack=0.002, decay=0.08):
+def decay_env(n, attack, decay):
     x = np.arange(n) / SR
-    a = np.clip(x / attack, 0, 1)
-    return a * np.exp(-x / decay)
+    return np.clip(x / attack, 0, 1) * np.exp(-x / decay)
 
 
-def sproing(dur=0.32, f_hi=2400.0, f_lo=520.0, wobble=7.0, decay=0.12, gain=1.0, rise=False):
-    """A spring's chirp: exponential glide with a wobble, plus a quieter inharmonic coil partial."""
-    x = t(dur)
-    k = np.log(f_lo / f_hi) / dur
-    glide = f_hi * np.exp(k * x)
-    if rise:
-        glide = glide[::-1]
-    f = glide * (1 + 0.035 * np.sin(2 * np.pi * wobble * x) * np.exp(-x / 0.15))
-    phase = 2 * np.pi * np.cumsum(f) / SR
-    tone = np.sin(phase) + 0.28 * np.sin(2.76 * phase) + 0.12 * np.sin(5.4 * phase)
-    # A faint echo, like the coil ringing back.
-    out = tone * env(len(x), 0.003, decay)
-    d = int(0.045 * SR)
-    out[d:] += 0.25 * out[:-d]
-    # Always fade to nothing, so a rising chirp never stops mid-tone.
-    tail = int(0.04 * SR)
-    out[-tail:] *= np.linspace(1, 0, tail) ** 2
+def lowpass(sig, width):
+    return np.convolve(sig, np.ones(width) / width, mode='same')
+
+
+def tick(f, gain, decay=0.004):
+    """One coil touching the next: a very short metallic tick (inharmonic partials, a breath of noise)."""
+    n = int(0.03 * SR)
+    x = np.arange(n) / SR
+    metal = (np.sin(2 * np.pi * f * x) + 0.6 * np.sin(2 * np.pi * f * 1.47 * x + 1.1)
+             + 0.35 * np.sin(2 * np.pi * f * 2.09 * x + 2.3))
+    out = metal * decay_env(n, 0.0003, decay) * 0.5
+    out += lowpass(rng.standard_normal(n), 5) * decay_env(n, 0.0001, 0.0012) * 0.45
     return gain * out
 
 
-def latch(gain=1.0, body=140.0, bright=2600.0):
-    """A dry, solid click: a tick of filtered noise, a short metal ping and a low thump (kept above ~180 Hz
-    so laptop speakers carry it)."""
-    n = int(0.12 * SR)
+def coil(count, length, accel=1.0, gain=1.0, f_lo=2300, f_hi=3700, swell=0.35):
+    """A ripple of `count` ticks over `length` seconds. accel > 1 crowds them toward the end (the coil
+    closing up), < 1 spreads them out (the coil opening). Loudness swells then eases off."""
+    out = np.zeros(int((length + 0.05) * SR))
+    u = np.linspace(0, 1, count) ** accel
+    for k, p in enumerate(u):
+        i = int(p * length * SR)
+        level = np.sin(np.pi * min(1, (k + 0.5) / count) ** swell * 0.999) ** 0.8
+        sig = tick(rng.uniform(f_lo, f_hi), (0.55 + 0.45 * rng.random()) * level)
+        out[i:i + len(sig)] += sig[: len(out) - i]
+    # A faint brush of the coils sliding, under the ticks.
+    brush = lowpass(rng.standard_normal(len(out)), 9) * 0.05
+    shape = np.sin(np.linspace(0, np.pi, len(out)))
+    return gain * (out + brush * shape)
+
+
+def latch(gain=1.0, body=190.0, brightness=7, firm=1.0):
+    """A damped mechanical click: a dry transient, a short muffled knock, a low body. No ring."""
+    n = int(0.09 * SR)
     noise = rng.standard_normal(n)
-    noise = np.convolve(noise, np.ones(6) / 6, mode='same')  # soften the hiss
-    tick = noise * env(n, 0.0004, 0.006)
-    x = t(0.12)
-    ping = np.sin(2 * np.pi * bright * x) * env(n, 0.0006, 0.018) * 0.35
-    thump = np.sin(2 * np.pi * body * x) * env(n, 0.001, 0.035) * 0.9
-    return gain * (tick * 0.8 + ping + thump)
+    transient = lowpass(noise, brightness) * decay_env(n, 0.0002, 0.003)
+    knock = lowpass(noise, brightness * 4) * decay_env(n, 0.0005, 0.012) * 0.9
+    x = np.arange(n) / SR
+    thump = np.sin(2 * np.pi * body * x) * decay_env(n, 0.0015, 0.022) * 0.8 * firm
+    return gain * (transient * 0.9 + knock + thump)
 
 
 def mix(length, *parts):
@@ -71,32 +75,33 @@ def mix(length, *parts):
     return out
 
 
-def finish(sig, peak=0.5):
+def finish(sig, peak=0.45):
     sig = sig - np.mean(sig)
-    fade = int(0.012 * SR)
-    sig[-fade:] *= np.linspace(1, 0, fade)
+    # Take the edge off the very top, so it reads as metal rather than hiss.
+    sig = 0.6 * sig + 0.4 * lowpass(sig, 4)
+    fade = int(0.015 * SR)
+    sig[-fade:] *= np.linspace(1, 0, fade) ** 2
     return sig / (np.max(np.abs(sig)) or 1) * peak
 
 
 SOUNDS = {
-    # Saved: a small spring tucks it away, and the latch closes.
-    'saved': lambda: mix(0.42,
-                         (0.0, sproing(0.18, 2100, 700, decay=0.07, gain=0.55)),
-                         (0.13, latch(0.9, body=230, bright=3000))),
-    # Imported: a Slinky walking down the stairs, one step per few items, then the latch.
-    'imported': lambda: mix(0.95,
-                            *[(i * 0.12, sproing(0.16, 2300 - i * 260, 760 - i * 70, decay=0.06, gain=0.5 - i * 0.04))
-                              for i in range(5)],
-                            (0.66, latch(1.0, body=210, bright=2800))),
-    # Locked: the coil draws in, then a firm double click of the bolt.
-    'locked': lambda: mix(0.62,
-                          (0.0, sproing(0.3, 1500, 420, wobble=9, decay=0.1, gain=0.45)),
-                          (0.36, latch(0.75, body=200, bright=2200)),
-                          (0.43, latch(1.0, body=180, bright=1900))),
-    # Unlocked: the latch lets go, and the spring springs open, rising.
-    'unlocked': lambda: mix(0.6,
-                            (0.0, latch(0.8, body=240, bright=3200)),
-                            (0.09, sproing(0.34, 2600, 480, wobble=6, decay=0.16, gain=0.6, rise=True))),
+    # Saved: a short coil settle, then the latch closes.
+    'saved': lambda: mix(0.32,
+                         (0.0, coil(9, 0.11, accel=1.6, gain=0.55)),
+                         (0.13, latch(1.0, body=200))),
+    # Imported: a longer ripple, like a Slinky pouring from one hand to the other, then the latch.
+    'imported': lambda: mix(0.62,
+                            (0.0, coil(26, 0.4, accel=1.25, gain=0.6, swell=0.6)),
+                            (0.44, latch(1.0, body=185))),
+    # Locked: the coil closes up, then the bolt: two firm clicks, the second lower and heavier.
+    'locked': lambda: mix(0.6,
+                          (0.0, coil(14, 0.26, accel=1.8, gain=0.5, f_lo=2000, f_hi=3300)),
+                          (0.36, latch(0.7, body=210, brightness=6)),
+                          (0.42, latch(1.0, body=165, brightness=10, firm=1.3))),
+    # Unlocked: the latch lets go, then the coil opens out and settles.
+    'unlocked': lambda: mix(0.5,
+                            (0.0, latch(0.85, body=220, brightness=5)),
+                            (0.07, coil(14, 0.3, accel=0.6, gain=0.5, f_lo=2500, f_hi=3900, swell=0.25))),
 }
 
 

@@ -137,7 +137,7 @@ private struct GeneralPane: View {
                 Toggle("Play sounds", isOn: $prefs.playSounds)
                     .onChange(of: prefs.playSounds) { _, on in if on { Sounds.play(.saved) } }
             } footer: {
-                Text("A little spring and a latch when you save something, a Slinky down the stairs when you import, and the lock clicking shut or springing open.")
+                Text("The soft ripple of a Slinky's coils and a latch clicking shut when you save or import, and the lock closing or opening.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section {

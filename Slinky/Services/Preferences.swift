@@ -65,17 +65,17 @@ final class Preferences {
 }
 
 /// System sounds only (no audio files), and only when "Play sounds" is on. Like Dinky: a bigger moment, a bigger sound.
-/// Slinky's own sounds (Slinky/Sounds, made by design/sounds/make_sounds.py): a spring toy that locks
-/// things away. A springy chirp for the playful part, a small solid latch for the secure part.
+/// Slinky's own sounds (Slinky/Sounds, made by design/sounds/make_sounds.py): the real sound of a Slinky's
+/// coils settling, and a damped latch that feels solid. Quiet and mechanical, never cartoon.
 enum Sounds {
     enum Moment: String {
-        /// A small spring tucks it away, and the latch closes.
+        /// A short coil settle, then the latch closes.
         case saved
-        /// A Slinky walking down the stairs, then the latch.
+        /// A longer coil ripple, then the latch.
         case imported
-        /// The coil draws in, then a firm double click of the bolt. Timed to the keyhole closing.
+        /// The coil closes up, then the bolt's two firm clicks. Timed to the keyhole closing.
         case locked
-        /// The latch lets go, and the spring springs open. Timed to the keyhole opening.
+        /// The latch lets go, then the coil opens out. Timed to the keyhole opening.
         case unlocked
     }
 
