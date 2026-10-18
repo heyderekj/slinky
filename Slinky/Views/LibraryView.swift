@@ -93,8 +93,12 @@ struct LibraryView: View {
                 Button("Delete \(refs.count) Items", role: .destructive) { refs.forEach(delete) }
             }
         } primaryAction: { refs in
-            // Double-click opens the details on the right (Edit is there, and in the menu).
-            if refs.count == 1 { showInspector = true }
+            // Double-click opens the full Edit panel. A single click already shows the details on the right.
+            if refs.count == 1, let ref = refs.first { model.editing = ref.editTarget }
+        }
+        // Selecting an item opens the details on the right, even if they were closed.
+        .onChange(of: model.librarySelection) { _, selection in
+            if selection != nil, !showInspector { showInspector = true }
         }
         // ⌘C (and Edit › Copy) copies the selected item. Return opens the details; Delete moves it to Recently Deleted.
         .onCommand(#selector(NSText.copy(_:))) { visibleSelection.map(copy) }
