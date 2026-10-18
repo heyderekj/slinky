@@ -43,6 +43,9 @@
   --app-sep: rgb(60 60 67 / 0.16);
   --green: #34c759;
   --orange: #ff9500;
+  /* The app mockups' status colors: a calm amber and a muted green, not Apple's bright system ones. */
+  --app-amber: oklch(0.65 0.125 72);
+  --app-green: oklch(0.58 0.1 162);
   --red: #ff3b30;
 }
 
@@ -70,6 +73,8 @@
     --app-sep: rgb(84 84 88 / 0.6);
     --green: #30d158;
     --orange: #ff9f0a;
+    --app-amber: oklch(0.78 0.105 75);
+    --app-green: oklch(0.74 0.1 162);
   }
 }
 

@@ -50,7 +50,7 @@ const quick = [
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
       <div class="envpick"><span class="on">Local</span><span>Preview</span><span>Production</span></div>
     </div>
-    <div class="env__banner"><Icon name="attention" style="width:14px;height:14px;color:var(--orange)" /> <span><b>.env.example</b> lists 2 variables that aren't saved in Slinky yet.</span></div>
+    <div class="env__banner"><Icon name="attention" style="width:14px;height:14px;color:var(--app-amber)" /> <span><b>.env.example</b> lists 2 variables that aren't saved in Slinky yet.</span></div>
     <div class="env">
       {envRows.map((r, i) => (
         <div class={`env__row ${r.missing ? 'is-missing' : ''}`}>
