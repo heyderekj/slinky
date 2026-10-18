@@ -221,7 +221,7 @@ const mark = (v: string) => {
           <div><Icon name="import" class="feature-icon" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden or a CSV. Passwords stay behind.</p></div>
           <div class="b-art b-import" aria-hidden="true">
             {[['1Password', '24 keys'], ['Apple Passwords', '9 keys'], ['Bitwarden', '12 keys'], ['keys.csv', '6 keys']].map(([n, c], i) => (
-              <div class="b-src"><span class="b-dot" style={`--h:${200 + i * 40}`}>{n[0]}</span><b>{n}</b><small>{c}</small></div>
+              <div class="b-src"><Monogram text={n} size={24} /><b>{n}</b><small>{c}</small></div>
             ))}
             <p class="b-note">31 passwords left behind</p>
           </div>
@@ -240,7 +240,7 @@ STRIPE_SECRET_KEY=••••••••
           <div><Icon name="cloudup" class="feature-icon" /><h3>Make a new key, send it where it runs</h3><p>“Make New Key on GitHub…” opens the right page and replaces it everywhere it’s used. Send a project’s variables to Vercel, Netlify, Cloudflare or Fly through their own tools.</p></div>
           <div class="b-art b-import" aria-hidden="true">
             {[['Vercel', 'Production'], ['Netlify', 'All deploys'], ['Cloudflare', 'Workers, Pages'], ['Fly.io', 'acme-api']].map(([n, c], i) => (
-              <div class="b-src"><span class="b-dot" style={`--h:${190 + i * 35}`}>{n[0]}</span><b>{n}</b><small>{c}</small></div>
+              <div class="b-src"><Monogram text={n} size={24} /><b>{n}</b><small>{c}</small></div>
             ))}
             <p class="b-note">Values go on stdin, never in the command line</p>
           </div>

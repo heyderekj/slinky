@@ -16,7 +16,8 @@ const palette: [string, string][] = [
 ];
 const trimmed = text.trim();
 const lower = trimmed.toLowerCase();
-const logo = Object.entries(logos).find(([name]) => lower === name || lower.startsWith(name + ' '))?.[1];
+// Longest name first, so "Apple Passwords" gets its own tile and not Apple's logo.
+const logo = Object.entries(logos).sort((a, b) => b[0].length - a[0].length).find(([name]) => lower === name || lower.startsWith(name + ' '))?.[1];
 const words = trimmed.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : (trimmed[0] ?? '').toUpperCase();
 let sum = 0;
