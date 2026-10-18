@@ -66,27 +66,25 @@ struct LibraryView: View {
         return List(selection: $model.librarySelection) {
             if showKeys {
                 Section {
+                    if filter == .all { groupTitle("Keys & Tokens") }
                     ForEach(model.document.keys) { KeyRow(key: $0).tag(LibraryRef.key($0.id)) }
-                        .listSectionSeparator(.hidden)
-                } header: {
-                    if filter == .all { Text("Keys & Tokens") }
                 }
             }
             if showCodes {
-                Section("Recovery Codes") {
+                Section {
+                    groupTitle("Recovery Codes")
                     ForEach(model.document.codeSets) { CodeSetRow(set: $0).tag(LibraryRef.codes($0.id)) }
-                        .listSectionSeparator(.hidden)
                 }
             }
             if showKept {
-                Section("Recovery Keys") {
+                Section {
+                    groupTitle("Recovery Keys")
                     ForEach(model.document.kept) { KeptRow(item: $0).tag(LibraryRef.kept($0.id)) }
-                        .listSectionSeparator(.hidden)
                 }
             }
         }
-        // No line under section headers (.listSectionSeparator on each section): it ran on under the sidebar on the
-        // left but stopped with the rows on the right, so the edges looked lopsided.
+        // Group titles are plain rows, not section headers: on the Mac a section header draws a line under itself
+        // that ran on under the left sidebar but stopped with the rows on the right.
         .listStyle(.inset)
         .contextMenu(forSelectionType: LibraryRef.self) { refs in
             if refs.count == 1, let ref = refs.first {
@@ -106,6 +104,17 @@ struct LibraryView: View {
             showInspector = true
             return .handled
         }
+    }
+
+    /// A group's title inside the list: not selectable, no line under it.
+    private func groupTitle(_ text: String) -> some View {
+        Text(text)
+            .font(.headline)
+            .foregroundStyle(.secondary)
+            .padding(.top, 6)
+            .selectionDisabled()
+            .listRowSeparator(.hidden)
+            .accessibilityAddTraits(.isHeader)
     }
 
     private func copy(_ ref: LibraryRef) { ItemActions.copy(ref, model: model) }
