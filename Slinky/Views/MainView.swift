@@ -3,7 +3,10 @@ import SwiftUI
 
 struct MainView: View {
     @Environment(AppModel.self) private var model
-    @State private var columns: NavigationSplitViewVisibility = .all
+    // Starts without the sidebar when it appears under the unlock animation, so it never flashes in early.
+    @State private var columns: NavigationSplitViewVisibility = AppModel.shared.lockedChrome ? .detailOnly : .all
+    /// The sidebar as the person left it, put back once an unlock finishes.
+    @State private var savedColumns: NavigationSplitViewVisibility = .all
 
     var body: some View {
         @Bindable var model = model
@@ -32,11 +35,13 @@ struct MainView: View {
                     }
                     .help(columns == .detailOnly ? "Show the sidebar (⌃⌘S)" : "Hide the sidebar (⌃⌘S)")
                     .accessibilityLabel(columns == .detailOnly ? "Show sidebar" : "Hide sidebar")
+                    .disabled(model.lockedChrome)
                 }
                 // Always here, whatever's on screen: in a project it adds a variable to that project.
                 ToolbarItem(placement: .primaryAction) {
                     Button { addHere() } label: { Label("Add Item", systemImage: "plus") }
                         .help(isProject ? "Add a variable to this project (⌘N)" : "Add Item (⌘N)")
+                        .disabled(model.lockedChrome)
                 }
             }
             // Drop a key or some .env lines anywhere on the content to add them.
@@ -46,6 +51,12 @@ struct MainView: View {
                       !text.hasPrefix("/"), !text.hasPrefix("file://"), canAdd else { return false }
                 addHere(prefill: text)
                 return true
+            }
+        }
+        // The locked window has no sidebar. It slides away as locking starts and back once the keyhole has opened.
+        .onChange(of: model.lockedChrome) { _, locked in
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.86)) {
+                if locked { savedColumns = columns; columns = .detailOnly } else { columns = savedColumns }
             }
         }
         .background(PasteToAdd { text in

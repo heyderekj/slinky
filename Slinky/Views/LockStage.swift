@@ -170,3 +170,21 @@ struct KeyholeHole: Shape {
         return keyhole.applying(transform)
     }
 }
+
+extension View {
+    /// The window title and subtitle for a screen, or the locked window's while Slinky locks or unlocks,
+    /// so the toolbar moves with the keyhole instead of waiting for it.
+    func screenTitle(_ title: String, subtitle: String) -> some View { modifier(ScreenTitle(title: title, subtitle: subtitle)) }
+}
+
+private struct ScreenTitle: ViewModifier {
+    @Environment(AppModel.self) private var model
+    let title: String
+    let subtitle: String
+
+    func body(content: Content) -> some View {
+        content
+            .navigationTitle(model.lockedChrome ? "Slinky" : title)
+            .navigationSubtitle(model.lockedChrome ? "Locked" : subtitle)
+    }
+}

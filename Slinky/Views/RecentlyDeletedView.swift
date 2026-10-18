@@ -27,10 +27,9 @@ struct RecentlyDeletedView: View {
                 .scrollContentBackground(.hidden)
             }
         }
-        .navigationTitle("Recently Deleted")
-        .navigationSubtitle(entries.isEmpty ? "" : "\(entries.count) \(entries.count == 1 ? "item" : "items")")
+        .screenTitle("Recently Deleted", subtitle: entries.isEmpty ? "" : "\(entries.count) \(entries.count == 1 ? "item" : "items")")
         .toolbar {
-            if !entries.isEmpty {
+            if !entries.isEmpty, !model.lockedChrome {
                 ToolbarItem {
                     Button("Empty") { confirmEmpty = true }
                         .help("Delete everything here for good")

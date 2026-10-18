@@ -96,6 +96,8 @@ final class AppModel {
     /// The full-window lock and unlock transition (see `LockCurtain`). Views animate it; the model only says which way.
     enum Curtain: Equatable { case none, closing, opening }
     var curtain: Curtain = .none
+    /// While the lock or unlock plays, the toolbar shows the locked window's (no sidebar, nothing to act on).
+    var lockedChrome: Bool { curtain != .none }
     var document = VaultDocument() {
         didSet { IconResolver.shared.load(siteIcons: document.siteIcons) }
     }

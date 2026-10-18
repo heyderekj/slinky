@@ -19,10 +19,10 @@ struct LibraryView: View {
                 list
             }
         }
-        .navigationTitle(filter.title)
-        .navigationSubtitle(subtitle)
+        .screenTitle(filter.title, subtitle: subtitle)
         .toolbar {
-            if !isEmpty {
+            // Away while Slinky locks or unlocks, when the toolbar is the locked window's.
+            if !isEmpty, !model.lockedChrome {
                 ToolbarItem {
                     Button { showInspector.toggle() } label: { Label("Details", systemImage: "sidebar.right") }
                         .help(showInspector ? "Hide details" : "Show details")

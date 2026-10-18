@@ -83,8 +83,7 @@ struct AttentionView: View {
                 }
             }
         }
-        .navigationTitle("Needs Attention")
-        .navigationSubtitle(items.isEmpty ? "" : "\(items.count) \(items.count == 1 ? "item" : "items")")
+        .screenTitle("Needs Attention", subtitle: items.isEmpty ? "" : "\(items.count) \(items.count == 1 ? "item" : "items")")
     }
 }
 
@@ -157,8 +156,7 @@ struct SearchResultsView: View {
                 .scrollContentBackground(.hidden)
             }
         }
-        .navigationTitle("Search")
-        .navigationSubtitle("\(results.count) \(results.count == 1 ? "result" : "results")")
+        .screenTitle("Search", subtitle: "\(results.count) \(results.count == 1 ? "result" : "results")")
     }
 
     private func copy(_ item: QuickItem) {

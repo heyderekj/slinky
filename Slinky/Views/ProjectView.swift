@@ -37,40 +37,42 @@ struct ProjectView: View {
                     .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
                     .padding(14)
             }
-            .navigationTitle(project.name)
-            .navigationSubtitle(subtitle(project))
+            .screenTitle(project.name, subtitle: subtitle(project))
             .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Picker("Environment", selection: $env) {
-                        ForEach(AppEnvironment.allCases) { Text($0.title).tag($0) }
+                // Away while Slinky locks or unlocks, when the toolbar is the locked window's.
+                if !model.lockedChrome {
+                    ToolbarItem(placement: .principal) {
+                        Picker("Environment", selection: $env) {
+                            ForEach(AppEnvironment.allCases) { Text($0.title).tag($0) }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 260)
                     }
-                    .pickerStyle(.segmented)
-                    .frame(width: 260)
-                }
-                ToolbarItem {
-                    Menu {
-                        Button("Import .env File…") { pickEnvFile(project) }
-                        Button("Link Folder…") { pickFolder(project) }
-                        Divider()
-                        Button("Edit Project…") { model.editing = .project(project.id) }
-                    } label: {
-                        Label("Add", systemImage: "square.and.arrow.down")
+                    ToolbarItem {
+                        Menu {
+                            Button("Import .env File…") { pickEnvFile(project) }
+                            Button("Link Folder…") { pickFolder(project) }
+                            Divider()
+                            Button("Edit Project…") { model.editing = .project(project.id) }
+                        } label: {
+                            Label("Add", systemImage: "square.and.arrow.down")
+                        }
+                        .help("Import a .env file or link the project folder")
                     }
-                    .help("Import a .env file or link the project folder")
-                }
-                ToolbarItem {
-                    Menu {
-                        Button("Copy \(env.title) as .env") { copyAsEnv(project) }
-                            .disabled(!project.variables.contains { $0.value(in: env) != nil })
-                        Button("Save .env.example…") { saveExample(project) }
-                            .disabled(project.variables.isEmpty)
-                    } label: {
-                        Label("Share", systemImage: "square.and.arrow.up")
+                    ToolbarItem {
+                        Menu {
+                            Button("Copy \(env.title) as .env") { copyAsEnv(project) }
+                                .disabled(!project.variables.contains { $0.value(in: env) != nil })
+                            Button("Save .env.example…") { saveExample(project) }
+                                .disabled(project.variables.isEmpty)
+                        } label: {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                        .help("Copy this environment as .env lines, or save a .env.example with names only")
                     }
-                    .help("Copy this environment as .env lines, or save a .env.example with names only")
-                }
-                ToolbarItem {
-                    Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
+                    ToolbarItem {
+                        Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
+                    }
                 }
             }
             .inspector(isPresented: $showInspector) {
