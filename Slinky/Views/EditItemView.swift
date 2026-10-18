@@ -49,16 +49,8 @@ private struct EditPanel: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 12) {
-                ServiceIcon(subject: iconSubject, size: 34)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text(title).font(.headline)
-                    Text(kindLabel).font(.caption).foregroundStyle(.secondary)
-                }
-                Spacer()
-                Keycap("esc")
-            }
-            .padding(.bottom, 16)
+            header
+                .padding(.bottom, 18)
 
             FieldCard {
                 fields
@@ -79,6 +71,55 @@ private struct EditPanel: View {
         .onAppear {
             load()
             withAnimation(.spring(response: 0.38, dampingFraction: 0.84)) { appeared = true }
+        }
+    }
+
+    // MARK: Header
+
+    /// The item itself, not the form's name: its icon (click to choose another), its name as typed,
+    /// and what it is. A close button where the "esc" hint was; Esc still works.
+    private var header: some View {
+        HStack(spacing: 14) {
+            Group {
+                if let ref = libraryRef {
+                    Button { model.choosingIcon = ref } label: { ServiceIcon(subject: iconSubject, size: 44) }
+                        .buttonStyle(.plain)
+                        .help("Choose Icon…")
+                } else {
+                    ServiceIcon(subject: iconSubject, size: 44)
+                }
+            }
+            VStack(alignment: .leading, spacing: 3) {
+                Text(name.trimmingCharacters(in: .whitespaces).isEmpty ? title : name)
+                    .font(.system(size: 17, weight: .semibold, design: isKey ? .monospaced : .default))
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .contentTransition(.opacity)
+                Text(kindLabel).font(.callout).foregroundStyle(.secondary).lineLimit(1)
+            }
+            Spacer(minLength: 12)
+            Button(action: requestClose) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 30, height: 30)
+                    .contentShape(.circle)
+            }
+            .buttonStyle(.plain)
+            .glass(in: .circle, interactive: true)
+            .help("Close (esc)")
+            .accessibilityLabel("Close")
+        }
+    }
+
+    private var isKey: Bool { if case .key = target { true } else { false } }
+
+    private var libraryRef: LibraryRef? {
+        switch target {
+        case let .key(id): .key(id)
+        case let .kept(id): .kept(id)
+        case let .codes(id): .codes(id)
+        case .project: nil
         }
     }
 
@@ -280,13 +321,20 @@ private struct EditPanel: View {
         }
     }
 
+    /// What it is and, when Slinky can tell, which service: "Key or token · GitHub".
     private var kindLabel: String {
+        let service = IconResolver.shared.service(for: iconSubject)?.name
         switch target {
-        case let .key(id): return model.document.keys.first { $0.id == id }?.provider ?? "Keys & Tokens"
-        case .kept, .codes: return "Recovery"
+        case .key:
+            return ["Key or token", service].compactMap { $0 }.joined(separator: " · ")
+        case let .kept(id):
+            let kind = model.document.kept.first { $0.id == id }?.kind.title ?? "Recovery key"
+            return [kind, service].compactMap { $0 }.joined(separator: " · ")
+        case .codes:
+            return ["Recovery codes", service].compactMap { $0 }.joined(separator: " · ")
         case let .project(id):
             let n = model.document.projects.first { $0.id == id }?.variables.count ?? 0
-            return "\(n) \(n == 1 ? "variable" : "variables")"
+            return "Project · \(n) \(n == 1 ? "variable" : "variables")"
         }
     }
 

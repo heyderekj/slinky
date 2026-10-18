@@ -185,7 +185,7 @@ struct ItemDetail: View {
     }
 
     private func keyDetail(_ key: Key) -> some View {
-        DetailScaffold(icon: key.iconSubject, title: key.name, mono: true, kind: key.provider ?? "Key or token", ref: ref) {
+        DetailScaffold(icon: key.iconSubject, title: key.name, mono: true, kind: "Key or token", ref: ref) {
             Section {
                 RevealField(value: key.value)
                 HStack {
@@ -207,7 +207,7 @@ struct ItemDetail: View {
     }
 
     private func codesDetail(_ set: CodeSet) -> some View {
-        DetailScaffold(icon: set.iconSubject, title: set.account, kind: set.username ?? "Recovery codes", ref: ref) {
+        DetailScaffold(icon: set.iconSubject, title: set.account, kind: ["Recovery codes", set.username].compactMap { $0 }.joined(separator: " · "), ref: ref) {
             Section {
                 if set.isLow {
                     Label("Only \(set.remaining) left. Consider making new ones.", systemImage: "exclamationmark.triangle.fill")
@@ -259,18 +259,24 @@ private struct DetailScaffold<Content: View>: View {
     var ref: LibraryRef
     @ViewBuilder var content: Content
 
+    /// What it is, plus the service when Slinky can tell: "Key or token · GitHub", same as Edit.
+    private var kindLine: String {
+        guard let service = IconResolver.shared.service(for: icon)?.name, !kind.contains(service) else { return kind }
+        return "\(kind) · \(service)"
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 12) {
+            HStack(spacing: 14) {
                 Button { model.choosingIcon = ref } label: { ServiceIcon(subject: icon, size: 44) }
                     .buttonStyle(.plain)
                     .help("Choose Icon…")
-                VStack(alignment: .leading, spacing: 2) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(title)
-                        .font(.system(size: 15, weight: .semibold, design: mono ? .monospaced : .default))
+                        .font(.system(size: 17, weight: .semibold, design: mono ? .monospaced : .default))
                         .lineLimit(2)
                         .textSelection(.enabled)
-                    Text(kind).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    Text(kindLine).font(.callout).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer(minLength: 0)
             }

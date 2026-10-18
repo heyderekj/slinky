@@ -50,14 +50,8 @@ struct MainView: View {
                 return true
             }
         }
-        // The locked window has no sidebar, so it slides away as locking starts (this window is gone once the vault
-        // locks). Unlocking never hides it: a split view that starts without its sidebar lays it out clipped when it
-        // slides in, so the sidebar is simply there under the opening keyhole.
-        .onChange(of: model.curtain) { _, curtain in
-            if curtain == .closing {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.86)) { columns = .detailOnly }
-            }
-        }
+        // The sidebar stays put while locking: collapsing it as the window goes away left macOS saving a
+        // half-collapsed width, and the sidebar came back clipped. The curtain covers it anyway.
         .background(PasteToAdd { text in
             guard canAdd else { return false }
             addHere(prefill: text)
