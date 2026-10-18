@@ -680,6 +680,9 @@ button.replay:active { transform: scale(0.97); }
 .b-pill { display: inline-flex; align-items: center; gap: 6px; height: 24px; padding: 0 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: var(--green); background: color-mix(in oklch, var(--green) 14%, transparent); }
 .b-pill--gh { height: 34px; padding: 0 14px; color: var(--ink); background: color-mix(in oklch, var(--ink) 7%, transparent); }
 .b-pill--gh .icon { width: 16px; height: 16px; }
+a.b-pill--gh { text-decoration: none; transition: background var(--t-ui) var(--ease); }
+a.b-pill--gh:hover { background: color-mix(in oklch, var(--ink) 13%, transparent); }
+a.b-pill--gh:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 .b-switch { width: 30px; height: 18px; border-radius: 999px; background: var(--brand); position: relative; }
 .b-switch::after { content: ''; position: absolute; right: 2px; top: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; }
 .b-term { margin: 14px 0 0; padding: 12px 14px; border-radius: 12px; background: #000; color: #c9f7d8; font-family: var(--mono); font-size: 12px; line-height: 1.6; white-space: pre; overflow: hidden; }
