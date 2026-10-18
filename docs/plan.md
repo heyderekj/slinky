@@ -310,4 +310,11 @@ Built: vault with Touch ID and Recovery Key (and making a new one), Keys & Token
 Before publishing: Derek's real-use test (his recovery key, personal token and .env secret), a light-mode pass, and a GitHub remote.
 Built in the 1.1 app pass (2026-10-17): add from anywhere (toolbar +, ⌘V, drop), drafts that survive closing, notes and links on every item, the compact library list with a details pane, real service icons (installed apps, bundled logos, Apple Intelligence matching, website icons only when turned on), Recently Deleted, and backup export and restore.
 
+Roadmap after 1.1 (Derek, 2026-10-17; each release gets its own detailed plan when it starts):
+- **1.2 Agents and the CLI:** the broker socket, `slinky run`, MCP (names only), approvals, Connect, plus an encrypted **Activity** log (names only) and **shell auto-load** (`slinky hook zsh`, one Touch ID per shell session).
+- **1.3 Leak finder and Health:** exact-match search for saved values in linked projects, git history and staged diffs, Claude Code/Cursor transcripts and shell history (in memory, names and places only); one-click fixes (move a .env into Slinky leaving a .env.example, clean shell history, rotate); a git pre-commit guard over the socket; Needs Attention grows into Health. Plus opt-in **save from clipboard** (shape check only, skips concealed/transient copies, opens Add Item prefilled).
+- **1.4 Apple developer secrets:** secret files (.p8, .pem, .p12, service-account JSON, 256 KB cap, materialized 0600 only for a run); Add Item templates for App Store Connect API keys, notarization, signing certificate passwords and Sparkle keys; `slinky xcconfig` for Xcode builds and `slinky notarize-profile`.
+- **1.5 Rotation, reminders and push to host:** "Make a New Key on <service>" via catalog `tokenURL`s with linked projects updated together; opt-in notifications (names only); send a project environment to Vercel, Netlify, Cloudflare or Fly through their own CLIs (values on stdin, preview first, names-only compare).
+- Not now: sync between Macs (stays under Later).
+
 Next milestone (1.2, its own plan): the agents work (slinky CLI with masking, socket broker, approval cards, receipts, MCP, Connect for Claude Code), then Raycast.
