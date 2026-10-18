@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The right sidebar with an item's or a variable's details, drawn to match the left one: a full-height glass
-/// panel inset from the window's edges, running up under the toolbar.
+/// The right sidebar with an item's or a variable's details, drawn to match the left one: a glass panel inset
+/// from the window's edges, starting below the toolbar.
 ///
 /// Not the system `.inspector`. On Tahoe it counts its own width twice when macOS works out how wide the
 /// content must be (once as the content's inset, once as its own column), so at the window's smaller sizes the
@@ -51,11 +51,12 @@ private struct DetailsPaneLayout<Pane: View>: ViewModifier {
                         .frame(width: width)
                         .frame(maxHeight: .infinity)
                         .padding(.bottom, paneInset)
-                        // The panel runs up under the toolbar, like the left sidebar; what's in it starts below.
+                        // The panel starts below the toolbar, so the toolbar's buttons sit above it with room
+                        // to breathe instead of on its top edge.
+                        .padding(.top, paneInset)
                         .background {
                             PaneGlass()
                                 .padding(.vertical, paneInset)
-                                .ignoresSafeArea(edges: .top)
                         }
                         .padding(.trailing, paneInset)
                         .transition(.move(edge: .trailing))
