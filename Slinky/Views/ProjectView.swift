@@ -109,9 +109,8 @@ struct ProjectView: View {
 
     private func subtitle(_ p: Project) -> String {
         let secrets = p.variables.filter { !$0.isPlain }.count
-        var parts = ["\(p.variables.count) variables", "\(secrets) secret"]
-        if let folder = p.folders.first { parts.append((folder as NSString).abbreviatingWithTildeInPath) }
-        return parts.joined(separator: " · ")
+        // Short: a long subtitle widens the content column and squeezes the sidebar. The folder is in Edit Project.
+        return "\(p.variables.count) \(p.variables.count == 1 ? "variable" : "variables") · \(secrets) secret"
     }
 
     @ViewBuilder

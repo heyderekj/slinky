@@ -116,15 +116,20 @@ struct LibraryView: View {
         }
     }
 
+    /// Short on purpose: macOS keeps the toolbar's title and subtitle on one line, and a long subtitle pushes
+    /// the content column wide enough to squeeze the sidebar below its minimum. Counts, not descriptions
+    /// (the empty states say what each view is for).
     private var subtitle: String {
+        let doc = model.document
+        func count(_ n: Int, _ one: String, _ many: String) -> String { "\(n) \(n == 1 ? one : many)" }
         switch filter {
         case .all:
-            return "\(model.document.keys.count + model.document.codeSets.count + model.document.kept.count) items"
+            return count(doc.keys.count + doc.codeSets.count + doc.kept.count, "item", "items")
         case .keys:
-            return "API keys and access tokens your software uses"
+            return count(doc.keys.count, "item", "items")
         case .recovery:
-            let low = model.document.codeSets.filter(\.isLow).count
-            return "Codes and keys that get you back into your accounts" + (low > 0 ? " · \(low) running low" : "")
+            let low = doc.codeSets.filter(\.isLow).count
+            return count(doc.codeSets.count + doc.kept.count, "item", "items") + (low > 0 ? " · \(low) running low" : "")
         }
     }
 
