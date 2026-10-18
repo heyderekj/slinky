@@ -228,6 +228,7 @@ final class AppModel {
         if document.purgeTrash() > 0 { persist() }
         // Set together with the phase so the curtain is already over the window on the first frame.
         if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { curtain = .opening }
+        Sounds.play(.unlocked)
         phase = .unlocked
         startIdleTimer()
     }
@@ -322,6 +323,7 @@ final class AppModel {
             return
         }
         curtain = .closing
+        Sounds.play(.locked)
         Task {
             try? await Task.sleep(for: .milliseconds(620))
             lock(reason: .manual)
@@ -353,7 +355,8 @@ final class AppModel {
         idleTimer?.invalidate()
         lockNote = reason.note
         phase = .locked
-        if reason == .manual { Sounds.play(.locked) }
+        // With the animation, the sound started with it (lockAnimated), so its bolt lands as the keyhole closes.
+        if reason == .manual, NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { Sounds.play(.locked) }
     }
 
     // MARK: Changes

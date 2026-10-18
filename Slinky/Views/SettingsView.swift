@@ -135,8 +135,9 @@ private struct GeneralPane: View {
             }
             Section {
                 Toggle("Play sounds", isOn: $prefs.playSounds)
+                    .onChange(of: prefs.playSounds) { _, on in if on { Sounds.play(.saved) } }
             } footer: {
-                Text("A soft sound when you save something, a bigger one when you import a .env file, and a click when you lock.")
+                Text("A little spring and a latch when you save something, a Slinky down the stairs when you import, and the lock clicking shut or springing open.")
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section {

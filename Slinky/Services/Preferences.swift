@@ -65,23 +65,31 @@ final class Preferences {
 }
 
 /// System sounds only (no audio files), and only when "Play sounds" is on. Like Dinky: a bigger moment, a bigger sound.
+/// Slinky's own sounds (Slinky/Sounds, made by design/sounds/make_sounds.py): a spring toy that locks
+/// things away. A springy chirp for the playful part, a small solid latch for the secure part.
 enum Sounds {
-    enum Moment {
-        case saved, imported, locked
-
-        var name: String {
-            switch self {
-            case .saved: "Pop"
-            case .imported: "Glass"
-            case .locked: "Tink"
-            }
-        }
+    enum Moment: String {
+        /// A small spring tucks it away, and the latch closes.
+        case saved
+        /// A Slinky walking down the stairs, then the latch.
+        case imported
+        /// The coil draws in, then a firm double click of the bolt. Timed to the keyhole closing.
+        case locked
+        /// The latch lets go, and the spring springs open. Timed to the keyhole opening.
+        case unlocked
     }
+
+    @MainActor private static var loaded: [Moment: NSSound] = [:]
 
     @MainActor
     static func play(_ moment: Moment) {
         guard Preferences.shared.playSounds else { return }
-        NSSound(named: NSSound.Name(moment.name))?.play()
+        let sound = loaded[moment] ?? Bundle.main.url(forResource: moment.rawValue, withExtension: "caf")
+            .flatMap { NSSound(contentsOf: $0, byReference: true) }
+        guard let sound else { return }
+        loaded[moment] = sound
+        if sound.isPlaying { sound.stop() }
+        sound.play()
     }
 }
 
