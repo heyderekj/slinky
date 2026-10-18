@@ -23,6 +23,12 @@ final class Preferences {
     var checkForUpdates: Bool { didSet { defaults.set(checkForUpdates, forKey: "checkForUpdates") } }
     /// Fetch each saved website's own icon (off unless the person turns it on). See WebsiteIcons.
     var loadWebsiteIcons: Bool { didSet { defaults.set(loadWebsiteIcons, forKey: "loadWebsiteIcons") } }
+    /// When Health last looked for saved values outside Slinky. A date only.
+    var lastLeakCheck: Date { didSet { defaults.set(lastLeakCheck, forKey: "lastLeakCheck") } }
+    /// Offer to save a key you copy in another app (it checks the shape only). Off unless turned on.
+    var offerToSaveCopies: Bool { didSet { defaults.set(offerToSaveCopies, forKey: "offerToSaveCopies") } }
+    /// Mac notifications for expiring keys, codes running low and leaks (names only). Off unless turned on.
+    var reminders: Bool { didSet { defaults.set(reminders, forKey: "reminders") } }
     /// How many times Slinky has copied something for you. A count only, for the About pane.
     var copyCount: Int { didSet { defaults.set(copyCount, forKey: "copyCount") } }
     /// Mirrors macOS's Login Items. Read fresh from the system when Settings opens.
@@ -31,7 +37,7 @@ final class Preferences {
     private init() {
         defaults.register(defaults: [
             "autoLockMinutes": 10, "lockOnScreenLock": true, "lockOnSleep": true,
-            "clipboardSeconds": 60, "playSounds": true, "showInMenuBar": true, "checkForUpdates": true, "loadWebsiteIcons": false, "copyCount": 0,
+            "clipboardSeconds": 60, "playSounds": true, "showInMenuBar": true, "checkForUpdates": true, "loadWebsiteIcons": false, "offerToSaveCopies": false, "reminders": false, "copyCount": 0,
         ])
         autoLockMinutes = defaults.integer(forKey: "autoLockMinutes")
         lockOnScreenLock = defaults.bool(forKey: "lockOnScreenLock")
@@ -41,6 +47,9 @@ final class Preferences {
         showInMenuBar = defaults.bool(forKey: "showInMenuBar")
         checkForUpdates = defaults.bool(forKey: "checkForUpdates")
         loadWebsiteIcons = defaults.bool(forKey: "loadWebsiteIcons")
+        lastLeakCheck = defaults.object(forKey: "lastLeakCheck") as? Date ?? .distantPast
+        offerToSaveCopies = defaults.bool(forKey: "offerToSaveCopies")
+        reminders = defaults.bool(forKey: "reminders")
         copyCount = defaults.integer(forKey: "copyCount")
         refreshLoginItem()
     }

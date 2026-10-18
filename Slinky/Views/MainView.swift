@@ -129,18 +129,15 @@ struct SidebarView: View {
                     .badge(count(filter))
                     .tag(SidebarItem.library(filter))
                 }
-                // Only there when something needs a person to act.
-                if !attention.isEmpty || model.selection == .attention {
-                    Label {
-                        Text("Needs Attention")
-                    } icon: {
-                        Image(systemName: "exclamationmark.triangle")
-                            .foregroundStyle(.orange)
-                    }
-                    .badge(attention.count)
-                    .tag(SidebarItem.attention)
-                    .transition(.opacity)
+                // Health: always here (leaks can be checked any time); orange when something needs you.
+                Label {
+                    Text("Health")
+                } icon: {
+                    Image(systemName: model.healthCount > 0 ? "exclamationmark.triangle" : "heart.text.square")
+                        .foregroundStyle(model.healthCount > 0 ? Color.orange : Color.secondary)
                 }
+                .badge(model.healthCount)
+                .tag(SidebarItem.attention)
                 // Only there once something's been copied or used.
                 if !model.document.log.isEmpty || model.selection == .activity {
                     Label("Activity", systemImage: "clock.arrow.circlepath")

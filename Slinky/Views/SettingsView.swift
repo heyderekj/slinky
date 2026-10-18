@@ -137,6 +137,18 @@ private struct GeneralPane: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section {
+                Toggle("Offer to save keys you copy in other apps", isOn: $prefs.offerToSaveCopies)
+                Toggle("Remind me about expiring keys, low codes and leaks", isOn: Binding(get: { prefs.reminders }, set: { on in
+                    prefs.reminders = on
+                    if on { Task { _ = await Reminders.requestPermission() } }
+                }))
+            } header: {
+                Text("Helping out")
+            } footer: {
+                Text("Saving checks only what a copied value looks like, and keeps nothing unless you choose Save. Copies from password managers are skipped. Reminders are Mac notifications with names only, never values.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+            Section {
                 Toggle("Play sounds", isOn: $prefs.playSounds)
                     .onChange(of: prefs.playSounds) { _, on in if on { Sounds.play(.saved) } }
             } footer: {

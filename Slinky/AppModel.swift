@@ -108,6 +108,11 @@ final class AppModel {
     var showNewProject = false
     /// The item open in the Edit panel, if any.
     var editing: EditTarget?
+    /// Saved values found outside Slinky (Health). In memory only; cleared on lock.
+    var leaks: [LeakFinding] = []
+    var checkingLeaks = false
+    /// A key copied in another app that the person chose to save while Slinky was locked. Memory only.
+    @ObservationIgnored var pendingSave: String?
     /// The selected library row, so search can jump to an item and the detail pane can follow it.
     var librarySelection: LibraryRef?
     /// The item whose icon is being chosen (Choose Icon…).
@@ -153,6 +158,7 @@ final class AppModel {
     func start() {
         guard phase == .loading else { return }
         hasVault = store.exists
+        ClipboardWatcher.shared.start()
         if broker == nil {
             broker = BrokerServer { request, peer in await AppModel.shared.handle(request, peer: peer) }
             broker?.start()
@@ -236,6 +242,15 @@ final class AppModel {
         errorMessage = nil
         // Recently Deleted keeps things for 30 days.
         if document.purgeTrash() > 0 { persist() }
+        // Look for leaks once a day, quietly, after unlocking.
+        if Date.now.timeIntervalSince(Preferences.shared.lastLeakCheck) > 86_400 { Task { await checkForLeaks() } }
+        if let value = pendingSave {
+            pendingSave = nil
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(700))
+                openAddItem(prefill: value)
+            }
+        }
         // Set together with the phase so the curtain is already over the window on the first frame.
         if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { curtain = .opening }
         Sounds.play(.unlocked)
@@ -404,6 +419,8 @@ final class AppModel {
         choosingIcon = nil
         showRestore = false
         grants = [:]
+        leaks = []
+        pendingSave = nil
         // Names and website icons it worked out stay only while unlocked.
         IconResolver.shared.reset()
         idleTimer?.invalidate()
@@ -731,6 +748,7 @@ final class AppModel {
         record(ActivityEntry(action: .codeUsed, names: ["\(document.codeSets[s].account) recovery code"]))
         change(undoable: true) { $0.codeSets[s].used.insert(index) }
         let left = document.codeSets[s].remaining
+        if left <= 3 { Reminders.codesLow(account: document.codeSets[s].account, left: left) }
         show("Copied and marked as used. \(left) left." + (left <= 3 ? " Consider generating new codes." : ""), canUndo: true, style: .success)
     }
 
@@ -820,6 +838,7 @@ final class AppModel {
         current.document = document
         session = current
         do { try store.save(current) } catch { errorMessage = "Couldn't save: \(Self.friendly(error))" }
+        Reminders.schedule(document)
     }
 
     // MARK: Locking

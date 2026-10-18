@@ -53,37 +53,149 @@ extension AppModel {
     }
 }
 
+/// Health: saved values found outside Slinky, what needs a person, and tidying up.
 struct AttentionView: View {
     @Environment(AppModel.self) private var model
+    @State private var confirmHistory: LeakFinding?
+    @State private var confirmMove: LeakFinding?
 
     var body: some View {
         let items = model.attention
-        Group {
-            if items.isEmpty {
-                VStack(spacing: 12) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 44))
-                        .symbolRenderingMode(.palette)
-                        .foregroundStyle(.white, Color.green)
-                    Text("Nothing needs attention").font(.title2.weight(.bold))
-                    Text("Slinky lets you know here when codes run low, a project is missing variables or a key is about to expire.")
-                        .foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 330)
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    VStack(spacing: 10) {
-                        ForEach(items) { item in
-                            AttentionRow(item: item) { model.selection = item.target }
-                        }
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                leaksSection
+                if !items.isEmpty {
+                    section("Needs you") {
+                        ForEach(items) { item in AttentionRow(item: item) { model.selection = item.target } }
                     }
-                    .frame(maxWidth: 620)
-                    .padding(18)
-                    .frame(maxWidth: .infinity)
+                }
+                tidySection
+                if items.isEmpty, model.leaks.isEmpty, model.unusedKeys.isEmpty, model.duplicates.isEmpty, !model.checkingLeaks {
+                    HStack(spacing: 10) {
+                        Image(systemName: "checkmark.circle.fill").symbolRenderingMode(.palette).foregroundStyle(.white, Color.green).font(.title2)
+                        Text("All good. Slinky lets you know here when something needs you.").foregroundStyle(.secondary)
+                    }
+                }
+            }
+            .frame(maxWidth: 640, alignment: .leading)
+            .padding(18)
+            .frame(maxWidth: .infinity)
+        }
+        .screenTitle("Health", subtitle: model.healthCount == 0 ? "All good" : "\(model.healthCount) to look at")
+        .confirmationDialog("Remove those lines from your history?", isPresented: Binding(get: { confirmHistory != nil }, set: { if !$0 { confirmHistory = nil } })) {
+            Button("Remove Lines", role: .destructive) { if let f = confirmHistory { model.cleanHistory(f) }; confirmHistory = nil }
+        } message: {
+            Text("Every line containing \(confirmHistory?.names.joined(separator: ", ") ?? "it") goes. The rest of your history stays.")
+        }
+        .confirmationDialog("Move this .env into Slinky?", isPresented: Binding(get: { confirmMove != nil }, set: { if !$0 { confirmMove = nil } })) {
+            Button("Move into Slinky") { if let f = confirmMove { model.moveIntoSlinky(f) }; confirmMove = nil }
+        } message: {
+            Text("Its variables are saved to the project, a .env.example with names only is written if there isn't one, and the file goes to the Trash. Use slinky run to start your app with them.")
+        }
+    }
+
+    private var leaksSection: some View {
+        section("Secrets outside Slinky", trailing: {
+            HStack(spacing: 8) {
+                if model.checkingLeaks { ProgressView().controlSize(.small) }
+                Text(model.checkingLeaks ? "Looking…" : lastChecked).font(.caption).foregroundStyle(.secondary)
+                Button("Check Now") { Task { await model.checkForLeaks() } }.disabled(model.checkingLeaks).controlSize(.small)
+            }
+        }) {
+            if model.leaks.isEmpty {
+                Text(model.checkingLeaks ? "Looking in your projects, their git history, AI conversations and shell history…"
+                                         : "None found in linked projects, their git history, AI conversations or shell history.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+            ForEach(model.leaks) { finding in
+                HStack(spacing: 12) {
+                    Image(systemName: symbol(finding)).font(.system(size: 16, weight: .semibold)).foregroundStyle(.orange)
+                        .frame(width: 32, height: 32).background(Color.orange.opacity(0.14), in: .rect(cornerRadius: 9))
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(finding.title).font(.headline).lineLimit(2)
+                        Text(finding.detail).font(.callout).foregroundStyle(.secondary).lineLimit(3)
+                    }
+                    Spacer(minLength: 8)
+                    actions(finding)
+                }
+                .padding(12)
+                .glass(in: .rect(cornerRadius: 14))
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func actions(_ f: LeakFinding) -> some View {
+        switch f.place {
+        case .envFile:
+            Button("Move into Slinky") { confirmMove = f }.glassProminentButton()
+        case .history:
+            Button("Remove Lines…") { confirmHistory = f }.glassProminentButton()
+        default:
+            Button("Show") { NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: f.path)]) }
+        }
+    }
+
+    private func symbol(_ f: LeakFinding) -> String {
+        switch f.place {
+        case .envFile, .projectFile: "doc.text"
+        case .commit: "arrow.triangle.branch"
+        case .transcript: "bubble.left.and.text.bubble.right"
+        case .history: "terminal"
+        }
+    }
+
+    @ViewBuilder
+    private var tidySection: some View {
+        let unused = model.unusedKeys
+        let dupes = model.duplicates
+        if !unused.isEmpty || !dupes.isEmpty {
+            section("Tidy up") {
+                if !unused.isEmpty {
+                    tidyRow("clock", "Not used in over 60 days: \(unused.prefix(3).map(\.name).joined(separator: ", "))\(unused.count > 3 ? " and \(unused.count - 3) more" : "")",
+                            "If you don't need them any more, delete them here and revoke them on the service.") { model.selection = .library(.keys) }
+                }
+                ForEach(dupes, id: \.self) { names in
+                    tidyRow("square.on.square", "Saved twice: \(names.joined(separator: " and "))",
+                            "Same value in two places. Keeping one makes replacing it later simpler.") { model.selection = .library(.all) }
                 }
             }
         }
-        .screenTitle("Needs Attention", subtitle: items.isEmpty ? "" : "\(items.count) \(items.count == 1 ? "item" : "items")")
+    }
+
+    private func tidyRow(_ symbol: String, _ title: String, _ detail: String, show: @escaping () -> Void) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: symbol).font(.system(size: 15, weight: .semibold)).foregroundStyle(.secondary).frame(width: 32, height: 32)
+                .background(Color.secondary.opacity(0.12), in: .rect(cornerRadius: 9))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title).font(.headline).lineLimit(2)
+                Text(detail).font(.callout).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 8)
+            Button("Show", action: show)
+        }
+        .padding(12)
+        .glass(in: .rect(cornerRadius: 14))
+    }
+
+    private var lastChecked: String {
+        let d = Preferences.shared.lastLeakCheck
+        return d == .distantPast ? "Not checked yet" : "Checked \(d.formatted(.relative(presentation: .named)))"
+    }
+
+    private func section<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        section(title, trailing: { EmptyView() }, content: content)
+    }
+
+    private func section<Trailing: View, Content: View>(_ title: String, @ViewBuilder trailing: () -> Trailing, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text(title).font(.headline).foregroundStyle(.secondary)
+                Spacer()
+                trailing()
+            }
+            content()
+        }
     }
 }
 

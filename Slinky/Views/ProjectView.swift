@@ -52,6 +52,13 @@ struct ProjectView: View {
                         Menu {
                             Button("Import .env File…") { pickEnvFile(project) }
                             Button("Link Folder…") { pickFolder(project) }
+                            if !project.folders.isEmpty {
+                                Button("Stop Commits with Secrets") {
+                                    for folder in project.folders {
+                                        model.show((try? Integrations.installGuard(in: folder)) ?? "Couldn't add the commit check.", style: .info)
+                                    }
+                                }
+                            }
                             Divider()
                             Button("Edit Project…") { model.editing = .project(project.id) }
                         } label: {

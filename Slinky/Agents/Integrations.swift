@@ -55,6 +55,24 @@ enum Integrations {
         }.value
     }
 
+    // MARK: Git commit check
+
+    /// Adds `slinky guard` to a repository's pre-commit hook (keeping whatever is there). Returns what happened.
+    static func installGuard(in folder: String) throws -> String {
+        if commandState != .installed { try installCommand() }
+        let hooks = URL(fileURLWithPath: folder).appendingPathComponent(".git/hooks")
+        guard FileManager.default.fileExists(atPath: hooks.deletingLastPathComponent().path) else { return "\((folder as NSString).lastPathComponent) isn't a git repository." }
+        let hook = hooks.appendingPathComponent("pre-commit")
+        let line = "\"\(commandURL.path)\" guard || exit 1"
+        var text = (try? String(contentsOf: hook, encoding: .utf8)) ?? "#!/bin/sh\n"
+        guard !text.contains("slinky\" guard") && !text.contains("slinky guard") else { return "The commit check is already in \((folder as NSString).lastPathComponent)." }
+        text += (text.hasSuffix("\n") ? "" : "\n") + "# Added by Slinky: stop commits that contain secrets saved in Slinky.\n\(line)\n"
+        try FileManager.default.createDirectory(at: hooks, withIntermediateDirectories: true)
+        try text.write(to: hook, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: hook.path)
+        return "Commits in \((folder as NSString).lastPathComponent) are now checked for saved secrets."
+    }
+
     // MARK: ~/.zshrc lines
 
     static var zshrc: URL { home.appendingPathComponent(".zshrc") }
