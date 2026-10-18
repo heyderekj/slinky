@@ -19,9 +19,19 @@ extension View {
     }
 }
 
-/// The left sidebar's look on Tahoe: inset from the window edges, continuous corners.
+/// The left sidebar's look on Tahoe: inset from the window edges, with corners concentric with the window's,
+/// so the gap stays even all the way round the corner instead of closing up at it.
 private let paneInset: CGFloat = 8
-private let paneShape = RoundedRectangle(cornerRadius: 18, style: .continuous)
+
+private struct PaneGlass: View {
+    var body: some View {
+        if #available(macOS 26.0, *) {
+            Color.clear.glass(in: ConcentricRectangle(corners: .concentric(minimum: 12), isUniform: true))
+        } else {
+            Color.clear.glass(in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+    }
+}
 
 private struct DetailsPaneLayout<Pane: View>: ViewModifier {
     let isPresented: Bool
@@ -43,8 +53,7 @@ private struct DetailsPaneLayout<Pane: View>: ViewModifier {
                         .padding(.bottom, paneInset)
                         // The panel runs up under the toolbar, like the left sidebar; what's in it starts below.
                         .background {
-                            Color.clear
-                                .glass(in: paneShape)
+                            PaneGlass()
                                 .padding(.vertical, paneInset)
                                 .ignoresSafeArea(edges: .top)
                         }
