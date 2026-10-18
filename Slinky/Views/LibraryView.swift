@@ -29,7 +29,7 @@ struct LibraryView: View {
                 }
             }
         }
-        .inspector(isPresented: Binding(get: { showInspector && !isEmpty }, set: { showInspector = $0 })) {
+        .detailsPane(isPresented: showInspector && !isEmpty) {
             Group {
                 if let ref = visibleSelection {
                     ItemDetail(ref: ref).id(ref)
@@ -38,7 +38,6 @@ struct LibraryView: View {
                                            description: Text("Pick an item to see its details."))
                 }
             }
-            .inspectorColumnWidth(min: 270, ideal: 300, max: 380)
         }
     }
 

@@ -75,9 +75,8 @@ struct ProjectView: View {
                     }
                 }
             }
-            .inspector(isPresented: $showInspector) {
+            .detailsPane(isPresented: showInspector, width: 290) {
                 inspector(project)
-                    .inspectorColumnWidth(min: 260, ideal: 290, max: 360)
             }
             .onDrop(of: [.fileURL], isTargeted: $dropTargeted) { providers in
                 for provider in providers {
