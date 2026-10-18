@@ -598,6 +598,7 @@ button.replay:active { transform: scale(0.97); }
 .faq summary::-webkit-details-marker { display: none; }
 .faq summary::after { content: '+'; font-weight: 400; font-size: 22px; line-height: 1; color: var(--muted); transition: rotate var(--t-ui) var(--ease); }
 .faq details[open] summary::after { rotate: 45deg; }
+.faq-fix { padding: 0; border: 0; background: none; font: inherit; font-weight: 500; color: var(--brand); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .faq details p { padding: 0 20px 18px; color: var(--ink-soft); font-size: 15.5px; }
 @media (max-width: 760px) { .faq { grid-template-columns: 1fr; } }
 

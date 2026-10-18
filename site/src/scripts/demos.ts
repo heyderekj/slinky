@@ -355,13 +355,31 @@ function install() {
       for (const p of $$('[data-panel]', modal)) p.hidden = p.dataset.panel !== tab.dataset.tab;
     });
   }
-  for (const b of $$<HTMLButtonElement>('[data-copy-cmd]', modal)) {
+  copyCommands(modal);
+}
+
+/** Copy buttons beside a command: Copied for a moment. */
+function copyCommands(root: ParentNode) {
+  for (const b of $$<HTMLButtonElement>('[data-copy-cmd]', root)) {
     b.addEventListener('click', async () => {
       const code = b.parentElement?.querySelector('code')?.textContent ?? '';
       try { await navigator.clipboard.writeText(code); b.textContent = 'Copied'; } catch { b.textContent = 'Select it'; }
       setTimeout(() => { b.textContent = 'Copy'; }, 1800);
     });
   }
+}
+
+/** "macOS blocked Slinky": the fix for people who already downloaded it, opened from the FAQ. */
+function helpModal() {
+  const modal = $('[data-help]');
+  if (!modal) return;
+  const open = () => { modal.classList.add('is-open'); $('[data-close-help]', modal)?.focus(); track('help_modal_from_faq'); };
+  const close = () => modal.classList.remove('is-open');
+  for (const b of $$('[data-open-help]')) b.addEventListener('click', open);
+  $('[data-close-help]', modal)?.addEventListener('click', close);
+  modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
+  addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  copyCommands(modal);
 }
 
 /** GitHub star count, and the family's star burst on hover. */
@@ -542,6 +560,7 @@ export function startDemos() {
   guided();
   copyButtons();
   libraryRows();
+  helpModal();
   codeSets();
   addItem();
   quickAccess();

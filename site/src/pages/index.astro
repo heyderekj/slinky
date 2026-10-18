@@ -12,6 +12,7 @@ import Editorial from '../components/Editorial.astro';
 import Monogram from '../components/Monogram.astro';
 import release from '../release.json';
 import { faq, faqId } from '../data/faq';
+const macosQuestion = 'Why does macOS say it can’t check Slinky?';
 const core = ['Is Slinky free?', 'Where are my things stored?', 'Should I keep passwords in Slinky?', 'Why does macOS say it can’t check Slinky?'];
 const faqSorted = [...faq.filter(([q]) => core.includes(q)), ...faq.filter(([q]) => !core.includes(q))];
 
@@ -290,7 +291,7 @@ STRIPE_SECRET_KEY=••••••••
       <div class="fask__answer" data-ask-answer hidden><span class="fmb-orb" aria-hidden="true"></span><div><p data-ask-text aria-live="polite"></p><p data-ask-src hidden></p></div></div>
       {/* A few core questions first; the rest behind "Show all", since the ask field answers anything. */}
       <div class="faq" data-faq-collapsed>
-        {faqSorted.map(([q, a]) => <details class:list={['card-plain', { 'faq-more': !core.includes(q) }]} id={faqId(q)}><summary>{q}</summary><p>{a}</p></details>)}
+        {faqSorted.map(([q, a]) => <details class:list={['card-plain', { 'faq-more': !core.includes(q) }]} id={faqId(q)}><summary>{q}</summary><p>{a}{q === macosQuestion && <> <button type="button" class="faq-fix" data-open-help>How to fix it →</button></>}</p></details>)}
       </div>
       <button type="button" class="faq-all" data-faq-all>Show all {faq.length} questions</button>
     </section>
@@ -302,6 +303,20 @@ STRIPE_SECRET_KEY=••••••••
     <p>© 2026 <a href="https://testamentmade.com">Testament Made, LLC</a> · <a href="mailto:derek@testamentmade.com">derek@testamentmade.com</a> · <a href="https://github.com/heyderekj/slinky">GitHub</a> · MIT License</p>
   </footer>
 
+  <div class="modal" data-help role="dialog" aria-modal="true" aria-labelledby="help-title">
+    <div class="modal__box">
+      <button class="modal__close" type="button" data-close-help aria-label="Close">×</button>
+      <h3 id="help-title">macOS blocked Slinky</h3>
+      <p class="modal__lead">Slinky isn’t notarized by Apple yet, so macOS stops its first launch. You only do this once; updates install without asking again.</p>
+      <ol>
+        <li>Open <b>System Settings › Privacy &amp; Security</b>.</li>
+        <li>Scroll down to the message about Slinky and click <b>Open Anyway</b>, then confirm with Touch ID or your password.</li>
+      </ol>
+      <p class="modal__note">No Open Anyway button? Open <b>Terminal</b> and paste this command. It clears the download flag:</p>
+      <div class="cmd"><code>xattr -dr com.apple.quarantine /Applications/Slinky.app</code><button type="button" data-copy-cmd>Copy</button></div>
+      <p class="modal__note">If Slinky’s icon in Applications has a <b>slash through it</b>, this Mac can’t run it. Slinky needs an Apple silicon Mac, and this fix doesn’t change that.</p>
+    </div>
+  </div>
   <div class="modal" data-install role="dialog" aria-modal="true" aria-labelledby="install-title">
     <div class="modal__box">
       <button class="modal__close" type="button" data-close-install aria-label="Close">×</button>
