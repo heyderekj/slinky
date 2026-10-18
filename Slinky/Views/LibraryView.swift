@@ -67,6 +67,7 @@ struct LibraryView: View {
             if showKeys {
                 Section {
                     ForEach(model.document.keys) { KeyRow(key: $0).tag(LibraryRef.key($0.id)) }
+                        .listSectionSeparator(.hidden)
                 } header: {
                     if filter == .all { Text("Keys & Tokens") }
                 }
@@ -74,14 +75,18 @@ struct LibraryView: View {
             if showCodes {
                 Section("Recovery Codes") {
                     ForEach(model.document.codeSets) { CodeSetRow(set: $0).tag(LibraryRef.codes($0.id)) }
+                        .listSectionSeparator(.hidden)
                 }
             }
             if showKept {
                 Section("Recovery Keys") {
                     ForEach(model.document.kept) { KeptRow(item: $0).tag(LibraryRef.kept($0.id)) }
+                        .listSectionSeparator(.hidden)
                 }
             }
         }
+        // No line under section headers (.listSectionSeparator on each section): it ran on under the sidebar on the
+        // left but stopped with the rows on the right, so the edges looked lopsided.
         .listStyle(.inset)
         .contextMenu(forSelectionType: LibraryRef.self) { refs in
             if refs.count == 1, let ref = refs.first {
