@@ -331,19 +331,25 @@ function stairs() {
   if (s) onVisible(s, () => s.classList.add('is-in'), 0.6);
 }
 
+/** Fathom events, named like Dinky's and Binky's. A page without Fathom (blocked, offline) just skips them. */
+function track(name: string) {
+  try { (window as any).fathom?.trackEvent(name); } catch { /* analytics never breaks the page */ }
+}
+
 /** Download opens the install steps (the download still starts). */
 function install() {
   const modal = $('[data-install]');
   if (!modal) return;
   const open = () => { modal.classList.add('is-open'); $('[data-close-install]', modal)?.focus(); };
   const close = () => modal.classList.remove('is-open');
-  for (const a of $$('[data-download]')) a.addEventListener('click', () => setTimeout(open, 300));
-  for (const b of $$('[data-open-install]')) b.addEventListener('click', open);
+  for (const a of $$('[data-download]')) a.addEventListener('click', () => { track(a.dataset.track ?? 'Download macOS'); setTimeout(open, 300); });
+  for (const b of $$('[data-open-install]')) b.addEventListener('click', () => { track('install_modal_from_version'); open(); });
   $('[data-close-install]', modal)?.addEventListener('click', close);
   modal.addEventListener('click', (e) => { if (e.target === modal) close(); });
   addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
   for (const tab of $$<HTMLButtonElement>('[data-tab]', modal)) {
     tab.addEventListener('click', () => {
+      track('install_modal_tab_' + tab.dataset.tab);
       for (const t of $$<HTMLButtonElement>('[data-tab]', modal)) t.setAttribute('aria-selected', String(t === tab));
       for (const p of $$('[data-panel]', modal)) p.hidden = p.dataset.panel !== tab.dataset.tab;
     });

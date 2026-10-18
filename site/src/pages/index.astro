@@ -40,7 +40,7 @@ const mark = (v: string) => {
     <a class="nav__link" href="#privacy">Privacy</a>
     <a class="nav__link" href="#faq">FAQ</a>
     <a class="btn btn--quiet btn--small" href="https://github.com/heyderekj/slinky" data-stars aria-label="Slinky on GitHub"><Icon name="github" /><span class="star-count" data-star-count></span></a>
-    <a class="btn btn--primary btn--small" href={release.dmg} data-download>Download</a>
+    <a class="btn btn--primary btn--small" href={release.dmg} data-download data-track="Download macOS nav">Download</a>
   </nav>
 
   <main id="top">
@@ -53,7 +53,7 @@ const mark = (v: string) => {
       <p class="tagline">{title}</p>
       <p class="description">A Mac app that keeps API keys, .env variables and recovery codes out of files. Free and open source.</p>
       <div class="hero__actions">
-        <a class="btn btn--primary" href={release.dmg} data-download><Icon name="download" /> Download for Mac</a>
+        <a class="btn btn--primary" href={release.dmg} data-download data-track="Download macOS hero"><Icon name="download" /> Download for Mac</a>
         <a class="btn btn--quiet" href="https://github.com/heyderekj/slinky" data-stars><Icon name="github" /> GitHub <span class="star-count" data-star-count></span></a>
       </div>
       <p class="hero__meta">{versionLine} · <button type="button" data-open-install>How to install</button></p>
@@ -269,7 +269,7 @@ STRIPE_SECRET_KEY=••••••••
       <div class="get__strip">
         <img src="/icons/slinky-320.webp" alt="" width="64" height="64" />
         <div class="get__copy"><h2 id="get-heading">Give your secrets a home.</h2><p>Free, about {release.sizeMB} MB, and nothing leaves your Mac.</p></div>
-        <div class="get__act"><a class="btn btn--primary" href={release.dmg} data-download><Icon name="download" /> Download for Mac</a><small>v{release.version} · {release.minOS} · Apple silicon</small></div>
+        <div class="get__act"><a class="btn btn--primary" href={release.dmg} data-download data-track="Download macOS mid"><Icon name="download" /> Download for Mac</a><small>v{release.version} · {release.minOS} · Apple silicon</small></div>
       </div>
     </section>
 
