@@ -86,8 +86,8 @@ enum RecoveryPrinter {
     }
 }
 
-/// The locked window looks like the app itself: the same sidebar (its fixed rows only, nothing from the vault)
-/// with the lock in the content area, so unlocking just fills it in. Touch ID is usually already asking.
+/// The locked window is the app's window with the vault closed: the same toolbar and surface as when it's open,
+/// no sidebar, and the app icon as the lock in the middle (LockStage). Touch ID is usually already asking.
 struct LockView: View {
     @Environment(AppModel.self) private var model
     var autoUnlock = true
@@ -95,58 +95,24 @@ struct LockView: View {
     @State private var recoveryText = ""
 
     var body: some View {
-        NavigationSplitView(columnVisibility: .constant(.all)) {
-            List {
-                Section {
-                    ForEach(LibraryFilter.allCases, id: \.self) { filter in
-                        Label(filter.title, systemImage: filter.symbol)
-                    }
-                }
-                Section("Projects") { EmptyView() }
-            }
-            .listStyle(.sidebar)
-            .foregroundStyle(.secondary)
-            .allowsHitTesting(false)
-            .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 300)
-            .toolbar(removing: .sidebarToggle)
-        } detail: {
-            // While Slinky is still starting, just the window's shape: no "locked" for a vault that may not exist.
-            if model.phase == .locked { lockPanel } else { Color.clear }
+        LockStage(showFace: model.phase == .locked, scramble: model.busy ? 0.09 : nil) {
+            LockControls(note: model.lockNote, busy: model.busy, error: model.errorMessage, unlockLabel: model.unlockLabel,
+                         unlock: { model.unlock() }, useRecoveryKey: { showRecovery = true })
         }
-    }
-
-    private var lockPanel: some View {
-        VStack(spacing: 14) {
-            Image(systemName: "lock.fill")
-                .font(.system(size: 40, weight: .semibold))
-                .foregroundStyle(.tint)
-                .symbolEffect(.pulse, isActive: model.busy)
-                .frame(width: 92, height: 92)
-                .glass(in: .circle)
-            Text("Slinky is locked")
-                .font(.title3.weight(.semibold))
-            if let note = model.lockNote {
-                Text(note).font(.callout).foregroundStyle(.secondary)
+        .navigationTitle("Slinky")
+        .navigationSubtitle(model.phase == .locked ? "Locked" : "")
+        .toolbar {
+            // The same toolbar as the open window, resting: nothing to show or add while locked.
+            ToolbarItem(placement: .navigation) {
+                Button {} label: { Label("Sidebar", systemImage: "sidebar.left") }
+                    .disabled(true)
             }
-            Button {
-                model.unlock()
-            } label: {
-                Label(model.unlockLabel, systemImage: "touchid")
+            ToolbarItem(placement: .primaryAction) {
+                Button {} label: { Label("Add Item", systemImage: "plus") }
+                    .disabled(true)
+                    .help("Unlock Slinky to add items")
             }
-            .glassProminentButton()
-            .controlSize(.large)
-            .keyboardShortcut(.defaultAction)
-            .disabled(model.busy || model.phase != .locked)
-            if let error = model.errorMessage {
-                Text(error).font(.callout).foregroundStyle(.red).frame(maxWidth: 380).multilineTextAlignment(.center)
-            }
-            Button("Use Recovery Key…") { showRecovery = true }
-                .buttonStyle(.link)
-                .font(.callout)
-                .padding(.top, 4)
-                .disabled(model.phase != .locked)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .sheet(isPresented: $showRecovery) {
             VStack(alignment: .leading, spacing: 14) {
                 Text("Unlock with your Recovery Key").font(.headline)

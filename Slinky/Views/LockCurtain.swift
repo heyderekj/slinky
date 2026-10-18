@@ -82,69 +82,35 @@ struct LockSwitchAccessory: NSViewRepresentable {
     }
 }
 
-/// The lock and unlock moment, across the whole window.
-/// Locking: ice spreads out from the switch until it covers everything, and the lock in the middle closes.
-/// Unlocking: the lock opens, then the ice opens from the middle like an iris to show the vault.
-/// Nothing secret is ever drawn under the ice: the vault locks only once it's fully covered.
+/// The lock and unlock moment, drawn as the lock screen itself (LockStage) with the app icon's keyhole cut out.
+/// Unlocking: the asterisk turns like a dial, the ring of characters scrambles, then the keyhole opens out
+/// until the whole window is the app. Locking runs it backwards: the window closes in to the keyhole, and only
+/// then does the vault lock. Nothing secret is drawn outside the keyhole.
 struct LockCurtain: View {
     @Environment(AppModel.self) private var model
-    @State private var cover: CGFloat = 0     // closing: radius of the ice, from the switch
-    @State private var hole: CGFloat = 0      // opening: radius of the gap, from the middle
-    @State private var closedGlyph = false
+    @State private var hole: CGFloat = 1      // closed = a point in the keyhole, 0 = the icon's keyhole, 1 = the whole window
+    private static let closed: CGFloat = -0.5
+    @State private var spin: Double = 0
+    @State private var scramble = false
+    @State private var controls: Double = 1
+    @State private var ring: CGFloat = 1
     @State private var shown = false
-    @State private var fade: Double = 1
 
-    private var opening: Bool { model.curtain == .opening }
     private var visible: Bool { shown || model.curtain != .none }
 
     var body: some View {
-        GeometryReader { geo in
-            let size = geo.size
-            let reach = hypot(size.width, size.height) * 1.05
-            let origin = CGPoint(x: size.width - 47, y: 26)   // the lock switch, top right
-            let middle = CGPoint(x: size.width / 2, y: size.height / 2)
-            ZStack {
-                IceBackdrop()
-                Image(systemName: closedGlyph ? "lock.fill" : "lock.open.fill")
-                    .font(.system(size: 54, weight: .semibold))
-                    .foregroundStyle(.tint)
-                    .contentTransition(.symbolEffect(.replace))
-                    .frame(width: 120, height: 120)
-                    .glass(in: .circle)
-                    .scaleEffect(opening ? 1 : 0.85 + cover * 0.15)
-                    // Opening has no lock in the middle: the lock screen already showed it, and Touch ID just said yes.
-                    .opacity(opening ? 0 : Double(cover))
-                    .position(middle)
-            }
-            .mask {
-                if opening {
-                    ZStack {
-                        Rectangle()
-                        Circle()
-                            .frame(width: reach * 2 * hole, height: reach * 2 * hole)
-                            .position(middle)
-                            .blendMode(.destinationOut)
-                    }
-                    .compositingGroup()
-                } else {
-                    Circle()
-                        .frame(width: reach * 2 * cover, height: reach * 2 * cover)
-                        .position(origin)
-                }
-            }
-            .overlay {
-                // A bright rim on the leading edge of the ice while it spreads.
-                if !opening, cover > 0, cover < 1 {
-                    Circle()
-                        .strokeBorder(.white.opacity(0.55), lineWidth: 1.5)
-                        .frame(width: reach * 2 * cover, height: reach * 2 * cover)
-                        .position(origin)
-                        .blur(radius: 1)
-                }
-            }
+        LockStage(spin: spin, scramble: scramble ? 0.035 : nil, ringScale: ring) {
+            LockControls(note: LockReason.manual.note, unlockLabel: model.unlockLabel)
+                .opacity(controls)
         }
-        .ignoresSafeArea()
-        .opacity(visible ? fade : 0)
+        .mask {
+            ZStack {
+                Rectangle()
+                KeyholeHole(progress: hole).blendMode(.destinationOut)
+            }
+            .compositingGroup()
+        }
+        .opacity(visible ? 1 : 0)
         .allowsHitTesting(visible)
         .onChange(of: model.curtain) { _, curtain in
             switch curtain {
@@ -154,8 +120,8 @@ struct LockCurtain: View {
             }
         }
         .onChange(of: model.phase) { _, phase in
-            // The vault just locked under the ice: let the lock screen show through.
-            if phase == .locked, shown { Task { await settle() } }
+            // The vault just locked under the curtain, and the lock screen beneath looks the same: step aside.
+            if phase == .locked, shown { reset() }
         }
         .onAppear {
             // Unlocked while the window was closed: nothing to play.
@@ -164,46 +130,36 @@ struct LockCurtain: View {
         .accessibilityHidden(true)
     }
 
-    private func close() async {
-        hole = 0
-        cover = 0
-        fade = 1
-        closedGlyph = false
-        shown = true
-        withAnimation(.easeInOut(duration: 0.55)) { cover = 1 }
-        try? await Task.sleep(for: .milliseconds(330))
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) { closedGlyph = true }
-    }
-
-    private func settle() async {
-        try? await Task.sleep(for: .milliseconds(380))
-        withAnimation(.easeOut(duration: 0.35)) { fade = 0 }
-        try? await Task.sleep(for: .milliseconds(380))
-        reset()
-    }
-
     private func open() async {
-        cover = 1
-        hole = 0
-        fade = 1
-        closedGlyph = false
-        shown = true
-        // Quick: Touch ID already took its moment. The ice opens from the middle in well under half a second.
-        withAnimation(.easeOut(duration: 0.38)) { hole = 1 }
-        try? await Task.sleep(for: .milliseconds(400))
+        quietly { hole = Self.closed; spin = 0; ring = 1; controls = 1; scramble = true; shown = true }
+        // The dial turns and the words step back, then the keyhole opens out.
+        withAnimation(.spring(response: 0.32, dampingFraction: 0.7)) { spin = 60 }
+        withAnimation(.easeOut(duration: 0.14)) { controls = 0 }
+        try? await Task.sleep(for: .milliseconds(170))
+        withAnimation(.easeIn(duration: 0.46)) { hole = 1; ring = 1.35 }
+        try? await Task.sleep(for: .milliseconds(480))
         model.curtain = .none
         reset()
     }
 
+    private func close() async {
+        quietly { hole = 1; spin = 60; ring = 1.35; controls = 0; scramble = true; shown = true }
+        // The window closes in to the keyhole, the dial turns back and the characters settle.
+        withAnimation(.easeOut(duration: 0.44)) { hole = Self.closed; ring = 1 }
+        try? await Task.sleep(for: .milliseconds(300))
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.75)) { spin = 0 }
+        withAnimation(.easeIn(duration: 0.2)) { controls = 1 }
+        try? await Task.sleep(for: .milliseconds(200))
+        scramble = false
+    }
+
     private func reset() {
-        var quiet = Transaction()
-        quiet.disablesAnimations = true
-        withTransaction(quiet) {
-            shown = false
-            cover = 0
-            hole = 0
-            fade = 1
-            closedGlyph = false
-        }
+        quietly { shown = false; hole = 1; spin = 0; ring = 1; controls = 1; scramble = false }
+    }
+
+    private func quietly(_ change: () -> Void) {
+        var t = Transaction()
+        t.disablesAnimations = true
+        withTransaction(t, change)
     }
 }
