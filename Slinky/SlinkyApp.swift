@@ -51,6 +51,8 @@ struct SlinkyApp: App {
                 Button("Import…") { model.beginImport() }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked)
+                Button("Add Secret File…") { addSecretFile() }
+                    .disabled(!model.isUnlocked)
                 Divider()
                 Button("Export Backup…") { Task { await model.exportBackup() } }
                     .disabled(!model.canExportBackup)
@@ -189,4 +191,16 @@ struct RootView: View {
         // toolbar's overflow menu while the sidebar opens or closes.
         .background(LockSwitchAccessory(model: model))
     }
+}
+
+/// File › Add Secret File…: a .p8, .pem, .p12 or service-account JSON goes into the vault.
+@MainActor
+func addSecretFile() {
+    let panel = NSOpenPanel()
+    panel.title = "Add a Secret File"
+    panel.message = "Like an App Store Connect key (.p8), a certificate, or a service-account JSON. Up to 256 KB."
+    panel.allowsMultipleSelection = true
+    panel.canChooseDirectories = false
+    guard panel.runModal() == .OK else { return }
+    for url in panel.urls { AppModel.shared.addFile(url) }
 }

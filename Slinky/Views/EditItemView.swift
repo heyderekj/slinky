@@ -33,6 +33,8 @@ private struct EditPanel: View {
     @State private var from = ""
     @State private var note = ""
     @State private var link = ""
+    @State private var issuerID = ""
+    @State private var keyID = ""
     @State private var newValue = ""
     @State private var replacing = false
     @State private var hasExpiry = false
@@ -119,6 +121,7 @@ private struct EditPanel: View {
         case let .key(id): .key(id)
         case let .kept(id): .kept(id)
         case let .codes(id): .codes(id)
+        case let .file(id): .file(id)
         case .project: nil
         }
     }
@@ -198,6 +201,17 @@ private struct EditPanel: View {
                         }
                     }
                 }
+            }
+        case let .file(id):
+            if let file = model.document.secretFiles.first(where: { $0.id == id }) {
+                FieldRow("Name") { plainField($name, prompt: "App Store Connect API key") }
+                FieldRow("File") { Text(file.filename).foregroundStyle(.secondary); Spacer(minLength: 0) }
+                if file.kind == .appStoreConnectKey {
+                    FieldRow("Issuer ID") { plainField($issuerID, prompt: "From App Store Connect › Users and Access › Integrations", mono: true) }
+                    FieldRow("Key ID") { plainField($keyID, prompt: "ABCD1234EF", mono: true) }
+                }
+                FieldRow("Note") { plainField($note, prompt: "Optional, like which app or team it's for") }
+                linkRow
             }
         case .project:
             FieldRow("Name") { plainField($name, prompt: "Slinky") }
@@ -317,6 +331,7 @@ private struct EditPanel: View {
         case .key: "Edit Key or Token"
         case .kept: "Edit Recovery Key"
         case .codes: "Edit Recovery Codes"
+        case .file: "Edit File"
         case .project: "Edit Project"
         }
     }
@@ -332,6 +347,9 @@ private struct EditPanel: View {
             return [kind, service].compactMap { $0 }.joined(separator: " · ")
         case .codes:
             return ["Recovery codes", service].compactMap { $0 }.joined(separator: " · ")
+        case let .file(id):
+            let kind = model.document.secretFiles.first { $0.id == id }?.kind.title ?? "File"
+            return [kind, service].compactMap { $0 }.joined(separator: " · ")
         case let .project(id):
             let n = model.document.projects.first { $0.id == id }?.variables.count ?? 0
             return "Project · \(n) \(n == 1 ? "variable" : "variables")"
@@ -345,7 +363,7 @@ private struct EditPanel: View {
 
     /// Everything the panel can change, to tell whether closing would lose something.
     private struct Snapshot: Equatable {
-        var name, from, note, link, newValue, newCodes: String
+        var name, from, note, link, newValue, newCodes, issuerID, keyID: String
         var replacing, hasExpiry, resetUsed: Bool
         var expiry: Date
         var policy: AgentPolicy
@@ -354,7 +372,7 @@ private struct EditPanel: View {
     }
 
     private var snapshot: Snapshot {
-        Snapshot(name: name, from: from, note: note, link: link, newValue: newValue, newCodes: newCodes,
+        Snapshot(name: name, from: from, note: note, link: link, newValue: newValue, newCodes: newCodes, issuerID: issuerID, keyID: keyID,
                  replacing: replacing, hasExpiry: hasExpiry, resetUsed: resetUsed, expiry: expiry,
                  policy: policy, keptKind: keptKind, folders: folders)
     }
@@ -377,6 +395,7 @@ private struct EditPanel: View {
             subject.choice = doc.keys.first { $0.id == id }?.icon
         case let .kept(id): subject.choice = doc.kept.first { $0.id == id }?.icon
         case let .codes(id): subject.choice = doc.codeSets.first { $0.id == id }?.icon
+        case let .file(id): subject.choice = doc.secretFiles.first { $0.id == id }?.icon
         case .project: subject.choice = .monogram
         }
         return subject
@@ -416,6 +435,13 @@ private struct EditPanel: View {
             from = set.username ?? ""
             note = set.note ?? ""
             link = set.link ?? ""
+        case let .file(id):
+            guard let file = model.document.secretFiles.first(where: { $0.id == id }) else { return }
+            name = file.name
+            note = file.note ?? ""
+            link = file.link ?? ""
+            issuerID = file.fields["Issuer ID"] ?? ""
+            keyID = file.fields["Key ID"] ?? ""
         case let .project(id):
             guard let p = model.document.projects.first(where: { $0.id == id }) else { return }
             name = p.name
@@ -467,6 +493,17 @@ private struct EditPanel: View {
                 set.regenerated = .now
             }
             model.update(set)
+        case let .file(id):
+            guard var file = model.document.secretFiles.first(where: { $0.id == id }) else { return }
+            file.name = trimmedName
+            file.note = note.isEmpty ? nil : note
+            file.link = savedLink
+            let issuer = issuerID.trimmingCharacters(in: .whitespaces), kid = keyID.trimmingCharacters(in: .whitespaces)
+            if file.kind == .appStoreConnectKey {
+                file.fields["Issuer ID"] = issuer.isEmpty ? nil : issuer
+                file.fields["Key ID"] = kid.isEmpty ? nil : kid
+            }
+            model.update(file)
         case let .project(id):
             guard var p = model.document.projects.first(where: { $0.id == id }) else { return }
             p.name = trimmedName
@@ -490,6 +527,7 @@ private struct EditPanel: View {
         case let .kept(id): model.deleteKept(id)
         case let .codes(id): model.deleteCodeSet(id)
         case let .project(id): model.deleteProject(id)
+        case let .file(id): model.deleteFile(id)
         }
         close()
     }

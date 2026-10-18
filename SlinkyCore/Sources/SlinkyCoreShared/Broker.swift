@@ -22,6 +22,8 @@ public enum Broker {
         public var project: String?
         public var environment: String?
         public var keys: [String]
+        /// Secret files by name, optionally NAME=ENV_VAR for the variable that gets the temp file's path.
+        public var files: [String]?
         /// Environment markers from the asking process (CLAUDECODE, CURSOR_AGENT…), as hints.
         public var markers: [String: String]
         public var name: String?
@@ -48,9 +50,21 @@ public enum Broker {
         public var names: [String]?
         public var withheld: [String]?
         public var lines: [String]?
+        /// For an approved run: env variable → [file name, base64 contents]. Written to a 0600 temp file for the run only.
+        public var files: [String: [String]]?
 
         public init(ok: Bool, message: String? = nil) { self.ok = ok; self.message = message }
         public static func fail(_ message: String) -> Response { Response(ok: false, message: message) }
+    }
+
+    /// "App Store Connect API key" → APP_STORE_CONNECT_API_KEY_PATH, unless the person named the variable (NAME=VAR).
+    public static func fileVariable(_ spec: String) -> (name: String, variable: String) {
+        if let eq = spec.firstIndex(of: "=") {
+            return (String(spec[..<eq]), String(spec[spec.index(after: eq)...]))
+        }
+        let base = spec.uppercased().map { $0.isLetter || $0.isNumber ? $0 : "_" }
+        let collapsed = String(base).split(separator: "_").joined(separator: "_")
+        return (spec, collapsed + "_PATH")
     }
 
     /// The markers agents set in the shells they run. Hints only: the app also looks at the process tree.

@@ -461,3 +461,17 @@ struct SecretFileTests {
         #expect(SecretFile.guessKind(filename: "sa.json", data: Data(#"{"type": "service_account", "private_key": "EXAMPLE"}"#.utf8)) == .serviceAccount)
     }
 }
+
+@Suite("Apple developer")
+struct AppleDeveloperTests {
+    @Test func appSpecificPassword() {
+        let d = Detector.detect("abcd-efgh-ijkl-mnop")
+        #expect(d?.provider == "Apple")
+        #expect(d?.suggestedName == "APPLE_APP_SPECIFIC_PASSWORD")
+    }
+
+    @Test func fileVariables() {
+        #expect(Broker.fileVariable("App Store Connect API key") == ("App Store Connect API key", "APP_STORE_CONNECT_API_KEY_PATH"))
+        #expect(Broker.fileVariable("Push cert=APNS_KEY_PATH") == ("Push cert", "APNS_KEY_PATH"))
+    }
+}

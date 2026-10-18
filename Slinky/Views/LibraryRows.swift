@@ -84,6 +84,23 @@ struct CodeSetRow: View {
     }
 }
 
+struct FileRow: View {
+    @Environment(AppModel.self) private var model
+    let file: SecretFile
+
+    var body: some View {
+        ItemRowLayout(icon: file.iconSubject, title: file.name, subtitle: "\(file.kind.title) · \(file.filename)", peek: nil) {
+            EmptyView()
+        } action: {
+            if let text = file.text {
+                CopyButton { model.copy(text, label: file.name) }
+            } else {
+                Button { FileExport.save(file) } label: { Label("Save", systemImage: "square.and.arrow.down") }
+            }
+        }
+    }
+}
+
 struct KeptRow: View {
     @Environment(AppModel.self) private var model
     let item: KeptItem
@@ -135,6 +152,12 @@ struct ItemActions: View {
                 Button("Copy") { model.copy(item.value, label: item.label) }
                 linkButton(item.link)
             }
+        case let .file(id):
+            if let file = model.document.secretFiles.first(where: { $0.id == id }) {
+                if let text = file.text { Button("Copy Contents") { model.copy(text, label: file.name) } }
+                Button("Save a Copy…") { FileExport.save(file) }
+                linkButton(file.link)
+            }
         }
         Divider()
         Button("Edit…") { model.editing = ref.editTarget }
@@ -144,6 +167,7 @@ struct ItemActions: View {
             case let .key(id): model.deleteKey(id)
             case let .codes(id): model.deleteCodeSet(id)
             case let .kept(id): model.deleteKept(id)
+            case let .file(id): model.deleteFile(id)
             }
         }
     }
@@ -169,6 +193,8 @@ struct ItemActions: View {
             if let next = model.document.codeSets.first(where: { $0.id == id })?.nextUnused { model.useCode(next, in: id) }
         case let .kept(id):
             if let item = model.document.kept.first(where: { $0.id == id }) { model.copy(item.value, label: item.label) }
+        case let .file(id):
+            if let file = model.document.secretFiles.first(where: { $0.id == id }), let text = file.text { model.copy(text, label: file.name) }
         }
     }
 }
@@ -187,6 +213,38 @@ struct ItemDetail: View {
             if let set = model.document.codeSets.first(where: { $0.id == id }) { codesDetail(set) }
         case let .kept(id):
             if let item = model.document.kept.first(where: { $0.id == id }) { keptDetail(item) }
+        case let .file(id):
+            if let file = model.document.secretFiles.first(where: { $0.id == id }) { fileDetail(file) }
+        }
+    }
+
+    private func fileDetail(_ file: SecretFile) -> some View {
+        DetailScaffold(icon: file.iconSubject, title: file.name, kind: file.kind.title, ref: ref) {
+            Section {
+                LabeledContent("File", value: file.filename)
+                LabeledContent("Size", value: ByteCountFormatter.string(fromByteCount: Int64(file.data.count), countStyle: .file))
+                ForEach(file.fields.keys.sorted(), id: \.self) { key in
+                    LabeledContent(key) { Text(file.fields[key] ?? "").textSelection(.enabled).font(.system(.body, design: .monospaced)) }
+                }
+                HStack(spacing: 8) {
+                    if let text = file.text {
+                        CopyButton(title: "Copy Contents") { model.copy(text, label: file.name) }.glassProminentButton()
+                    }
+                    Button("Save a Copy…") { FileExport.save(file) }.glassButton()
+                    Spacer(minLength: 0)
+                }
+            }
+            if file.kind == .appStoreConnectKey {
+                Section {
+                    Button("Save a notarytool Profile…") { FileExport.notaryProfile(file, model: model) }
+                        .disabled(file.fields["Issuer ID"] == nil)
+                } footer: {
+                    Text(file.fields["Issuer ID"] == nil ? "Add the Issuer ID with Edit first." :
+                            "So xcrun notarytool can notarize with --keychain-profile, without the .p8 sitting in a folder.")
+                }
+            }
+            NoteAndLink(note: file.note, link: file.link)
+            Section { Dates(created: file.created, updated: file.updated) }
         }
     }
 
@@ -311,6 +369,7 @@ private struct DetailScaffold<Content: View>: View {
                     case let .key(id): model.deleteKey(id)
                     case let .codes(id): model.deleteCodeSet(id)
                     case let .kept(id): model.deleteKept(id)
+                    case let .file(id): model.deleteFile(id)
                     }
                     model.librarySelection = nil
                 }
@@ -436,6 +495,48 @@ struct CodeGrid: View {
                 .help(used ? "Used" : "Copy and cross off")
                 .accessibilityLabel(used ? "\(code), used" : "Copy code \(code)")
             }
+        }
+    }
+}
+
+
+extension SecretFile {
+    /// The contents as text, for keys and certificates that are text (a .p8, a .pem). nil for binary files.
+    var text: String? {
+        guard !data.contains(0), let s = String(data: data, encoding: .utf8) else { return nil }
+        return s
+    }
+}
+
+/// Getting a secret file back out, only when the person asks.
+@MainActor
+enum FileExport {
+    /// Writes a copy where the person chooses, readable by them only.
+    static func save(_ file: SecretFile) {
+        let panel = NSSavePanel()
+        panel.nameFieldStringValue = file.filename
+        panel.title = "Save a Copy of \(file.name)"
+        panel.message = "This writes the secret to a file. Delete it when you're done."
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        FileManager.default.createFile(atPath: url.path, contents: file.data, attributes: [.posixPermissions: 0o600])
+        AppModel.shared.show("Saved a copy of \(file.filename). Only you can read it.")
+    }
+
+    /// Asks for a profile name, then saves a notarytool keychain profile from this App Store Connect key.
+    static func notaryProfile(_ file: SecretFile, model: AppModel) {
+        let alert = NSAlert()
+        alert.messageText = "Save a notarytool Profile"
+        alert.informativeText = "notarytool keeps it in your keychain. Then notarize with: xcrun notarytool submit … --keychain-profile NAME"
+        let field = NSTextField(string: "slinky-notary")
+        field.frame = NSRect(x: 0, y: 0, width: 240, height: 24)
+        alert.accessoryView = field
+        alert.addButton(withTitle: "Save Profile")
+        alert.addButton(withTitle: "Cancel")
+        guard alert.runModal() == .alertFirstButtonReturn else { return }
+        let me = Peer(pid: 0, chain: [], app: nil, agent: nil)
+        Task {
+            let r = await model.notarizeProfile(Broker.Request(op: .notarize, name: field.stringValue, text: file.name), peer: me)
+            model.show(r.message ?? (r.ok ? "Saved." : "Couldn't save the profile."), style: r.ok ? .success : .info)
         }
     }
 }

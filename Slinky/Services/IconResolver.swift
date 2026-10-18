@@ -15,6 +15,11 @@ struct IconSubject: Hashable {
 extension Key { var iconSubject: IconSubject { IconSubject(name: name, provider: provider, link: link, note: note, choice: icon) } }
 extension CodeSet { var iconSubject: IconSubject { IconSubject(name: account, from: username, link: link, note: note, choice: icon) } }
 extension KeptItem { var iconSubject: IconSubject { IconSubject(name: label, from: from, link: link, note: note, choice: icon) } }
+extension SecretFile {
+    var iconSubject: IconSubject {
+        IconSubject(name: name, provider: kind == .appStoreConnectKey ? "Apple" : nil, link: link, note: note, choice: icon)
+    }
+}
 extension Variable { var iconSubject: IconSubject { IconSubject(name: name, provider: provider, link: link, note: note, choice: icon) } }
 
 /// Picks each item's icon, in this order: the person's own choice, the service's Mac app if it's installed,

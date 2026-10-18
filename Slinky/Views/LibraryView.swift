@@ -58,6 +58,7 @@ struct LibraryView: View {
     private var showKeys: Bool { filter != .recovery && !keys.isEmpty }
     private var showCodes: Bool { filter != .keys && !codeSets.isEmpty }
     private var showKept: Bool { filter != .keys && !kept.isEmpty }
+    private var showFiles: Bool { filter != .recovery && !files.isEmpty }
 
     // MARK: Sort and filter
 
@@ -130,7 +131,17 @@ struct LibraryView: View {
         }
     }
 
-    private var nothingMatches: Bool { !showKeys && !showCodes && !showKept }
+    private var nothingMatches: Bool { !showKeys && !showCodes && !showKept && !showFiles }
+
+    private var files: [SecretFile] {
+        guard show == .all else { return [] }
+        return model.document.secretFiles.sorted { a, b in
+            switch sort {
+            case .added: return a.created > b.created
+            default: return a.name.localizedStandardCompare(b.name) == .orderedAscending
+            }
+        }
+    }
 
     private var sortAndFilter: some View {
         Menu {
@@ -164,6 +175,7 @@ struct LibraryView: View {
         case let .key(id)? where showKeys: model.document.keys.contains { $0.id == id } ? .key(id) : nil
         case let .codes(id)? where showCodes: model.document.codeSets.contains { $0.id == id } ? .codes(id) : nil
         case let .kept(id)? where showKept: model.document.kept.contains { $0.id == id } ? .kept(id) : nil
+        case let .file(id)? where showFiles: model.document.secretFiles.contains { $0.id == id } ? .file(id) : nil
         default: nil
         }
     }
@@ -181,6 +193,12 @@ struct LibraryView: View {
                 Section {
                     groupTitle("Recovery Codes")
                     ForEach(codeSets) { CodeSetRow(set: $0).tag(LibraryRef.codes($0.id)) }
+                }
+            }
+            if showFiles {
+                Section {
+                    groupTitle("Files")
+                    ForEach(files) { FileRow(file: $0).tag(LibraryRef.file($0.id)) }
                 }
             }
             if showKept {
@@ -235,14 +253,15 @@ struct LibraryView: View {
         case let .key(id): model.deleteKey(id)
         case let .codes(id): model.deleteCodeSet(id)
         case let .kept(id): model.deleteKept(id)
+        case let .file(id): model.deleteFile(id)
         }
         if model.librarySelection == ref { model.librarySelection = nil }
     }
 
     private var isEmpty: Bool {
         switch filter {
-        case .all: model.document.keys.isEmpty && model.document.codeSets.isEmpty && model.document.kept.isEmpty
-        case .keys: model.document.keys.isEmpty
+        case .all: model.document.keys.isEmpty && model.document.codeSets.isEmpty && model.document.kept.isEmpty && model.document.secretFiles.isEmpty
+        case .keys: model.document.keys.isEmpty && model.document.secretFiles.isEmpty
         case .recovery: model.document.codeSets.isEmpty && model.document.kept.isEmpty
         }
     }

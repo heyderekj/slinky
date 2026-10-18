@@ -79,6 +79,7 @@ struct RecentlyDeletedView: View {
         case .key: "Key or token"
         case .codes: "Recovery codes"
         case .kept(let k): k.kind.title
+        case .file(let f): f.kind.title
         case .variable(_, _, let project): "Variable in \(project)"
         case .project(let p): "Project · \(p.variables.count) \(p.variables.count == 1 ? "variable" : "variables")"
         }
@@ -89,6 +90,7 @@ struct RecentlyDeletedView: View {
         case .key(let k): k.iconSubject
         case .codes(let c): c.iconSubject
         case .kept(let k): k.iconSubject
+        case .file(let f): f.iconSubject
         case .variable(let v, _, _): v.iconSubject
         case .project(let p): IconSubject(name: p.name, choice: .monogram)
         }

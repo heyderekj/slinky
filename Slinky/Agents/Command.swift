@@ -38,8 +38,9 @@ nonisolated enum Command {
     static let help = """
     slinky — use the secrets in Slinky without putting them in files.
 
-      slinky run [--project NAME] [--env local|preview|production] [--key NAME]… -- COMMAND…
+      slinky run [--project NAME] [--env local|preview|production] [--key NAME]… [--file NAME[=VAR]]… -- COMMAND…
           Run a command with a project's variables (and any keys you name). Slinky asks with Touch ID first.
+          A secret file becomes a private temp file for the run; VAR (or NAME_PATH) holds its path.
       slinky env --export [--project NAME] [--env …]     Print export lines for your shell (asks first).
       slinky xcconfig [--project NAME] [--env …] [--out FILE]   Write an .xcconfig for an Xcode build.
       slinky ls                    List names (never values). Slinky must be unlocked.
@@ -99,6 +100,7 @@ nonisolated enum Command {
         var project: String?
         var environment: String?
         var keys: [String] = []
+        var files: [String] = []
         var out: String?
         var export = false
         var item: String?
@@ -116,6 +118,7 @@ nonisolated enum Command {
             case "--project", "-p": guard let v = value() else { return nil }; o.project = v; i += 1
             case "--env", "-e": guard let v = value() else { return nil }; o.environment = v; i += 1
             case "--key", "-k": guard let v = value() else { return nil }; o.keys.append(v); i += 1
+            case "--file", "-f": guard let v = value() else { return nil }; o.files.append(v); i += 1
             case "--out", "-o": guard let v = value() else { return nil }; o.out = v; i += 1
             case "--item": guard let v = value() else { return nil }; o.item = v; i += 1
             case "--export": o.export = true
@@ -144,14 +147,39 @@ nonisolated enum Command {
 
     private static func runCommand(_ args: [String]) -> Int32 {
         guard let o = parse(args), !o.rest.isEmpty else { return fail("usage: slinky run [--project NAME] [--env ENV] -- COMMAND…", code: 64) }
-        let r = send(Broker.Request(op: .env, argv: o.rest, purpose: .run, project: o.project, environment: o.environment, keys: o.keys))
+        var request = Broker.Request(op: .env, argv: o.rest, purpose: .run, project: o.project, environment: o.environment, keys: o.keys)
+        request.files = o.files.isEmpty ? nil : o.files
+        let r = send(request)
         guard r.ok, let env = r.env else { return fail(r.message) }
         note(r)
         for (name, _) in ProcessInfo.processInfo.environment where Broker.isStripped(name) { unsetenv(name) }
         for (name, value) in env where !Broker.isStripped(name) { setenv(name, value, 1) }
+        if let files = r.files, !files.isEmpty { return runWithFiles(o.rest, files: files) }
         let argv = o.rest.map { strdup($0) } + [nil]
         execvp(o.rest[0], argv)
         return fail("couldn't run \(o.rest[0]): \(String(cString: strerror(errno)))", code: 127)
+    }
+
+    /// Secret files go into a private temp folder (0700, files 0600) for the run, and are deleted when it ends,
+    /// so this one waits for the command instead of becoming it.
+    private static func runWithFiles(_ argv: [String], files: [String: [String]]) -> Int32 {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("slinky-\(UUID().uuidString)")
+        defer { try? FileManager.default.removeItem(at: dir) }
+        do { try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700]) }
+        catch { return fail("couldn't make a private folder for the files.") }
+        for (variable, pair) in files {
+            guard pair.count == 2, let data = Data(base64Encoded: pair[1]) else { continue }
+            let url = dir.appendingPathComponent((pair[0] as NSString).lastPathComponent)
+            FileManager.default.createFile(atPath: url.path, contents: data, attributes: [.posixPermissions: 0o600])
+            setenv(variable, url.path, 1)
+        }
+        var pid: pid_t = 0
+        let cargs = argv.map { strdup($0) } + [nil]
+        guard posix_spawnp(&pid, argv[0], nil, nil, cargs, environ) == 0 else { return fail("couldn't run \(argv[0]).", code: 127) }
+        signal(SIGINT, SIG_IGN)   // Ctrl-C goes to the command; we stay to clean up.
+        var status: Int32 = 0
+        waitpid(pid, &status, 0)
+        return (status & 0x7f) == 0 ? (status >> 8) & 0xff : 128 + (status & 0x7f)
     }
 
     private static func envCommand(_ args: [String]) -> Int32 {

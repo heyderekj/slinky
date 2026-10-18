@@ -113,10 +113,19 @@ extension AppModel {
             if peer.isAgent, !agentUsable(key) { withheld.append(name); continue }
             values[name] = key.value
         }
-        guard proj != nil || !request.keys.isEmpty else {
+        var files: [String: [String]] = [:]
+        if purpose == .run {
+            for spec in request.files ?? [] {
+                let (name, variable) = Broker.fileVariable(spec)
+                guard let file = document.secretFiles.first(where: { $0.name.caseInsensitiveCompare(name) == .orderedSame }) else { missing.append(name); continue }
+                if peer.isAgent { withheld.append(file.name); continue }
+                files[variable] = [file.filename, file.data.base64EncodedString()]
+            }
+        }
+        guard proj != nil || !request.keys.isEmpty || !(request.files ?? []).isEmpty else {
             return .fail("This folder isn't linked to a Slinky project. Link it in Slinky, or pass --project NAME or --key NAME.")
         }
-        guard !values.isEmpty else {
+        guard !values.isEmpty || !files.isEmpty else {
             var r = Broker.Response.fail("Nothing to hand over for \(env.title).")
             r.withheld = withheld; r.names = missing
             return r
@@ -125,16 +134,17 @@ extension AppModel {
         let grantKey = [purpose.rawValue, proj?.id.uuidString ?? "", env.rawValue, request.keys.joined(separator: ","),
                         request.argv.joined(separator: " "), peer.display].joined(separator: "|")
         let reused = !peer.isAgent && (grants[grantKey].map { $0 > .now } ?? false)
-        if !reused, !(await approve(reason: describe(request, peer: peer, count: values.count, project: proj?.name, env: env))) {
+        if !reused, !(await approve(reason: describe(request, peer: peer, count: values.count + files.count, project: proj?.name, env: env))) {
             return .fail("Not allowed.")
         }
         if !peer.isAgent { grants[grantKey] = .now.addingTimeInterval(3600) }
         let action: ActivityEntry.Action = purpose == .run ? .ran : purpose == .export ? .exported : .xcconfig
-        record(ActivityEntry(action: action, names: values.keys.sorted(), actor: peer.display,
+        record(ActivityEntry(action: action, names: values.keys.sorted() + files.values.map { $0[0] }, actor: peer.display,
                              detail: [request.argv.first.map { ($0 as NSString).lastPathComponent }, proj?.name, env.title]
                                 .compactMap { $0 }.joined(separator: " · ")))
         var r = Broker.Response(ok: true)
         r.env = values
+        r.files = files.isEmpty ? nil : files
         r.withheld = withheld.isEmpty ? nil : withheld
         r.names = missing.isEmpty ? nil : missing
         r.project = proj?.name

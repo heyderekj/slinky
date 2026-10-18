@@ -43,6 +43,18 @@ struct MainView: View {
                         .disabled(model.lockedChrome)
                 }
             }
+            // Drop a secret file (.p8, .pem, .p12, service-account JSON) onto the library to keep it in the vault.
+            // Projects take their own drops (.env files and folders).
+            .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+                guard canAdd, !isProject else { return false }
+                for provider in providers {
+                    _ = provider.loadObject(ofClass: URL.self) { url, _ in
+                        guard let url, !url.hasDirectoryPath, !ProjectScan.isEnvFile(url.lastPathComponent) else { return }
+                        Task { @MainActor in AppModel.shared.addFile(url) }
+                    }
+                }
+                return true
+            }
             // Drop a key or some .env lines anywhere on the content to add them.
             .dropDestination(for: String.self) { items, _ in
                 // A file dragged from Finder also arrives as its path. Files aren't items, so leave those alone.

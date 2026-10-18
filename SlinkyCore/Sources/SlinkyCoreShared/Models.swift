@@ -213,6 +213,8 @@ public enum TrashedItem: Codable, Hashable, Sendable {
     /// A variable, with the project it came from (by id, and its name for display if that project is gone).
     case variable(Variable, projectID: UUID, projectName: String)
     case project(Project)
+    /// Added in 1.4.
+    case file(SecretFile)
 
     public var title: String {
         switch self {
@@ -221,6 +223,7 @@ public enum TrashedItem: Codable, Hashable, Sendable {
         case .kept(let k): k.label
         case .variable(let v, _, let p): "\(v.name) (\(p))"
         case .project(let p): p.name
+        case .file(let f): f.name
         }
     }
 }

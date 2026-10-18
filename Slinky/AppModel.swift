@@ -34,18 +34,19 @@ enum SidebarItem: Hashable {
 }
 
 enum EditTarget: Hashable {
-    case key(UUID), kept(UUID), codes(UUID), project(UUID)
+    case key(UUID), kept(UUID), codes(UUID), project(UUID), file(UUID)
 }
 
 /// One row in the library list.
 enum LibraryRef: Hashable {
-    case key(UUID), codes(UUID), kept(UUID)
+    case key(UUID), codes(UUID), kept(UUID), file(UUID)
 
     var editTarget: EditTarget {
         switch self {
         case let .key(id): .key(id)
         case let .codes(id): .codes(id)
         case let .kept(id): .kept(id)
+        case let .file(id): .file(id)
         }
     }
 }
@@ -629,6 +630,7 @@ final class AppModel {
             case let .key(id): if let i = doc.keys.firstIndex(where: { $0.id == id }) { doc.keys[i].icon = choice }
             case let .codes(id): if let i = doc.codeSets.firstIndex(where: { $0.id == id }) { doc.codeSets[i].icon = choice }
             case let .kept(id): if let i = doc.kept.firstIndex(where: { $0.id == id }) { doc.kept[i].icon = choice }
+            case let .file(id): if let i = doc.secretFiles.firstIndex(where: { $0.id == id }) { doc.secretFiles[i].icon = choice }
             }
         }
     }
@@ -648,6 +650,7 @@ final class AppModel {
         case let .key(id): document.keys.first { $0.id == id }?.iconSubject
         case let .codes(id): document.codeSets.first { $0.id == id }?.iconSubject
         case let .kept(id): document.kept.first { $0.id == id }?.iconSubject
+        case let .file(id): document.secretFiles.first { $0.id == id }?.iconSubject
         }
     }
 
@@ -675,6 +678,42 @@ final class AppModel {
 
     // Removing never deletes outright: it moves to Recently Deleted for 30 days (and Undo works right away).
     static let trashToast = "Moved to Recently Deleted."
+
+    func deleteFile(_ id: UUID) {
+        change(Self.trashToast, undoable: true) { doc in
+            guard let file = doc.secretFiles.first(where: { $0.id == id }) else { return }
+            doc.secretFiles.removeAll { $0.id == id }
+            doc.trashed.insert(TrashEntry(.file(file)), at: 0)
+        }
+    }
+
+    func update(_ file: SecretFile) {
+        guard let i = document.secretFiles.firstIndex(where: { $0.id == file.id }) else { return }
+        var file = file
+        file.updated = .now
+        change("Saved changes to \(file.name).") { $0.secretFiles[i] = file }
+    }
+
+    /// A dropped or picked file becomes a secret file in the vault (256 KB at most). App Store Connect keys
+    /// get their Key ID from the file name, then Edit opens for the Issuer ID.
+    func addFile(_ url: URL) {
+        guard isUnlocked else { return }
+        guard let data = try? Data(contentsOf: url) else { show("Couldn't read \(url.lastPathComponent).", style: .info); return }
+        guard data.count <= SecretFile.maxBytes else {
+            show("\(url.lastPathComponent) is too big for a secret (over 256 KB).", style: .info)
+            return
+        }
+        let kind = SecretFile.guessKind(filename: url.lastPathComponent, data: data)
+        var fields: [String: String] = [:]
+        if kind == .appStoreConnectKey, let id = SecretFile.keyID(fromFilename: url.lastPathComponent) { fields["Key ID"] = id }
+        let name = kind == .appStoreConnectKey ? "App Store Connect API key" : (url.deletingPathExtension().lastPathComponent)
+        let file = SecretFile(name: name, filename: url.lastPathComponent, kind: kind, data: data, fields: fields)
+        change("Saved \(url.lastPathComponent) to Slinky. You can move the original to the Trash.") { $0.secretFiles.insert(file, at: 0) }
+        Sounds.play(.saved)
+        selection = .library(.keys)
+        librarySelection = .file(file.id)
+        if kind == .appStoreConnectKey, file.fields["Issuer ID"] == nil { editing = .file(file.id) }
+    }
 
     func deleteKept(_ id: UUID) {
         change(Self.trashToast, undoable: true) { doc in
@@ -711,6 +750,7 @@ final class AppModel {
             case .key(let k): doc.keys.insert(k, at: 0)
             case .codes(let c): doc.codeSets.insert(c, at: 0)
             case .kept(let k): doc.kept.insert(k, at: 0)
+            case .file(let f): doc.secretFiles.insert(f, at: 0)
             case .project(let p):
                 var p = p
                 if doc.projects.contains(where: { $0.id == p.id }) { p.id = UUID() }

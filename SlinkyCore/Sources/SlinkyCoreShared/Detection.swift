@@ -106,6 +106,11 @@ public enum Detector {
         if text.range(of: #"^[A-Z0-9]{4}(-[A-Z0-9]{4}){5}$"#, options: .regularExpression) != nil {
             return Detection(kind: .recoveryKey, provider: "Apple", label: "Looks like a FileVault recovery key.", suggestedName: "FileVault recovery key")
         }
+        // Apple app-specific password (notarization, Xcode, altool): 4 groups of 4 lowercase letters.
+        if text.range(of: #"^[a-z]{4}-[a-z]{4}-[a-z]{4}-[a-z]{4}$"#, options: .regularExpression) != nil {
+            return Detection(kind: .apiKey, provider: "Apple", label: "Looks like an Apple app-specific password, like the one notarization uses.",
+                             suggestedName: "APPLE_APP_SPECIFIC_PASSWORD")
+        }
         let codes = RecoveryCodes.extract(text)
         if codes.count >= 4 {
             return Detection(kind: .recoveryCodes(codes), provider: RecoveryCodes.guessProvider(text),
