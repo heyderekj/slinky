@@ -116,6 +116,8 @@ final class AppModel {
     @ObservationIgnored var pendingSave: String?
     /// The selected library row, so search can jump to an item and the detail pane can follow it.
     var librarySelection: LibraryRef?
+    /// Edit should open with Replace already on (rotating a key).
+    @ObservationIgnored var editReplacing = false
     /// The item whose icon is being chosen (Choose Icon…).
     var choosingIcon: LibraryRef?
     /// What an import file contained, while the import panel is open.
@@ -678,6 +680,48 @@ final class AppModel {
 
     // Removing never deletes outright: it moves to Recently Deleted for 30 days (and Undo works right away).
     static let trashToast = "Moved to Recently Deleted."
+
+    // MARK: Rotation
+
+    /// Where to make a new one: the service's own key page, else the item's link, else the service's site.
+    func rotationURL(for subject: IconSubject) -> URL? {
+        let service = IconResolver.shared.service(for: subject)
+        if let s = service?.tokenURL, let url = URL(string: s) { return url }
+        if let link = subject.link, let url = URL(string: link) { return url }
+        if let domain = service?.domains.first { return URL(string: "https://\(domain)") }
+        return nil
+    }
+
+    /// "Make a New Key on GitHub…": opens the service's key page, and Edit with Replace ready for the new value.
+    func startRotation(_ ref: LibraryRef) {
+        if let subject = iconSubject(ref), let url = rotationURL(for: subject) { NSWorkspace.shared.open(url) }
+        editReplacing = true
+        editing = ref.editTarget
+    }
+
+    /// A key got a new value: the old one waits in Recently Deleted (in case the new one doesn't work yet),
+    /// and project variables that held the old value get the new one too.
+    func replaced(_ old: Key, with new: Key) {
+        var projectsUpdated: [String] = []
+        change { doc in
+            var retired = old
+            retired.id = UUID()
+            retired.name = "\(old.name) (replaced)"
+            doc.trashed.insert(TrashEntry(.key(retired)), at: 0)
+            for p in doc.projects.indices {
+                for v in doc.projects[p].variables.indices {
+                    for env in AppEnvironment.allCases where doc.projects[p].variables[v].value(in: env) == old.value {
+                        doc.projects[p].variables[v].values[env.rawValue] = new.value
+                        doc.projects[p].variables[v].updated = .now
+                        projectsUpdated.append("\(doc.projects[p].name) (\(env.title))")
+                    }
+                }
+            }
+        }
+        record(ActivityEntry(action: .rotated, names: [new.name], detail: projectsUpdated.isEmpty ? "" : "Also updated in " + projectsUpdated.joined(separator: ", ")))
+        show(projectsUpdated.isEmpty ? "Replaced \(new.name). The old one is in Recently Deleted for 30 days."
+                                     : "Replaced \(new.name), and in \(projectsUpdated.joined(separator: ", ")). The old one is in Recently Deleted.")
+    }
 
     func deleteFile(_ id: UUID) {
         change(Self.trashToast, undoable: true) { doc in

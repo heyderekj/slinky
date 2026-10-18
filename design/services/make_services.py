@@ -34,6 +34,12 @@ def lst(field):
 def swift_list(items):
     return '[' + ', '.join(json.dumps(i) for i in items) + ']'
 
+token_urls = {}
+for line in (Path(__file__).parent / 'token_urls.txt').read_text().splitlines():
+    if line.strip() and not line.startswith('#'):
+        sid, url = [x.strip() for x in line.split('|', 1)]
+        token_urls[sid] = url
+
 rows, missing = [], []
 for line in (Path(__file__).parent / 'catalog.txt').read_text().splitlines():
     if not line.strip() or line.startswith('#'):
@@ -58,7 +64,8 @@ for line in (Path(__file__).parent / 'catalog.txt').read_text().splitlines():
         }, indent=2) + '\n')
     rows.append(f'        Service(id: {json.dumps(sid)}, name: {json.dumps(name)}, domains: {swift_list(lst(domains))}, '
                 f'bundleIDs: {swift_list(lst(bundles))}, aliases: {swift_list(aliases)}, '
-                f'color: {("0x" + color) if color else "nil"}, hasLogo: {"true" if has_logo else "false"}),')
+                f'color: {("0x" + color) if color else "nil"}, hasLogo: {"true" if has_logo else "false"}, '
+                f'tokenURL: {json.dumps(token_urls[sid]) if sid in token_urls else "nil"}),')
 
 out = ROOT / 'SlinkyCore' / 'Sources' / 'SlinkyCoreShared' / 'Services.swift'
 template = (Path(__file__).parent / 'Services.swift.tpl').read_text()

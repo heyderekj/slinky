@@ -11,6 +11,7 @@ struct ProjectView: View {
     @State private var selectedMissing: String?
     @State private var showInspector = true
     @State private var dropTargeted = false
+    @State private var pushing = false
 
     private var project: Project? { model.document.projects.first { $0.id == projectID } }
 
@@ -72,6 +73,9 @@ struct ProjectView: View {
                                 .disabled(!project.variables.contains { $0.value(in: env) != nil })
                             Button("Save .env.example…") { saveExample(project) }
                                 .disabled(project.variables.isEmpty)
+                            Divider()
+                            Button("Send to Host…") { pushing = true }
+                                .disabled(project.variables.isEmpty)
                         } label: {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
@@ -82,6 +86,7 @@ struct ProjectView: View {
                     }
                 }
             }
+            .sheet(isPresented: $pushing) { HostPushSheet(projectID: projectID) }
             .detailsPane(isPresented: $showInspector) {
                 inspector(project)
             }

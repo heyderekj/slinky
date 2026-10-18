@@ -17,6 +17,8 @@ public struct Service: Hashable, Sendable, Identifiable {
     public let color: UInt32?
     /// A bundled logo exists, named `logo-<id>` in the app's asset catalog.
     public let hasLogo: Bool
+    /// The service's own page for making and revoking keys, for "Make a New Key on …".
+    public let tokenURL: String?
 
     public var logoName: String? { hasLogo ? "logo-\(id)" : nil }
 

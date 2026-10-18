@@ -275,6 +275,7 @@ struct ItemDetail: View {
                 LabeledContent("AI agents", value: key.agentPolicy.title)
                 Dates(created: key.created, updated: key.updated)
             }
+            RotateRow(subject: key.iconSubject, ref: ref, what: "Key")
             NoteAndLink(note: key.note, link: key.link)
         }
     }
@@ -290,6 +291,7 @@ struct ItemDetail: View {
             } header: {
                 Text("\(set.remaining) of \(set.codes.count) left · click a code to copy and cross it off")
             }
+            RotateRow(subject: set.iconSubject, ref: ref, what: "Codes")
             NoteAndLink(note: set.note, link: set.link)
             Section { Dates(created: set.created, updated: set.regenerated, updatedLabel: "New codes") }
         }
@@ -419,6 +421,27 @@ private struct WebsiteIconButton: View {
             .font(.caption)
             .padding(.horizontal, 20)
             .padding(.top, 8)
+        }
+    }
+}
+
+/// "Make a New Key on GitHub…": the service's own key page, then Edit with Replace ready. Shown when Slinky knows
+/// where to go (the service's key page, the item's link, or the service's site).
+private struct RotateRow: View {
+    @Environment(AppModel.self) private var model
+    let subject: IconSubject
+    let ref: LibraryRef
+    let what: String
+
+    var body: some View {
+        if model.rotationURL(for: subject) != nil {
+            let service = IconResolver.shared.service(for: subject)?.name
+            Section {
+                Button("Make New \(what) on \(service ?? "the Website")…") { model.startRotation(ref) }
+            } footer: {
+                Text(what == "Codes" ? "Opens the page where you make new codes, and Edit to paste them. The old ones stop working there."
+                                     : "Opens the page where you make keys, and Edit to paste the new one. The old one stays in Recently Deleted for 30 days, and projects using it get the new one.")
+            }
         }
     }
 }

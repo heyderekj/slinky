@@ -413,6 +413,8 @@ private struct EditPanel: View {
     private func load() {
         guard !loaded else { return }
         loaded = true
+        // "Make a New Key on …" opens Edit with Replace ready for the new value.
+        if model.editReplacing { replacing = true; model.editReplacing = false }
         switch target {
         case let .key(id):
             guard let key = model.document.keys.first(where: { $0.id == id }) else { return }
@@ -457,6 +459,7 @@ private struct EditPanel: View {
         switch target {
         case let .key(id):
             guard var key = model.document.keys.first(where: { $0.id == id }) else { return }
+            let before = key
             key.name = trimmedName
             key.note = note.isEmpty ? nil : note
             key.link = savedLink
@@ -469,6 +472,7 @@ private struct EditPanel: View {
                 key.isLive = detection?.isLive ?? false
             }
             model.update(key)
+            if replacing, !value.isEmpty, value != before.value { model.replaced(before, with: key) }
         case let .kept(id):
             guard var item = model.document.kept.first(where: { $0.id == id }) else { return }
             item.label = trimmedName
