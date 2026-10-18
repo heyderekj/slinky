@@ -3,10 +3,7 @@ import SwiftUI
 
 struct MainView: View {
     @Environment(AppModel.self) private var model
-    // Starts without the sidebar when it appears under the unlock animation, so it never flashes in early.
-    @State private var columns: NavigationSplitViewVisibility = AppModel.shared.lockedChrome ? .detailOnly : .all
-    /// The sidebar as the person left it, put back once an unlock finishes.
-    @State private var savedColumns: NavigationSplitViewVisibility = .all
+    @State private var columns: NavigationSplitViewVisibility = .all
 
     var body: some View {
         @Bindable var model = model
@@ -53,10 +50,12 @@ struct MainView: View {
                 return true
             }
         }
-        // The locked window has no sidebar. It slides away as locking starts and back once the keyhole has opened.
-        .onChange(of: model.lockedChrome) { _, locked in
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.86)) {
-                if locked { savedColumns = columns; columns = .detailOnly } else { columns = savedColumns }
+        // The locked window has no sidebar, so it slides away as locking starts (this window is gone once the vault
+        // locks). Unlocking never hides it: a split view that starts without its sidebar lays it out clipped when it
+        // slides in, so the sidebar is simply there under the opening keyhole.
+        .onChange(of: model.curtain) { _, curtain in
+            if curtain == .closing {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.86)) { columns = .detailOnly }
             }
         }
         .background(PasteToAdd { text in
