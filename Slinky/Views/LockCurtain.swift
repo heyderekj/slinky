@@ -99,17 +99,24 @@ struct LockCurtain: View {
     private var visible: Bool { shown || model.curtain != .none }
 
     var body: some View {
-        LockStage(spin: spin, scramble: scramble ? 0.035 : nil, ringScale: ring) {
-            LockControls(note: LockReason.manual.note, unlockLabel: model.unlockLabel)
-                .opacity(controls)
-        }
-        .mask {
-            ZStack {
-                Rectangle()
-                KeyholeHole(progress: hole).blendMode(.destinationOut)
+        // The whole window, the strip behind the toolbar included, so nothing of the app shows around the edges.
+        // `top` is that strip's height, so the mark still lines up with the lock screen's.
+        GeometryReader { geo in
+            let top = geo.safeAreaInsets.top
+            LockStage(spin: spin, scramble: scramble ? 0.035 : nil, ringScale: ring, top: top) {
+                LockControls(note: LockReason.manual.note, unlockLabel: model.unlockLabel)
+                    .opacity(controls)
             }
-            .compositingGroup()
+            .mask {
+                ZStack {
+                    Rectangle()
+                    KeyholeHole(progress: hole, top: top).blendMode(.destinationOut)
+                }
+                .compositingGroup()
+            }
+            .ignoresSafeArea()
         }
+        .ignoresSafeArea()
         .opacity(visible ? 1 : 0)
         .allowsHitTesting(visible)
         .onChange(of: model.curtain) { _, curtain in

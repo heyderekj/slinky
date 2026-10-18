@@ -27,16 +27,22 @@ struct ItemRowLayout<Tags: View, Action: View>: View {
             Spacer(minLength: 8)
             tags
             if let peek {
-                Text(peek)
-                    .font(.system(size: 11.5, design: .monospaced))
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
-                    .accessibilityHidden(true)
+                // Whole or not at all: in a narrow list a cut-off peek ("•", "c") says nothing.
+                ViewThatFits(in: .horizontal) {
+                    Text(peek)
+                        .font(.system(size: 11.5, design: .monospaced))
+                        .foregroundStyle(.tertiary)
+                        .fixedSize()
+                    Color.clear.frame(width: 0, height: 0)
+                }
+                .accessibilityHidden(true)
             }
             action
                 .buttonStyle(.borderless)
                 .labelStyle(.titleAndIcon)
                 .controlSize(.small)
+                .lineLimit(1)
+                .fixedSize()
         }
         .padding(.vertical, 4)
     }
@@ -188,21 +194,30 @@ struct ItemDetail: View {
         DetailScaffold(icon: key.iconSubject, title: key.name, mono: true, kind: "Key or token", ref: ref) {
             Section {
                 RevealField(value: key.value)
-                HStack {
+                // One clear Copy; the .env form is a click away in the menu instead of a second, truncated button.
+                HStack(spacing: 8) {
                     CopyButton { model.copy(key.value, label: key.name, provider: key.provider) }
-                    CopyButton(title: "Copy as \(key.name)=…") { model.copy("\(key.name)=\(key.value)", label: key.name, provider: key.provider) }
-                        .lineLimit(1)
+                        .glassProminentButton()
+                    Menu {
+                        Button("Copy as \(key.name)=…") { model.copy("\(key.name)=\(key.value)", label: key.name, provider: key.provider) }
+                    } label: {
+                        Image(systemName: "ellipsis")
+                    }
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .glassButton()
+                    .help("More ways to copy")
+                    Spacer(minLength: 0)
+                    if key.isLive { Chip(text: "live", style: .live) }
                 }
-                .glassButton()
-                .controlSize(.small)
+                .controlSize(.regular)
             }
             Section {
-                if key.isLive { LabeledContent("Kind") { Chip(text: "live", style: .live) } }
                 LabeledContent("Expires", value: key.expires.map { $0.formatted(date: .abbreviated, time: .omitted) } ?? "Never")
                 LabeledContent("AI agents", value: key.agentPolicy.title)
+                Dates(created: key.created, updated: key.updated)
             }
             NoteAndLink(note: key.note, link: key.link)
-            Dates(created: key.created, updated: key.updated)
         }
     }
 
@@ -218,7 +233,7 @@ struct ItemDetail: View {
                 Text("\(set.remaining) of \(set.codes.count) left · click a code to copy and cross it off")
             }
             NoteAndLink(note: set.note, link: set.link)
-            Dates(created: set.created, updated: set.regenerated, updatedLabel: "New codes")
+            Section { Dates(created: set.created, updated: set.regenerated, updatedLabel: "New codes") }
         }
     }
 
@@ -227,8 +242,9 @@ struct ItemDetail: View {
                        kind: [item.kind.title, item.from.map { "From \($0)" }].compactMap { $0 }.joined(separator: " · "), ref: ref) {
             Section {
                 RevealField(value: item.value)
-                HStack {
+                HStack(spacing: 8) {
                     CopyButton { model.copy(item.value, label: item.label) }
+                        .glassProminentButton()
                     if item.kind == .recoveryKey {
                         if item.printedCopy {
                             Label("Printed", systemImage: "checkmark").font(.caption).foregroundStyle(.secondary)
@@ -239,12 +255,12 @@ struct ItemDetail: View {
                             }
                         }
                     }
+                    Spacer(minLength: 0)
                 }
                 .glassButton()
-                .controlSize(.small)
             }
             NoteAndLink(note: item.note, link: item.link)
-            Dates(created: item.created, updated: nil)
+            Section { Dates(created: item.created, updated: nil) }
         }
     }
 }
@@ -300,12 +316,14 @@ private struct DetailScaffold<Content: View>: View {
                 }
                 .buttonStyle(.borderless)
                 .foregroundStyle(.red)
+                .help("Move to Recently Deleted")
                 Spacer()
-                Button("Edit…") { model.editing = ref.editTarget }
+                Button { model.editing = ref.editTarget } label: { Label("Edit", systemImage: "pencil") }
                     .glassButton()
+                    .controlSize(.large)
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 14)
+            .padding(.vertical, 14)
         }
     }
 }
@@ -378,13 +396,10 @@ private struct Dates: View {
     var updatedLabel = "Changed"
 
     var body: some View {
-        Section {
-            LabeledContent("Added", value: created.formatted(date: .abbreviated, time: .omitted))
-            if let updated, abs(updated.timeIntervalSince(created)) > 60 {
-                LabeledContent(updatedLabel, value: updated.formatted(date: .abbreviated, time: .omitted))
-            }
+        LabeledContent("Added", value: created.formatted(date: .abbreviated, time: .omitted))
+        if let updated, abs(updated.timeIntervalSince(created)) > 60 {
+            LabeledContent(updatedLabel, value: updated.formatted(date: .abbreviated, time: .omitted))
         }
-        .foregroundStyle(.secondary)
     }
 }
 

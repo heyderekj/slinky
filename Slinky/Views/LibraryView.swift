@@ -29,13 +29,19 @@ struct LibraryView: View {
                 }
             }
         }
-        .detailsPane(isPresented: showInspector && !isEmpty) {
+        .detailsPane(isPresented: Binding(get: { showInspector && !isEmpty }, set: { showInspector = $0 })) {
             Group {
                 if let ref = visibleSelection {
                     ItemDetail(ref: ref).id(ref)
                 } else {
-                    ContentUnavailableView("No Item Selected", systemImage: "sidebar.right",
-                                           description: Text("Pick an item to see its details."))
+                    // Quiet: this sits in a narrow sidebar.
+                    VStack(spacing: 8) {
+                        Image(systemName: "sidebar.right").font(.system(size: 22)).foregroundStyle(.tertiary)
+                        Text("Select an item to see its details.")
+                            .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    }
+                    .padding(24)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
         }
@@ -84,8 +90,8 @@ struct LibraryView: View {
                 Button("Delete \(refs.count) Items", role: .destructive) { refs.forEach(delete) }
             }
         } primaryAction: { refs in
-            // Double-click edits.
-            if refs.count == 1, let ref = refs.first { model.editing = ref.editTarget }
+            // Double-click opens the details on the right (Edit is there, and in the menu).
+            if refs.count == 1 { showInspector = true }
         }
         // ⌘C (and Edit › Copy) copies the selected item. Return opens the details; Delete moves it to Recently Deleted.
         .onCommand(#selector(NSText.copy(_:))) { visibleSelection.map(copy) }

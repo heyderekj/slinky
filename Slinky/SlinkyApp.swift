@@ -23,7 +23,7 @@ struct SlinkyApp: App {
                 .environment(model)
         }
         .windowToolbarStyle(.unified(showsTitle: true))
-        .defaultSize(width: 880, height: 560)   // opens at its smallest size, which is also its minimum
+        .defaultSize(width: 1100, height: 680)   // room for both sidebars and the list; it can shrink to 880 × 560
         .commands {
             CommandGroup(replacing: .newItem) {
                 Button("Add Item…") {

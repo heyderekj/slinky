@@ -3,22 +3,24 @@ import SwiftUI
 
 struct MainView: View {
     @Environment(AppModel.self) private var model
-    @State private var columns: NavigationSplitViewVisibility = .all
+    // The locked window has no sidebar. Under the unlock animation the window starts without it too, so the
+    // toolbar sits where the lock screen's did, and the sidebar slides in once the keyhole has opened.
+    @State private var columns: NavigationSplitViewVisibility = AppModel.shared.lockedChrome ? .detailOnly : .all
 
     var body: some View {
         @Bindable var model = model
         NavigationSplitView(columnVisibility: $columns) {
             SidebarView()
-                .navigationSplitViewColumnWidth(min: 210, ideal: 240, max: 300)
                 // The built-in toggle lives in the sidebar's part of the toolbar. While the sidebar opens
                 // or closes that part is too narrow for it, so macOS shows the overflow » for a moment.
                 .toolbar(removing: .sidebarToggle)
+                .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
         } detail: {
             Group {
                 if model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
                     detail
                 } else {
-                    SearchResultsView(query: model.searchText)
+                    SearchResultsView(query: model.searchText).shrinkable()
                 }
             }
             .overlay(alignment: .bottom) { ToastView() }
@@ -50,8 +52,10 @@ struct MainView: View {
                 return true
             }
         }
-        // The sidebar stays put while locking: collapsing it as the window goes away left macOS saving a
-        // half-collapsed width, and the sidebar came back clipped. The curtain covers it anyway.
+        // Locking slides the sidebar away as the keyhole starts closing; unlocking slides it back in once it's open.
+        .onChange(of: model.lockedChrome) { _, locked in
+            withAnimation(.spring(response: 0.42, dampingFraction: 0.88)) { columns = locked ? .detailOnly : .all }
+        }
         .background(PasteToAdd { text in
             guard canAdd else { return false }
             addHere(prefill: text)
@@ -102,9 +106,9 @@ struct MainView: View {
         case let .library(filter)?:
             LibraryView(filter: filter)
         case .attention?:
-            AttentionView()
+            AttentionView().shrinkable()
         case .trash?:
-            RecentlyDeletedView()
+            RecentlyDeletedView().shrinkable()
         case nil:
             LibraryView(filter: .all)
         }

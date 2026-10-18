@@ -8,13 +8,15 @@ nonisolated enum LockLayout {
     static let markSize: CGFloat = 96
     static let ringRadius: CGFloat = 82
 
-    static func markCenter(in size: CGSize) -> CGPoint {
-        CGPoint(x: size.width / 2, y: max(ringRadius + 24, size.height * 0.38))
+    /// `top` is how much of `size` sits behind the toolbar (the curtain covers that strip; the lock screen doesn't),
+    /// so both put the mark at the same spot in the window.
+    static func markCenter(in size: CGSize, top: CGFloat = 0) -> CGPoint {
+        CGPoint(x: size.width / 2, y: top + max(ringRadius + 24, (size.height - top) * 0.38))
     }
 
     /// The keyhole's round top, in the window, matching KeyholeMark's drawing (offset, then tilted -8°).
-    static func keyholeCenter(in size: CGSize) -> CGPoint {
-        let c = markCenter(in: size)
+    static func keyholeCenter(in size: CGSize, top: CGFloat = 0) -> CGPoint {
+        let c = markCenter(in: size, top: top)
         let p = rotate(CGPoint(x: 0, y: -0.04 * markSize), by: -8)
         return CGPoint(x: c.x + p.x, y: c.y + p.y)
     }
@@ -44,6 +46,7 @@ struct LockStage<Controls: View>: View {
     /// Seconds between scrambles of the ring; nil holds it still.
     var scramble: Double?
     var ringScale: CGFloat = 1
+    var top: CGFloat = 0
     @ViewBuilder var controls: Controls
 
     var body: some View {
@@ -51,7 +54,7 @@ struct LockStage<Controls: View>: View {
             LockedBackground()
             if showFace {
                 GeometryReader { geo in
-                    let c = LockLayout.markCenter(in: geo.size)
+                    let c = LockLayout.markCenter(in: geo.size, top: top)
                     ZStack(alignment: .top) {
                         CipherRing(radius: LockLayout.ringRadius, interval: scramble)
                             .scaleEffect(ringScale)
@@ -143,6 +146,7 @@ struct CipherRing: View {
 /// of the window, below 0 = smaller, down to a point). Growth is exponential, so it starts as a peek and ends in a rush.
 struct KeyholeHole: Shape {
     var progress: CGFloat
+    var top: CGFloat = 0
 
     var animatableData: CGFloat {
         get { progress }
@@ -151,7 +155,7 @@ struct KeyholeHole: Shape {
 
     func path(in rect: CGRect) -> Path {
         let s = LockLayout.markSize
-        let center = LockLayout.keyholeCenter(in: rect.size)
+        let center = LockLayout.keyholeCenter(in: rect.size, top: top)
         let corners = [CGPoint(x: rect.minX, y: rect.minY), CGPoint(x: rect.maxX, y: rect.minY),
                        CGPoint(x: rect.minX, y: rect.maxY), CGPoint(x: rect.maxX, y: rect.maxY)]
         let far = corners.map { hypot($0.x - center.x, $0.y - center.y) }.max() ?? 1
