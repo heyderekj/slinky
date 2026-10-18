@@ -56,7 +56,7 @@ const mark = (v: string) => {
         <a class="btn btn--primary" href={release.dmg} data-download data-track="Download macOS hero"><Icon name="apple" /> Download for Mac</a>
         <a class="btn btn--quiet" href="https://github.com/heyderekj/slinky" data-stars><Icon name="github" /> GitHub <span class="star-count" data-star-count></span></a>
       </div>
-      <p class="hero__meta">{versionLine} · <button type="button" data-open-install>How to install</button></p>
+      <p class="hero__meta">{versionLine}<span class="version-sep"> · </span><button type="button" class="version-install-link" data-open-install>How to install</button></p>
 
       <Desktop class="desktop--hero" menubar>
         <div class="lockdemo" data-lockdemo data-mb-window>

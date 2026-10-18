@@ -183,8 +183,12 @@ body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
 .tagline { margin-top: 12px; font-size: clamp(21px, 2.4vw, 26px); font-weight: 600; letter-spacing: -0.022em; line-height: 1.2; color: var(--ink-soft); }
 .description { margin: 14px auto 0; max-width: 34rem; text-wrap: balance; font-size: clamp(17px, 1.8vw, 19px); color: var(--muted); letter-spacing: -0.012em; }
 .hero__actions { display: flex; justify-content: center; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
-.hero__meta { margin-top: 14px; font-size: 14px; color: var(--muted); }
+.hero__meta { margin: 14px auto 0; max-width: 34rem; font-size: 14px; line-height: 1.5; color: var(--muted); text-wrap: balance; }
 .hero__meta button { text-decoration: underline; text-underline-offset: 3px; color: var(--ink-soft); }
+@media (max-width: 520px) {
+  .hero__meta .version-sep { display: none; }
+  .hero__meta .version-install-link { display: block; margin: 2px auto 0; }
+}
 .star-count:not(:empty)::before { content: '★ '; }
 .desktop--hero { width: 100%; margin-top: 52px; }
 .desktop--hero .desktop__stage { padding: 48px 56px 60px; }
