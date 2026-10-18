@@ -10,17 +10,19 @@ struct IconSubject: Hashable {
     var link: String? = nil
     var note: String? = nil
     var choice: IconChoice? = nil
+    /// Where it lives, when the person picked it.
+    var service: String? = nil
 }
 
-extension Key { var iconSubject: IconSubject { IconSubject(name: name, provider: provider, link: link, note: note, choice: icon) } }
-extension CodeSet { var iconSubject: IconSubject { IconSubject(name: account, from: username, link: link, note: note, choice: icon) } }
-extension KeptItem { var iconSubject: IconSubject { IconSubject(name: label, from: from, link: link, note: note, choice: icon) } }
+extension Key { var iconSubject: IconSubject { IconSubject(name: name, provider: provider, link: link, note: note, choice: icon, service: service) } }
+extension CodeSet { var iconSubject: IconSubject { IconSubject(name: account, from: username, link: link, note: note, choice: icon, service: service) } }
+extension KeptItem { var iconSubject: IconSubject { IconSubject(name: label, from: from, link: link, note: note, choice: icon, service: service) } }
 extension SecretFile {
     var iconSubject: IconSubject {
-        IconSubject(name: name, provider: kind == .appStoreConnectKey ? "Apple" : nil, link: link, note: note, choice: icon)
+        IconSubject(name: name, provider: kind == .appStoreConnectKey ? "Apple" : nil, link: link, note: note, choice: icon, service: service)
     }
 }
-extension Variable { var iconSubject: IconSubject { IconSubject(name: name, provider: provider, link: link, note: note, choice: icon) } }
+extension Variable { var iconSubject: IconSubject { IconSubject(name: name, provider: provider, link: link, note: note, choice: icon, service: service) } }
 
 /// Picks each item's icon, in this order: the person's own choice, the service's Mac app if it's installed,
 /// the bundled service logo, the website's own icon (only if one was loaded), then initials. Everything here
@@ -109,15 +111,28 @@ final class IconResolver {
         return true
     }
 
-    /// The service this item is for, if Slinky can tell.
+    /// Where this item lives: the person's own pick, else what the catalog can tell for certain (the link's site,
+    /// a key's known shape, a service named in it). Apple Intelligence's guess is never used here: it only
+    /// suggests, in the service picker, because a wrong guess reads as a fact ("both said GitHub").
     func service(for subject: IconSubject) -> Service? {
+        if let id = subject.service, let s = ServiceCatalog.service(id: id) { return s }
         if case let .service(id)? = subject.choice { return ServiceCatalog.service(id: id) }
+        return matched(subject)
+    }
+
+    /// The catalog's own match, ignoring the person's picks.
+    func matched(_ subject: IconSubject) -> Service? {
         let key = IconSubject(name: subject.name, from: subject.from, provider: subject.provider, link: subject.link, note: subject.note)
-        if let cached = matches[key] { return cached ?? guessed(subject) }
+        if let cached = matches[key] { return cached }
         let found = ServiceCatalog.match(name: subject.name, from: subject.from, provider: subject.provider,
                                          link: subject.link, note: subject.note)
         matches[key] = found
-        return found ?? guessed(subject)
+        return found
+    }
+
+    /// What the service picker offers first: the catalog's match, else Apple Intelligence's guess.
+    func suggestion(for subject: IconSubject) -> Service? {
+        matched(subject) ?? guessed(subject)
     }
 
     private func resolved(_ s: Service, initials: String) -> Resolved {

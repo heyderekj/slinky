@@ -112,6 +112,9 @@ final class AppModel {
     /// Saved values found outside Slinky (Health). In memory only; cleared on lock.
     var leaks: [LeakFinding] = []
     var checkingLeaks = false
+    /// When the last check finished, since this unlock. Findings live in memory only, so after a lock or a
+    /// relaunch Health says it hasn't looked yet rather than showing an all-clear it can't back up.
+    var leaksChecked: Date?
     /// A key copied in another app that the person chose to save while Slinky was locked. Memory only.
     @ObservationIgnored var pendingSave: String?
     /// The selected library row, so search can jump to an item and the detail pane can follow it.
@@ -423,6 +426,7 @@ final class AppModel {
         showRestore = false
         grants = [:]
         leaks = []
+        leaksChecked = nil
         pendingSave = nil
         // Names and website icons it worked out stay only while unlocked.
         IconResolver.shared.reset()
@@ -633,6 +637,18 @@ final class AppModel {
             case let .codes(id): if let i = doc.codeSets.firstIndex(where: { $0.id == id }) { doc.codeSets[i].icon = choice }
             case let .kept(id): if let i = doc.kept.firstIndex(where: { $0.id == id }) { doc.kept[i].icon = choice }
             case let .file(id): if let i = doc.secretFiles.firstIndex(where: { $0.id == id }) { doc.secretFiles[i].icon = choice }
+            }
+        }
+    }
+
+    /// Where it lives (a catalog id), or nil to let Slinky work it out.
+    func setService(_ id: String?, for ref: LibraryRef) {
+        change { doc in
+            switch ref {
+            case let .key(i): if let n = doc.keys.firstIndex(where: { $0.id == i }) { doc.keys[n].service = id }
+            case let .codes(i): if let n = doc.codeSets.firstIndex(where: { $0.id == i }) { doc.codeSets[n].service = id }
+            case let .kept(i): if let n = doc.kept.firstIndex(where: { $0.id == i }) { doc.kept[n].service = id }
+            case let .file(i): if let n = doc.secretFiles.firstIndex(where: { $0.id == i }) { doc.secretFiles[n].service = id }
             }
         }
     }

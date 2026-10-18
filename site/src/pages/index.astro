@@ -60,7 +60,7 @@ const mark = (v: string) => {
 
       <Desktop class="desktop--hero" menubar>
         <div class="lockdemo" data-lockdemo data-mb-window>
-          <MacWindow title="All Items" subtitle="6 items" selected="all" id="hero-window">
+          <MacWindow title="All Items" subtitle="7 items" selected="all" id="hero-window">
             <Library />
             <div slot="over" class="toast float-glass" data-toast><Icon name="checkc" /><span data-toast-text>Copied.</span></div>
             <div slot="over" class="curtain" aria-hidden="true">
@@ -83,7 +83,7 @@ const mark = (v: string) => {
     <section class="screenshots wrap" id="features" aria-label="What Slinky does">
       <Guided id="add" eyebrow="Add Item" title="Paste it once.<br />Slinky files it." features={[
         { icon: 'plus', title: 'Paste anything secret', text: 'Press ⌘N and paste. The value turns into dots right away, and Slinky suggests where it belongs.' },
-        { icon: 'sparkle', title: 'Knows the service', text: 'Stripe, OpenAI, Anthropic, GitHub, Supabase, Resend, AWS and more, with the usual variable name filled in.' },
+        { icon: 'sparkle', title: 'Knows the service', text: 'Stripe, OpenAI, GitHub, Supabase, AWS and more, with the usual name filled in. Or pick where it lives yourself, like Cloudflare.' },
         { icon: 'attention', title: 'No accidental doubles', text: 'Paste something you’ve already saved and Slinky tells you where it is. Wallet phrases are refused.' },
       ]}>
         <Fragment slot="s0"><Demos which="additem" /></Fragment>
@@ -113,7 +113,7 @@ const mark = (v: string) => {
 
       <Guided id="recovery" eyebrow="Recovery" title="Backup codes<br />that keep count." features={[
         { icon: 'hash', title: 'Codes that cross themselves off', text: 'Copy a backup code and it’s marked used, so you never try one twice.' },
-        { icon: 'bell', title: 'A heads-up when you’re low', text: 'Needs Attention lists codes running out, keys about to expire, and recovery keys never printed.' },
+        { icon: 'heart', title: 'Health keeps watch', text: 'One view for codes running out, keys about to expire, recovery keys never printed, and keys left in files.' },
         { icon: 'life', title: 'Recovery keys, kept safe', text: 'For the day you’re locked out of an account. Print them from Slinky in one click.' },
       ]}>
         <Fragment slot="s0">
@@ -132,12 +132,29 @@ const mark = (v: string) => {
             <p class="detect" style="margin-top:12px"><Icon name="attention" style="width:14px;height:14px;color:var(--orange)" /> Only 4 codes left. Click one to copy it.</p>
           </div>
         </Fragment>
-        <div slot="s1" class="additem" data-glass="panel" style="max-width:420px">
-          <div class="additem__top">Needs Attention <span class="keycap">3</span></div>
+        <div slot="s1" class="additem health" data-glass="panel" style="max-width:440px">
+          <div class="health__sum">
+            <svg class="health__ring" viewBox="0 0 100 100" aria-hidden="true">
+              {[0,1,2,3,4,5,6,7].map((i) => {
+                const gap = 0.018, a0 = (i / 8 + gap) * 2 * Math.PI - Math.PI / 2, a1 = ((i + 1) / 8 - gap) * 2 * Math.PI - Math.PI / 2;
+                const p = (a: number) => `${(50 + 42 * Math.cos(a)).toFixed(2)} ${(50 + 42 * Math.sin(a)).toFixed(2)}`;
+                return <path d={`M ${p(a0)} A 42 42 0 0 1 ${p(a1)}`} class={i === 4 || i === 3 ? 'is-found' : ''} />;
+              })}
+              <text x="50" y="61" text-anchor="middle">2</text>
+            </svg>
+            <div><b>2 things to look at</b><small>Checked just now, on this Mac.</small></div>
+          </div>
+          <div class="health__tiles">
+            <div class="health__tile"><Icon name="folder" /><b>Project files</b><span class="ok">Clear</span></div>
+            <div class="health__tile"><Icon name="layers" /><b>AI conversations</b><span class="ok">Clear</span></div>
+            <div class="health__tile"><Icon name="terminal" /><b>Shell history</b><span class="ok">Clear</span></div>
+            <div class="health__tile is-found"><Icon name="calendar" /><b>Expiring keys</b><span class="found">1 found</span></div>
+            <div class="health__tile is-found"><Icon name="hash" /><b>Recovery codes</b><span class="found">1 found</span></div>
+            <div class="health__tile"><Icon name="life" /><b>Copies outside Slinky</b><span class="ok">Clear</span></div>
+          </div>
           <div class="att">
             <div class="att__row"><Icon name="hash" /><div><b>Only 4 Vercel codes left</b><small>Make new recovery codes on Vercel, then add them here.</small></div></div>
             <div class="att__row"><Icon name="calendar" /><div><b>GITHUB_TOKEN expires in 5 days</b><small>Make a new one on GitHub, then replace it here.</small></div></div>
-            <div class="att__row"><Icon name="life" /><div><b>FileVault recovery key has no copy outside Slinky</b><small>A printed copy is your way back in.</small></div><span class="copy">Print</span></div>
           </div>
         </div>
         <div slot="s2" class="additem" data-glass="panel" style="max-width:400px">

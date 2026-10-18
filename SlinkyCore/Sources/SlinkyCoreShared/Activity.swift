@@ -53,6 +53,9 @@ public struct SecretFile: Codable, Identifiable, Hashable, Sendable {
     public var note: String?
     public var link: String?
     public var icon: IconChoice?
+    /// Where it lives: the catalog id of the service the person manages it at (say "cloudflare"). Chosen by the
+    /// person, so it beats any guess. nil means Slinky works it out from the name and link.
+    public var service: String?
     public var created: Date
     public var updated: Date
 

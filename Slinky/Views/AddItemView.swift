@@ -84,6 +84,7 @@ struct AddItemPanel: View {
         var name = "", nameTouched = false, from = ""
         var project: ProjectChoice = .new, newProjectName = "", env: AppEnvironment = .local
         var hasExpiry = false, expiry = Date.now, note = "", link = ""
+        var service: String?
     }
 
     @State private var text = ""
@@ -97,6 +98,7 @@ struct AddItemPanel: View {
     @State private var name = ""
     @State private var nameTouched = false
     @State private var from = ""
+    @State private var service: String?
     @State private var showFrom = false
     @State private var project: ProjectChoice = .new
     @State private var newProjectName = ""
@@ -283,7 +285,7 @@ struct AddItemPanel: View {
 
     /// The icon follows what's typed: the detected service, the name, the link.
     private var iconSubject: IconSubject {
-        IconSubject(name: name, provider: detection?.provider, link: link.isEmpty ? nil : link)
+        IconSubject(name: name, provider: detection?.provider, link: link.isEmpty ? nil : link, service: service)
     }
 
     private func symbolTile(_ symbol: String, tint: Color) -> some View {
@@ -426,8 +428,9 @@ struct AddItemPanel: View {
                     .buttonStyle(ChipButtonStyle(selected: false))
                 }
             }
-            // Extras for any one item: a note, and a link to where it came from.
+            // Extras for any one item: where it lives, a note, and a link to where it came from.
             if !isMultiLine || destination == .codes {
+                ServiceChip(selection: $service, subject: iconSubject, automatic: IconResolver.shared.matched(iconSubject))
                 if showLink || !link.isEmpty {
                     ChipField(symbol: "link", prompt: "Link, like dash.cloudflare.com", text: $link)
                         .focused($focus, equals: .link)
@@ -546,7 +549,7 @@ struct AddItemPanel: View {
     private var currentDraft: Draft {
         Draft(text: text, destination: destination, destinationTouched: destinationTouched, name: name,
               nameTouched: nameTouched, from: from, project: project, newProjectName: newProjectName, env: env,
-              hasExpiry: hasExpiry, expiry: expiry, note: note, link: link)
+              hasExpiry: hasExpiry, expiry: expiry, note: note, link: link, service: service)
     }
 
     /// The panel went away without a save or a discard (the window closed, another panel took over).
@@ -569,6 +572,7 @@ struct AddItemPanel: View {
         hasExpiry = d.hasExpiry; expiry = d.expiry
         note = d.note; showNote = !d.note.isEmpty
         link = d.link; showLink = !d.link.isEmpty
+        service = d.service
         if !trimmed.isEmpty {
             captured = true
             masked = middle.count
@@ -654,15 +658,21 @@ struct AddItemPanel: View {
         switch destination {
         case .kept:
             let kind: KeptKind = detection?.kind == .setupKey ? .setupKey : .recoveryKey
-            model.addKept(KeptItem(label: label, kind: kind, from: from.isEmpty ? nil : from, value: singleValue,
-                                   note: savedNote, link: savedLink))
+            var item = KeptItem(label: label, kind: kind, from: from.isEmpty ? nil : from, value: singleValue,
+                                note: savedNote, link: savedLink)
+            item.service = service
+            model.addKept(item)
         case .key:
-            model.addKey(Key(name: label, value: singleValue, provider: detection?.provider,
-                             isLive: detection?.isLive ?? false, expires: hasExpiry ? expiry : nil,
-                             note: savedNote, link: savedLink))
+            var key = Key(name: label, value: singleValue, provider: detection?.provider,
+                          isLive: detection?.isLive ?? false, expires: hasExpiry ? expiry : nil,
+                          note: savedNote, link: savedLink)
+            key.service = service
+            model.addKey(key)
         case .codes:
-            model.addCodeSet(CodeSet(account: label, username: from.isEmpty ? nil : from, codes: codes,
-                                     note: savedNote, link: savedLink))
+            var set = CodeSet(account: label, username: from.isEmpty ? nil : from, codes: codes,
+                              note: savedNote, link: savedLink)
+            set.service = service
+            model.addCodeSet(set)
         case .project:
             let projectID: UUID
             switch project {

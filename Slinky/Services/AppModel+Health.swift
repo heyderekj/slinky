@@ -12,6 +12,7 @@ extension AppModel {
         checkingLeaks = false
         guard isUnlocked else { return }   // Locked while looking: forget it.
         leaks = found
+        leaksChecked = .now
         Preferences.shared.lastLeakCheck = .now
         let fresh = found.filter { !before.contains($0.id) }
         for f in fresh { record(ActivityEntry(action: .leakFound, names: f.names, actor: "Health", detail: f.title)) }

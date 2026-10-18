@@ -54,6 +54,9 @@ public struct Variable: Codable, Identifiable, Hashable, Sendable {
     /// A web address that goes with it, like the dashboard where the key was made. Optional (added in 1.1).
     public var link: String?
     public var icon: IconChoice?
+    /// Where it lives: the catalog id of the service the person manages it at (say "cloudflare"). Chosen by the
+    /// person, so it beats any guess. nil means Slinky works it out from the name and link.
+    public var service: String?
     public var created: Date
     public var updated: Date
 
@@ -114,6 +117,9 @@ public struct Key: Codable, Identifiable, Hashable, Sendable {
     public var note: String?
     public var link: String?
     public var icon: IconChoice?
+    /// Where it lives: the catalog id of the service the person manages it at (say "cloudflare"). Chosen by the
+    /// person, so it beats any guess. nil means Slinky works it out from the name and link.
+    public var service: String?
     public var created: Date
     public var updated: Date
 
@@ -145,6 +151,9 @@ public struct CodeSet: Codable, Identifiable, Hashable, Sendable {
     public var note: String?
     public var link: String?
     public var icon: IconChoice?
+    /// Where it lives: the catalog id of the service the person manages it at (say "cloudflare"). Chosen by the
+    /// person, so it beats any guess. nil means Slinky works it out from the name and link.
+    public var service: String?
     public var created: Date
 
     public init(account: String, username: String? = nil, codes: [String], regenerated: Date? = .now,
@@ -188,6 +197,9 @@ public struct KeptItem: Codable, Identifiable, Hashable, Sendable {
     public var note: String?
     public var link: String?
     public var icon: IconChoice?
+    /// Where it lives: the catalog id of the service the person manages it at (say "cloudflare"). Chosen by the
+    /// person, so it beats any guess. nil means Slinky works it out from the name and link.
+    public var service: String?
     public var printedCopy: Bool
     public var created: Date
 

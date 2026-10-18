@@ -1,45 +1,86 @@
 ---
-// The All Items view: key cards, a recovery code set and a recovery key. Values are fake.
+// All Items as the app has it now: a compact list with group titles, and the floating glass details panel on
+// the right for the selected row. Click a row to see its details. Values are fake.
 import Icon from './Icon.astro';
 import Monogram from './Monogram.astro';
-const codes = ['a7k2m-9xq4p', 'r3t8w-2bn6c', 'h5v1z-8dj3e', 'q9m4k-6tf2s', 'w2p7x-4gh8n', 'k6c3r-1zv9m', 'e8n5t-7qw2b', 'j4s9d-3xk6v'];
+
+type Row = {
+  id: string; group: string; name: string; mono?: boolean; by: string; kind: string; service: string;
+  chip?: { text: string; style: 'live' | 'warn' | 'plain' }; hidden?: string; shown?: string;
+  rows: [string, string][]; make?: string; codes?: string[]; left?: number;
+};
+const items: Row[] = [
+  { id: 'cf', group: 'Keys & Tokens', name: 'CLOUDFLARE_API_TOKEN', mono: true, by: 'Cloudflare', kind: 'Key or token', service: 'Cloudflare',
+    hidden: '••••••••••••••Q7vX', shown: 'EXAMPLE00000000000000Q7vX',
+    rows: [['Expires', 'Never'], ['AI agents', 'Can use'], ['Last used', 'slinky run · 2 hours ago']], make: 'Key' },
+  { id: 'stripe', group: 'Keys & Tokens', name: 'STRIPE_SECRET_KEY', mono: true, by: 'Stripe', kind: 'Key or token', service: 'Stripe',
+    chip: { text: 'Live', style: 'live' }, hidden: 'sk_live_••••••••4f2a', shown: 'sk_live_EXAMPLE0000004f2a',
+    rows: [['Expires', 'Never'], ['AI agents', 'Never leaves'], ['Last used', 'Copied · yesterday']], make: 'Key' },
+  { id: 'gh', group: 'Keys & Tokens', name: 'GITHUB_TOKEN', mono: true, by: 'GitHub', kind: 'Key or token', service: 'GitHub',
+    chip: { text: 'Expires in 5 days', style: 'warn' }, hidden: 'ghp_••••••••8c1d', shown: 'ghp_EXAMPLE00000000008c1d',
+    rows: [['Expires', 'In 5 days'], ['AI agents', 'Can use'], ['Last used', 'Claude Code · Monday']], make: 'Key' },
+  { id: 'openai', group: 'Keys & Tokens', name: 'OPENAI_API_KEY', mono: true, by: 'OpenAI', kind: 'Key or token', service: 'OpenAI',
+    hidden: 'sk-proj-••••••••Tx4c', shown: 'sk-proj-EXAMPLE00000Tx4c',
+    rows: [['Expires', 'Never'], ['AI agents', 'Can use'], ['Projects', 'Slinky, harbor-app']], make: 'Key' },
+  { id: 'codes', group: 'Recovery', name: 'GitHub', by: 'GitHub', kind: 'Recovery codes', service: 'GitHub',
+    chip: { text: '8 left', style: 'plain' }, rows: [['Username', '@harbor']], make: 'Codes', left: 8,
+    codes: ['a7k2m-9xq4p', 'r3t8w-2bn6c', 'h5v1z-8dj3e', 'q9m4k-6tf2s', 'w2p7x-4gh8n', 'k6c3r-1zv9m'] },
+  { id: 'apple', group: 'Recovery', name: 'Apple Account recovery key', by: 'Apple Account', kind: 'Recovery key', service: 'Apple',
+    chip: { text: 'Printed', style: 'plain' }, hidden: 'R7KQ-••••-••••-••••', shown: 'R7KQ-EXAM-PLE0-0000',
+    rows: [['Copy outside Slinky', 'Printed'], ['Added', 'March 2026']] },
+  { id: 'p8', group: 'Files', name: 'App Store Connect API key', by: 'App Store Connect', kind: 'App Store Connect API key', service: 'Apple',
+    rows: [['File', 'AuthKey_EXAMPLE12.p8'], ['Issuer ID', '69a6de70-…-EXAMPLE'], ['Key ID', 'EXAMPLE12']] },
+];
+const groups = [...new Set(items.map((i) => i.group))];
+const first = items[0].id;
 ---
-<div class="lib-section">Keys &amp; Tokens</div>
-<div class="cards">
-  <div class="card">
-    <div class="card__head">
-      <Monogram text="Stripe" />
-      <div><div class="card__kind">KEY OR TOKEN</div><div class="card__name mono">STRIPE_SECRET_KEY</div><div class="card__sub">Stripe</div></div>
-      <span class="chip chip--live" style="margin-left:auto">Live</span>
-    </div>
-    <div class="card__value"><span class="hidden">sk_live_••••••••4f2a</span><span class="shown">sk_live_EXAMPLE0000004f2a</span><small>Hover to show</small></div>
-    <div class="card__foot"><span class="chip chip--plain">Never leaves</span><button class="copy" data-copy="STRIPE_SECRET_KEY"><Icon name="copy" /> Copy</button></div>
+<div class="lib" data-lib>
+  <div class="lib__list" role="listbox" aria-label="All Items">
+    {groups.map((g) => (
+      <>
+        <div class="lib__group">{g}</div>
+        {items.filter((i) => i.group === g).map((i) => (
+          <div class={`lib__row ${i.id === first ? 'is-on' : ''}`} role="option" aria-selected={i.id === first ? 'true' : 'false'} tabindex="0" data-lib-row={i.id}>
+            <Monogram text={i.by} size={28} />
+            <div class="lib__text">
+              <div class={`lib__name ${i.mono ? 'mono' : ''}`}>{i.name}</div>
+              <div class="lib__sub">{i.kind === i.service ? i.kind : `${i.kind} · ${i.service}`}</div>
+            </div>
+            {i.chip && <span class={`chip chip--${i.chip.style}`}>{i.chip.text}</span>}
+            {i.hidden && <button class="lib__copy" type="button" data-copy={i.name} aria-label={`Copy ${i.name}`}><Icon name="copy" /></button>}
+          </div>
+        ))}
+      </>
+    ))}
   </div>
-  <div class="card">
-    <div class="card__head">
-      <Monogram text="GitHub" />
-      <div><div class="card__kind">KEY OR TOKEN</div><div class="card__name mono">GITHUB_TOKEN</div><div class="card__sub">GitHub</div></div>
-    </div>
-    <div class="card__value"><span class="hidden">ghp_••••••••8c1d</span><span class="shown">ghp_EXAMPLE00000000008c1d</span><small>Hover to show</small></div>
-    <div class="card__foot"><span class="chip chip--warn">Expires in 5 days</span><button class="copy" data-copy="GITHUB_TOKEN"><Icon name="copy" /> Copy</button></div>
-  </div>
-</div>
-<div class="lib-section" style="margin-top:16px">Recovery Codes</div>
-<div class="cards">
-  <div class="card" data-codeset>
-    <div class="card__head">
-      <Monogram text="GitHub" />
-      <div><div class="card__kind">RECOVERY CODES</div><div class="card__name">GitHub</div><div class="card__sub">@harbor</div></div>
-      <div class="left"><b data-left>8</b><small>left</small></div>
-    </div>
-    <div class="codes">{codes.slice(0, 6).map((c) => <button class="code" data-code>{c}</button>)}</div>
-  </div>
-  <div class="card">
-    <div class="card__head">
-      <Monogram text="Apple Account" />
-      <div><div class="card__kind">RECOVERY KEY</div><div class="card__name">Apple Account recovery key</div><div class="card__sub">From Apple</div></div>
-    </div>
-    <div class="card__value"><span class="hidden">R7KQ-••••-••••-••••</span><span class="shown">R7KQ-EXAM-PLE0-0000</span><small>Hover to show</small></div>
-    <div class="card__foot"><span class="chip chip--plain">Printed</span><button class="copy" data-copy="your recovery key"><Icon name="copy" /> Copy</button></div>
-  </div>
+
+  <aside class="pane" aria-label="Details">
+    {items.map((i) => (
+      <div class="pane__body" data-lib-pane={i.id} hidden={i.id !== first} data-codeset={i.codes ? '' : undefined}>
+        <div class="pane__head">
+          <Monogram text={i.by} size={40} />
+          <div>
+            <div class={`pane__name ${i.mono ? 'mono' : ''}`}>{i.name}</div>
+            <div class="pane__kind">{i.kind} <span>·</span> <b>{i.service} <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 3.6 5 6.6 8 3.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></b></div>
+          </div>
+        </div>
+        {i.hidden && (
+          <div class="pane__value">
+            <div class="card__value"><span class="hidden">{i.hidden}</span><span class="shown">{i.shown}</span><small>Hover to show</small></div>
+            <button class="copy" type="button" data-copy={i.name}><Icon name="copy" /> Copy</button>
+          </div>
+        )}
+        {i.codes && (
+          <div class="pane__codes">
+            <div class="pane__left"><b data-left>{i.left}</b> of 10 left</div>
+            <div class="codes">{i.codes.map((c) => <button class="code" type="button" data-code>{c}</button>)}</div>
+          </div>
+        )}
+        <div class="pane__rows">
+          {i.rows.map(([k, v]) => <div class="pane__row"><span>{k}</span><b>{v}</b></div>)}
+        </div>
+        {i.make && <div class="pane__make">Make New {i.make} on {i.service}…</div>}
+      </div>
+    ))}
+  </aside>
 </div>

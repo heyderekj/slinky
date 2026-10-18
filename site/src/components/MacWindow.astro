@@ -5,9 +5,9 @@ import Monogram from './Monogram.astro';
 interface Props { title: string; subtitle?: string; selected?: string; class?: string; sidebar?: boolean; id?: string }
 const { title, subtitle, selected = 'all', class: cls = '', sidebar = true, id } = Astro.props;
 const rows = [
-  { id: 'all', icon: 'grid', label: 'All Items', count: 6 },
-  { id: 'keys', icon: 'key', label: 'Keys & Tokens', count: 3 },
-  { id: 'recovery', icon: 'life', label: 'Recovery', count: 3 },
+  { id: 'all', icon: 'grid', label: 'All Items', count: 7 },
+  { id: 'keys', icon: 'key', label: 'Keys & Tokens', count: 4 },
+  { id: 'recovery', icon: 'life', label: 'Recovery', count: 2 },
 ];
 const projects = [
   { name: 'Slinky', count: '12' },
@@ -24,7 +24,8 @@ const projects = [
       {rows.map((r) => (
         <div class={`mac__row ${selected === r.id ? 'is-on' : ''}`}><Icon name={r.icon} />{r.label}<span class="count">{r.count}</span></div>
       ))}
-      <div class="mac__row"><Icon name="attention" class="warn-icon" />Needs Attention<span class="count">2</span></div>
+      <div class={`mac__row ${selected === 'health' ? 'is-on' : ''}`}><Icon name="attention" class="warn-icon" />Health<span class="count">1</span></div>
+      <div class="mac__row"><Icon name="update" />Activity</div>
       <div class="mac__heading">Projects</div>
       {projects.map((p) => (
         <div class={`mac__row ${selected === p.name ? 'is-on' : ''}`}><Monogram text={p.name} size={18} />{p.name}{p.warn ? <span class="warn">{p.warn}</span> : <span class="count">{p.count}</span>}</div>

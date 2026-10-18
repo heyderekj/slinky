@@ -335,12 +335,6 @@ private struct DetailScaffold<Content: View>: View {
     var ref: LibraryRef
     @ViewBuilder var content: Content
 
-    /// What it is, plus the service when Slinky can tell: "Key or token · GitHub", same as Edit.
-    private var kindLine: String {
-        guard let service = IconResolver.shared.service(for: icon)?.name, !kind.contains(service) else { return kind }
-        return "\(kind) · \(service)"
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 14) {
@@ -352,7 +346,13 @@ private struct DetailScaffold<Content: View>: View {
                         .font(.system(size: 17, weight: .semibold, design: mono ? .monospaced : .default))
                         .lineLimit(2)
                         .textSelection(.enabled)
-                    Text(kindLine).font(.callout).foregroundStyle(.secondary).lineLimit(1)
+                    HStack(spacing: 4) {
+                        Text(kind).foregroundStyle(.secondary).lineLimit(1)
+                        Text("·").foregroundStyle(.tertiary)
+                        ServiceChip(selection: Binding(get: { icon.service }, set: { model.setService($0, for: ref) }),
+                                    subject: icon, automatic: IconResolver.shared.matched(icon), inline: true)
+                    }
+                    .font(.callout)
                 }
                 Spacer(minLength: 0)
             }

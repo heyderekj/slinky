@@ -33,6 +33,7 @@ private struct EditPanel: View {
     @State private var from = ""
     @State private var note = ""
     @State private var link = ""
+    @State private var service: String?
     @State private var issuerID = ""
     @State private var keyID = ""
     @State private var newValue = ""
@@ -151,6 +152,7 @@ private struct EditPanel: View {
                     .labelsHidden()
                     .pickerStyle(.segmented)
                 }
+                serviceRow
                 FieldRow("Note") { plainField($note, prompt: "Optional, like which account it belongs to") }
                 linkRow
             }
@@ -169,6 +171,7 @@ private struct EditPanel: View {
                 }
                 FieldRow("Website or app") { plainField($from, prompt: "Optional") }
                 valueRow(current: item.value)
+                serviceRow
                 FieldRow("Note") { plainField($note, prompt: "Optional, like where the printed copy is") }
                 linkRow
             }
@@ -176,6 +179,7 @@ private struct EditPanel: View {
             if let set = model.document.codeSets.first(where: { $0.id == id }) {
                 FieldRow("Account") { plainField($name, prompt: "GitHub") }
                 FieldRow("Username") { plainField($from, prompt: "Optional") }
+                serviceRow
                 FieldRow("Note") { plainField($note, prompt: "Optional, like which account they belong to") }
                 linkRow(last: false)
                 FieldRow("Codes", last: !replacing) {
@@ -210,6 +214,7 @@ private struct EditPanel: View {
                     FieldRow("Issuer ID") { plainField($issuerID, prompt: "From App Store Connect › Users and Access › Integrations", mono: true) }
                     FieldRow("Key ID") { plainField($keyID, prompt: "ABCD1234EF", mono: true) }
                 }
+                serviceRow
                 FieldRow("Note") { plainField($note, prompt: "Optional, like which app or team it's for") }
                 linkRow
             }
@@ -232,6 +237,16 @@ private struct EditPanel: View {
                     }
                     Button("Link a Folder…", action: linkFolder).buttonStyle(.borderless)
                 }
+            }
+        }
+    }
+
+    /// Where it lives: the carousel, with search. Picking one with no link yet fills in its key page.
+    private var serviceRow: some View {
+        FieldRow("Where it lives") {
+            ServicePicker(selection: $service, subject: iconSubject) { id in
+                guard link.trimmingCharacters(in: .whitespaces).isEmpty, let s = id.flatMap(ServiceCatalog.service(id:)) else { return }
+                link = s.tokenURL ?? s.domains.first.map { "https://\($0)" } ?? ""
             }
         }
     }
@@ -369,12 +384,13 @@ private struct EditPanel: View {
         var policy: AgentPolicy
         var keptKind: KeptKind
         var folders: [String]
+        var service: String?
     }
 
     private var snapshot: Snapshot {
         Snapshot(name: name, from: from, note: note, link: link, newValue: newValue, newCodes: newCodes, issuerID: issuerID, keyID: keyID,
                  replacing: replacing, hasExpiry: hasExpiry, resetUsed: resetUsed, expiry: expiry,
-                 policy: policy, keptKind: keptKind, folders: folders)
+                 policy: policy, keptKind: keptKind, folders: folders, service: service)
     }
 
     private func requestClose() {
@@ -388,7 +404,7 @@ private struct EditPanel: View {
     /// The header icon follows the edits as they're typed, keeping the person's own icon choice.
     private var iconSubject: IconSubject {
         let doc = model.document
-        var subject = IconSubject(name: name, from: from.isEmpty ? nil : from, link: link.isEmpty ? nil : link)
+        var subject = IconSubject(name: name, from: from.isEmpty ? nil : from, link: link.isEmpty ? nil : link, service: service)
         switch target {
         case let .key(id):
             subject.provider = doc.keys.first { $0.id == id }?.provider
@@ -421,6 +437,7 @@ private struct EditPanel: View {
             name = key.name
             note = key.note ?? ""
             link = key.link ?? ""
+            service = key.service
             hasExpiry = key.expires != nil
             expiry = key.expires ?? Calendar.current.date(byAdding: .day, value: 90, to: .now) ?? .now
             policy = key.agentPolicy
@@ -430,6 +447,7 @@ private struct EditPanel: View {
             from = item.from ?? ""
             note = item.note ?? ""
             link = item.link ?? ""
+            service = item.service
             keptKind = item.kind == .setupKey ? .setupKey : .recoveryKey
         case let .codes(id):
             guard let set = model.document.codeSets.first(where: { $0.id == id }) else { return }
@@ -437,11 +455,13 @@ private struct EditPanel: View {
             from = set.username ?? ""
             note = set.note ?? ""
             link = set.link ?? ""
+            service = set.service
         case let .file(id):
             guard let file = model.document.secretFiles.first(where: { $0.id == id }) else { return }
             name = file.name
             note = file.note ?? ""
             link = file.link ?? ""
+            service = file.service
             issuerID = file.fields["Issuer ID"] ?? ""
             keyID = file.fields["Key ID"] ?? ""
         case let .project(id):
@@ -463,6 +483,7 @@ private struct EditPanel: View {
             key.name = trimmedName
             key.note = note.isEmpty ? nil : note
             key.link = savedLink
+            key.service = service
             key.expires = hasExpiry ? expiry : nil
             key.agentPolicy = policy
             if replacing, !value.isEmpty {
@@ -479,6 +500,7 @@ private struct EditPanel: View {
             item.from = from.isEmpty ? nil : from
             item.note = note.isEmpty ? nil : note
             item.link = savedLink
+            item.service = service
             item.kind = keptKind
             if replacing, !value.isEmpty {
                 item.value = value
@@ -491,6 +513,7 @@ private struct EditPanel: View {
             set.username = from.isEmpty ? nil : from
             set.note = note.isEmpty ? nil : note
             set.link = savedLink
+            set.service = service
             if replacing, parsedCodes.count >= 2 {
                 set.codes = parsedCodes
                 set.used = []
@@ -502,6 +525,7 @@ private struct EditPanel: View {
             file.name = trimmedName
             file.note = note.isEmpty ? nil : note
             file.link = savedLink
+            file.service = service
             let issuer = issuerID.trimmingCharacters(in: .whitespaces), kid = keyID.trimmingCharacters(in: .whitespaces)
             if file.kind == .appStoreConnectKey {
                 file.fields["Issuer ID"] = issuer.isEmpty ? nil : issuer

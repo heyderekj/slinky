@@ -40,6 +40,28 @@ function copyButtons() {
   }
 }
 
+/** All Items: a click (or Return) on a row shows its details in the panel, like the app. */
+function libraryRows() {
+  for (const lib of $$('[data-lib]')) {
+    const rows = $$<HTMLElement>('[data-lib-row]', lib);
+    const select = (row: HTMLElement) => {
+      for (const r of rows) {
+        r.classList.toggle('is-on', r === row);
+        r.setAttribute('aria-selected', r === row ? 'true' : 'false');
+      }
+      for (const p of $$<HTMLElement>('[data-lib-pane]', lib)) p.hidden = p.dataset.libPane !== row.dataset.libRow;
+    };
+    for (const row of rows) {
+      row.addEventListener('click', () => select(row));
+      row.addEventListener('keydown', (e) => {
+        const i = rows.indexOf(row);
+        if (e.key === 'ArrowDown' && rows[i + 1]) { e.preventDefault(); rows[i + 1].focus(); select(rows[i + 1]); }
+        if (e.key === 'ArrowUp' && rows[i - 1]) { e.preventDefault(); rows[i - 1].focus(); select(rows[i - 1]); }
+      });
+    }
+  }
+}
+
 /** Recovery codes cross themselves off. */
 function codeSets() {
   for (const set of $$('[data-codeset]')) {
@@ -512,6 +534,7 @@ export function startDemos() {
   reveals();
   guided();
   copyButtons();
+  libraryRows();
   codeSets();
   addItem();
   quickAccess();

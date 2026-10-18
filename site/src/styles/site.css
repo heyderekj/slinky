@@ -240,6 +240,24 @@ body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
   .g-row .desktop__stage { min-height: 400px; }
 }
 /* Small scene parts: Needs Attention rows, a printed Recovery Key, the Touch ID prompt. */
+/* Health, small: the ring of checks, a tile per check, then what was found. */
+.health { display: grid; gap: 14px; }
+.health__sum { display: flex; align-items: center; gap: 16px; }
+.health__ring { width: 72px; height: 72px; flex: none; }
+.health__ring path { fill: none; stroke: color-mix(in oklch, var(--green) 85%, transparent); stroke-width: 9; stroke-linecap: round; }
+.health__ring path.is-found { stroke: var(--orange); }
+.health__ring text { font: 600 30px ui-rounded, var(--app-font); fill: var(--orange); }
+.health__sum b { display: block; font-size: 17px; font-weight: 650; }
+.health__sum small { display: block; font-size: 12px; color: var(--app-secondary); margin-top: 2px; }
+.health__tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.health__tile { display: grid; gap: 3px; padding: 9px 10px; border-radius: 11px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); font-size: 11.5px; }
+.health__tile .icon { width: 14px; height: 14px; color: var(--brand); }
+.health__tile b { font-weight: 600; line-height: 1.2; }
+.health__tile .ok { color: var(--green); font-weight: 600; font-size: 10.5px; }
+.health__tile .found { color: var(--orange); font-weight: 600; font-size: 10.5px; }
+.health__tile.is-found { box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--orange) 45%, transparent); }
+.health__tile.is-found .icon { color: var(--orange); }
+@media (max-width: 480px) { .health__tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .att { display: grid; gap: 8px; margin-top: 4px; }
 .att__row { display: grid; grid-template-columns: 28px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); }
 .att__row .icon { width: 16px; height: 16px; color: var(--orange); justify-self: center; }
@@ -340,6 +358,50 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .lock-switch span { position: relative; width: 28px; height: 28px; display: grid; place-items: center; color: var(--app-secondary); transition: color var(--t-ui); }
 .lock-switch span svg { width: 13px; height: 13px; }
 .lock-switch span.is-on { color: #fff; }
+
+/* All Items: the compact list, and the floating details panel for the selected row (like the app). */
+.lib { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; padding: 4px 2px 8px 0; }
+.lib__list { min-width: 0; overflow: hidden; padding-right: 2px; }
+.lib__group { font-size: 12px; font-weight: 600; color: var(--app-secondary); padding: 12px 10px 4px; }
+.lib__group:first-child { padding-top: 2px; }
+.lib__row { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border-radius: 10px; cursor: default; outline: none; }
+.lib__row:hover { background: color-mix(in oklch, var(--app-text) 4%, transparent); }
+.lib__row.is-on { background: color-mix(in oklch, var(--brand) 16%, transparent); }
+.lib__row:focus-visible { box-shadow: 0 0 0 2px var(--brand); }
+.lib__text { min-width: 0; flex: 1; }
+.lib__name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib__name.mono { font-family: var(--mono); font-size: 12px; }
+.lib__sub { font-size: 11.5px; color: var(--app-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib__copy { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: var(--app-secondary); background: var(--app-fill); opacity: 0; transition: opacity var(--t-ui); flex: none; }
+.lib__copy svg { width: 12px; height: 12px; }
+.lib__row:hover .lib__copy, .lib__row.is-on .lib__copy { opacity: 1; }
+.lib__copy.is-done svg { color: var(--green); }
+/* The panel floats over the content, its own frosted layer (backdrop filters can't see through the window's glass). */
+.pane { border-radius: 16px; background: rgb(255 255 255 / 0.72); box-shadow: 0 0 0 0.5px var(--app-sep), 0 18px 40px -20px rgb(20 40 60 / 0.35); overflow: hidden; }
+@media (prefers-color-scheme: dark) { .pane { background: rgb(255 255 255 / 0.07); } }
+.pane__body { display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; }
+.pane__body[hidden] { display: none; }
+.pane__head { display: flex; gap: 12px; align-items: center; }
+.pane__name { font-size: 15px; font-weight: 650; line-height: 1.2; overflow-wrap: anywhere; }
+.pane__name.mono { font-family: var(--mono); font-size: 13px; }
+.pane__kind { font-size: 12px; color: var(--app-secondary); margin-top: 2px; }
+.pane__kind span { color: var(--app-tertiary); }
+.pane__kind b { font-weight: 500; display: inline-flex; align-items: center; gap: 3px; }
+.pane__kind svg { width: 9px; height: 9px; }
+.pane__value { display: grid; gap: 8px; }
+.pane__value .copy { margin-left: 0; justify-self: start; }
+.pane__value .card__value { background: var(--app-paper); box-shadow: inset 0 0 0 0.5px var(--app-sep); }
+.pane__codes { display: grid; gap: 8px; }
+.pane__left { font-size: 12px; color: var(--app-secondary); }
+.pane__left b { color: var(--app-text); font-variant-numeric: tabular-nums; }
+.pane__rows { border-radius: 10px; background: var(--app-paper); box-shadow: inset 0 0 0 0.5px var(--app-sep); }
+.pane__row { display: flex; justify-content: space-between; gap: 10px; padding: 8px 11px; font-size: 12px; }
+.pane__row + .pane__row { border-top: 0.5px solid var(--app-sep); }
+.pane__row span { color: var(--app-secondary); }
+.pane__row b { font-weight: 500; text-align: right; }
+.pane__make { font-size: 12px; font-weight: 500; color: var(--brand); padding: 0 2px; }
+@media (max-width: 760px) { .lib { grid-template-columns: 1fr; height: auto; } .pane { display: none; } }
+@media (prefers-color-scheme: dark) { .pane__make { color: color-mix(in oklch, var(--brand) 55%, white); } }
 
 /* Cards in the library */
 .cards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }

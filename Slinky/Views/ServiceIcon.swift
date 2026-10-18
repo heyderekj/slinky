@@ -37,10 +37,7 @@ struct ServiceIcon: View {
             }
         }
         .accessibilityHidden(true)
-        .task(id: subject) {
-            resolver.guessIfNeeded(subject)
-            resolver.fetchIfAllowed(subject)
-        }
+        .task(id: subject) { resolver.fetchIfAllowed(subject) }
     }
 }
 
