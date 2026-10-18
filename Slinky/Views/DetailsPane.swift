@@ -46,21 +46,23 @@ private struct DetailsPaneLayout<Pane: View>: ViewModifier {
             .shrinkable()
             .safeAreaPadding(.trailing, isPresented ? width + paneInset : 0)
             .overlay(alignment: .trailing) {
-                if isPresented {
-                    pane
-                        .frame(width: width)
-                        .frame(maxHeight: .infinity)
-                        .padding(.bottom, paneInset)
-                        // The panel starts below the toolbar, so the toolbar's buttons sit above it with room
-                        // to breathe instead of on its top edge.
-                        .padding(.top, paneInset)
-                        .background {
-                            PaneGlass()
-                                .padding(.vertical, paneInset)
-                        }
-                        .padding(.trailing, paneInset)
-                        .transition(.move(edge: .trailing))
-                }
+                // Always there, slid off the edge when closed. Adding and removing it made the glass play its own
+                // appear/disappear effect (a lighter, bluish flash as it closed); sliding glass that stays put doesn't.
+                pane
+                    .frame(width: width)
+                    .frame(maxHeight: .infinity)
+                    .padding(.bottom, paneInset)
+                    // The panel starts below the toolbar, so the toolbar's buttons sit above it with room
+                    // to breathe instead of on its top edge.
+                    .padding(.top, paneInset)
+                    .background {
+                        PaneGlass()
+                            .padding(.vertical, paneInset)
+                    }
+                    .padding(.trailing, paneInset)
+                    .offset(x: isPresented ? 0 : width + paneInset * 3)
+                    .allowsHitTesting(isPresented)
+                    .accessibilityHidden(!isPresented)
             }
             .animation(.smooth(duration: 0.32), value: isPresented)
     }
