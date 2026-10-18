@@ -624,9 +624,18 @@ button.replay:active { transform: scale(0.97); }
 .b-tile h3 { font-size: 17px; font-weight: 600; letter-spacing: -0.012em; line-height: 1.3; }
 .b-tile p { font-size: 15px; line-height: 1.5; color: var(--ink-soft); }
 .b-tile--dark p { color: rgb(242 244 247 / 0.7); }
+/* Tablet widths keep two columns (like Binky's grid); wide tiles stack their art under the words. */
 @media (max-width: 900px) {
+  .b-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .b-tile--wide, .b-tile--row { grid-column: 1 / -1; grid-template-columns: 1fr; }
+}
+@media (min-width: 700px) and (max-width: 900px) {
+  .b-tile--wide:not(.b-tile--row) { grid-template-columns: 1fr 1fr; }
+  .b-tile--row { grid-template-columns: auto 1fr auto; }
+}
+@media (max-width: 560px) {
   .b-grid { grid-template-columns: 1fr; }
-  .b-tile--wide, .b-tile--row { grid-column: auto; grid-template-columns: 1fr; }
+  .b-tile--wide, .b-tile--row { grid-column: auto; }
 }
 /* ---------- The download strip ---------- */
 .get { padding-top: 120px; }
