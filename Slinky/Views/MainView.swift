@@ -3,9 +3,9 @@ import SwiftUI
 
 struct MainView: View {
     @Environment(AppModel.self) private var model
-    // The locked window has no sidebar. Under the unlock animation the window starts without it too, so the
-    // toolbar sits where the lock screen's did, and the sidebar slides in once the keyhole has opened.
-    @State private var columns: NavigationSplitViewVisibility = AppModel.shared.lockedChrome ? .detailOnly : .all
+    // Never animated around locking: the split view's column animation stuttered over the keyhole. Unlocking
+    // reveals the window with its sidebar already in place; locking leaves it until the curtain has covered it.
+    @State private var columns: NavigationSplitViewVisibility = .all
 
     var body: some View {
         @Bindable var model = model
@@ -51,10 +51,6 @@ struct MainView: View {
                 addHere(prefill: text)
                 return true
             }
-        }
-        // Locking slides the sidebar away as the keyhole starts closing; unlocking slides it back in once it's open.
-        .onChange(of: model.lockedChrome) { _, locked in
-            withAnimation(.spring(response: 0.42, dampingFraction: 0.88)) { columns = locked ? .detailOnly : .all }
         }
         .background(PasteToAdd { text in
             guard canAdd else { return false }

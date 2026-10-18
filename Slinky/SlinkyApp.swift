@@ -13,6 +13,7 @@ struct SlinkyApp: App {
                 .frame(minWidth: 880, minHeight: 560)
                 .task {
                     model.start()
+                    IconResolver.shared.warmUp()
                     QuickAccess.shared.configure(model)
                     Updater.shared.checkOnLaunch()
                 }

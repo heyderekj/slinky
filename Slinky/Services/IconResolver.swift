@@ -124,6 +124,29 @@ final class IconResolver {
         return s.hasLogo ? .logo(s) : nil
     }
 
+    /// Looks up the Mac apps of every service Slinky knows, once, off the main thread, so icons are ready before
+    /// the first unlock and loading them never stalls the unlock animation. Uses only the built-in catalog.
+    func warmUp() {
+        let ids = ServiceCatalog.all.flatMap(\.bundleIDs)
+        Task.detached(priority: .utility) {
+            var found: [String: NSImage] = [:]
+            var missing: Set<String> = []
+            for id in ids {
+                if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: id) {
+                    let image = NSWorkspace.shared.icon(forFile: url.path)
+                    image.size = NSSize(width: 64, height: 64)
+                    found[id] = image
+                } else {
+                    missing.insert(id)
+                }
+            }
+            await MainActor.run { [found, missing] in
+                IconResolver.shared.appIcons.merge(found) { current, _ in current }
+                IconResolver.shared.missingApps.formUnion(missing)
+            }
+        }
+    }
+
     func appIcon(_ bundleID: String) -> NSImage? {
         if let image = appIcons[bundleID] { return image }
         guard !missingApps.contains(bundleID) else { return nil }
