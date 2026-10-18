@@ -29,24 +29,29 @@ private struct DetailsPaneLayout<Pane: View>: ViewModifier {
     let pane: Pane
 
     func body(content: Content) -> some View {
-        HStack(spacing: 0) {
-            content.shrinkable()
-            if isPresented {
-                pane
-                    .frame(width: width)
-                    .frame(maxHeight: .infinity)
-                    .padding(.bottom, paneInset)
-                    // The panel itself runs up under the toolbar, like the left sidebar; what's in it starts below.
-                    .background {
-                        Color.clear
-                            .glass(in: paneShape)
-                            .padding(.vertical, paneInset)
-                            .ignoresSafeArea(edges: .top)
-                    }
-                    .padding(.trailing, paneInset)
-                    .transition(.move(edge: .trailing).combined(with: .opacity))
+        // Like the left sidebar on Tahoe, the panel floats over the content rather than sitting beside it: the
+        // list's surface runs on underneath the glass (no seam at the panel's edge), and opening only slides the
+        // panel in while the list's rows make room, instead of rebuilding a row of views.
+        content
+            .shrinkable()
+            .safeAreaPadding(.trailing, isPresented ? width + paneInset : 0)
+            .overlay(alignment: .trailing) {
+                if isPresented {
+                    pane
+                        .frame(width: width)
+                        .frame(maxHeight: .infinity)
+                        .padding(.bottom, paneInset)
+                        // The panel runs up under the toolbar, like the left sidebar; what's in it starts below.
+                        .background {
+                            Color.clear
+                                .glass(in: paneShape)
+                                .padding(.vertical, paneInset)
+                                .ignoresSafeArea(edges: .top)
+                        }
+                        .padding(.trailing, paneInset)
+                        .transition(.move(edge: .trailing))
+                }
             }
-        }
-        .animation(.spring(response: 0.36, dampingFraction: 0.88), value: isPresented)
+            .animation(.smooth(duration: 0.32), value: isPresented)
     }
 }
