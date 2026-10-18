@@ -7,22 +7,30 @@ struct LibraryView: View {
     let filter: LibraryFilter
     /// The All Items heading follows the animation: what Slinky does with each example, then the tagline.
     @State private var playing: Int?
-    // Only whether the pane is open. Nothing about any item.
+    // Only whether the pane is open, and the sort. Nothing about any item.
     @AppStorage("libraryInspector") private var showInspector = true
+    @AppStorage("librarySort") private var sort: LibrarySort = .added
+    /// Not remembered: a filter left on would make items seem to vanish next time.
+    @State private var show: LibraryShow = .all
 
     var body: some View {
         @Bindable var model = model
         Group {
             if isEmpty {
                 empty
+            } else if nothingMatches {
+                noMatches
             } else {
                 list
             }
         }
         .screenTitle(filter.title, subtitle: subtitle)
+        // A filter belongs to the view it was picked in.
+        .onChange(of: filter) { show = .all }
         .toolbar {
             // Away while Slinky locks or unlocks, when the toolbar is the locked window's.
             if !isEmpty, !model.lockedChrome {
+                ToolbarItem { sortAndFilter }
                 ToolbarItem {
                     Button { showInspector.toggle() } label: { Label("Details", systemImage: "sidebar.right") }
                         .help(showInspector ? "Hide details" : "Show details")
@@ -47,9 +55,108 @@ struct LibraryView: View {
         }
     }
 
-    private var showKeys: Bool { filter != .recovery && !model.document.keys.isEmpty }
-    private var showCodes: Bool { filter != .keys && !model.document.codeSets.isEmpty }
-    private var showKept: Bool { filter != .keys && !model.document.kept.isEmpty }
+    private var showKeys: Bool { filter != .recovery && !keys.isEmpty }
+    private var showCodes: Bool { filter != .keys && !codeSets.isEmpty }
+    private var showKept: Bool { filter != .keys && !kept.isEmpty }
+
+    // MARK: Sort and filter
+
+    /// The items to list, filtered by `show` and in `sort` order.
+    private var keys: [Key] {
+        let soon = Calendar.current.date(byAdding: .day, value: 30, to: .now) ?? .now
+        let shown = model.document.keys.filter { key in
+            switch show {
+            case .all: true
+            case .live: key.isLive
+            case .expiring: key.expires.map { $0 < soon } ?? false
+            case .low: false
+            }
+        }
+        return shown.sorted { a, b in
+            switch sort {
+            case .added: return a.created > b.created
+            case .name: return a.name.localizedStandardCompare(b.name) == .orderedAscending
+            case .service: return ordered(serviceName(a.iconSubject), a.name, serviceName(b.iconSubject), b.name)
+            case .expiry:
+                switch (a.expires, b.expires) {
+                case let (x?, y?): return x < y
+                case (.some, nil): return true
+                case (nil, .some): return false
+                case (nil, nil): return a.name.localizedStandardCompare(b.name) == .orderedAscending
+                }
+            }
+        }
+    }
+
+    private var codeSets: [CodeSet] {
+        let shown = model.document.codeSets.filter { set in
+            switch show {
+            case .all: true
+            case .low: set.isLow
+            case .live, .expiring: false
+            }
+        }
+        return shown.sorted { a, b in
+            switch sort {
+            case .added: return a.created > b.created
+            case .name: return a.account.localizedStandardCompare(b.account) == .orderedAscending
+            case .service: return ordered(serviceName(a.iconSubject), a.account, serviceName(b.iconSubject), b.account)
+            // The nearest to running out first.
+            case .expiry: return a.remaining < b.remaining
+            }
+        }
+    }
+
+    private var kept: [KeptItem] {
+        guard show == .all else { return [] }
+        return model.document.kept.sorted { a, b in
+            switch sort {
+            case .added: return a.created > b.created
+            case .name, .expiry: return a.label.localizedStandardCompare(b.label) == .orderedAscending
+            case .service: return ordered(serviceName(a.iconSubject), a.label, serviceName(b.iconSubject), b.label)
+            }
+        }
+    }
+
+    private func serviceName(_ subject: IconSubject) -> String? { IconResolver.shared.service(for: subject)?.name }
+
+    /// By service (items Slinky can't place go last), then by name.
+    private func ordered(_ s1: String?, _ n1: String, _ s2: String?, _ n2: String) -> Bool {
+        switch (s1, s2) {
+        case let (x?, y?) where x != y: return x.localizedStandardCompare(y) == .orderedAscending
+        case (.some, nil): return true
+        case (nil, .some): return false
+        default: return n1.localizedStandardCompare(n2) == .orderedAscending
+        }
+    }
+
+    private var nothingMatches: Bool { !showKeys && !showCodes && !showKept }
+
+    private var sortAndFilter: some View {
+        Menu {
+            Picker("Sort By", selection: $sort) {
+                ForEach(LibrarySort.allCases, id: \.self) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.inline)
+            Picker("Show", selection: $show) {
+                ForEach(LibraryShow.allCases(for: filter), id: \.self) { Text($0.title).tag($0) }
+            }
+            .pickerStyle(.inline)
+        } label: {
+            Label("Sort and Filter", systemImage: show == .all ? "line.3.horizontal.decrease" : "line.3.horizontal.decrease.circle.fill")
+        }
+        .help(show == .all ? "Sort and filter" : "Showing \(show.title.lowercased())")
+    }
+
+    private var noMatches: some View {
+        VStack(spacing: 10) {
+            Image(systemName: "line.3.horizontal.decrease.circle").font(.system(size: 30)).foregroundStyle(.tertiary)
+            Text("Nothing here is \(show.matchPhrase)").font(.title3.weight(.semibold))
+            Button("Show Everything") { show = .all }
+                .glassButton()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
 
     /// The selection, if it's in this view (another view's pick stays put but isn't shown here).
     private var visibleSelection: LibraryRef? {
@@ -67,19 +174,19 @@ struct LibraryView: View {
             if showKeys {
                 Section {
                     if filter == .all { groupTitle("Keys & Tokens") }
-                    ForEach(model.document.keys) { KeyRow(key: $0).tag(LibraryRef.key($0.id)) }
+                    ForEach(keys) { KeyRow(key: $0).tag(LibraryRef.key($0.id)) }
                 }
             }
             if showCodes {
                 Section {
                     groupTitle("Recovery Codes")
-                    ForEach(model.document.codeSets) { CodeSetRow(set: $0).tag(LibraryRef.codes($0.id)) }
+                    ForEach(codeSets) { CodeSetRow(set: $0).tag(LibraryRef.codes($0.id)) }
                 }
             }
             if showKept {
                 Section {
                     groupTitle("Recovery Keys")
-                    ForEach(model.document.kept) { KeptRow(item: $0).tag(LibraryRef.kept($0.id)) }
+                    ForEach(kept) { KeptRow(item: $0).tag(LibraryRef.kept($0.id)) }
                 }
             }
         }
@@ -146,6 +253,9 @@ struct LibraryView: View {
     private var subtitle: String {
         let doc = model.document
         func count(_ n: Int, _ one: String, _ many: String) -> String { "\(n) \(n == 1 ? one : many)" }
+        if show != .all {
+            return "\(keys.count + codeSets.count + kept.count) \(show.title.lowercased())"
+        }
         switch filter {
         case .all:
             return count(doc.keys.count + doc.codeSets.count + doc.kept.count, "item", "items")
@@ -217,3 +327,49 @@ struct LibraryView: View {
     }
 }
 
+
+enum LibrarySort: String, CaseIterable {
+    case added, name, service, expiry
+
+    var title: String {
+        switch self {
+        case .added: "Date Added"
+        case .name: "Name"
+        case .service: "Service"
+        case .expiry: "Expiry"
+        }
+    }
+}
+
+/// Quick filters, each for something a person acts on.
+enum LibraryShow: String, CaseIterable {
+    case all, live, expiring, low
+
+    var title: String {
+        switch self {
+        case .all: "Everything"
+        case .live: "Live Keys"
+        case .expiring: "Expiring Soon"
+        case .low: "Running Low"
+        }
+    }
+
+    /// "Nothing here is …"
+    var matchPhrase: String {
+        switch self {
+        case .all: "here"
+        case .live: "a live key."
+        case .expiring: "expiring in the next 30 days."
+        case .low: "running low."
+        }
+    }
+
+    /// Only the filters that make sense in this view.
+    static func allCases(for filter: LibraryFilter) -> [LibraryShow] {
+        switch filter {
+        case .all: allCases
+        case .keys: [.all, .live, .expiring]
+        case .recovery: [.all, .low]
+        }
+    }
+}
