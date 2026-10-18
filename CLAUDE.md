@@ -14,7 +14,9 @@
 - Nothing in an MCP/CLI response may contain or be derived from a value (no hashes, lengths, prefixes beyond `Peek`).
 - Shortcuts (`Slinky/Intents/`): no intent returns a value. Items are exposed by name only, and only while unlocked. "Copy from Slinky" asks for Touch ID every time (any app can run a shortcut) and copies through `Clipboard.copy`. "Add to Slinky" opens Add Item for the person to check; it never saves on its own.
 - Copy that promises safety must stay honest and plain. Never overclaim what Slinky protects against.
-- Network: only the update check (can be turned off) and website icons (off unless turned on; `WebsiteIcons`: https only, straight to the site, no cookies, icons stored in the vault). Any new request needs Derek's OK and honest copy everywhere Slinky says what goes online.
+- Network: only the update check (can be turned off) and website icons (off unless turned on; `WebsiteIcons`: https only, straight to the site, no cookies, icons stored in the vault). Send to Host (`HostPush`) runs the host's own CLI only when the person starts it, after a preview and Touch ID; values on stdin (Netlify: a 0600 temp file deleted at once), never in argv. Any new request needs Derek's OK and honest copy everywhere Slinky says what goes online.
+- The `slinky` command is the app's own binary started with `--slinky-cli` (`Slinky/Agents/`). The app checks each socket caller's code signature against its own designated requirement and names who's asking from the process tree. Values leave only for an approved `env` request (run/export/xcconfig). Agents: `slinky run` only, refusals in `Broker.agentRefusal`, live and never-for-agents items held back, approvals never reused. MCP tools return names only.
+- Leak finder (`LeakFinder`) and Activity: names and places only. Leak results live in memory; Activity lives in the vault.
 - Icons and Apple Intelligence matching get names, "from" and link sites only, never values. Icon caches and Add Item drafts are memory only and clear on lock.
 
 ## Size and dependencies (from the family rules)

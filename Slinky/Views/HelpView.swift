@@ -29,6 +29,33 @@ struct HelpView: View {
             "Choose a different icon by clicking the icon in the details, or with Choose Icon… in an item's menu: any app on your Mac, any service Slinky knows, or initials.",
             "Load icons from websites, in Settings › General, is off until you turn it on. With it on, Slinky asks an item's website for its icon. With it off, you can still load one item's icon from its details.",
         ]),
+        Topic(symbol: "terminal", title: "The slinky command", body: [
+            "Install it in Settings › Command Line & Agents. Then slinky run -- npm run dev starts your app with the project's variables, after Touch ID, with no .env file on disk.",
+            "slinky xcconfig writes an .xcconfig for an Xcode build. slinky run --file \"App Store Connect API key\" hands a command a secret file as a private temp file, deleted when it ends.",
+            "Turn on loading in Settings and cd into a linked project: its variables load into that shell, and unload when you leave.",
+            "The command asks Slinky, and Slinky asks you. Your own approvals are remembered for an hour; an agent's never are.",
+        ]),
+        Topic(symbol: "sparkles", title: "AI agents", body: [
+            "Connect Claude Code, Cursor, Codex or Claude in Settings › Command Line & Agents. They see names, never values.",
+            "To use a secret, an agent runs its command through slinky run, and you approve it with Touch ID, seeing the command. Live keys, anything marked never for agents, shells, inline code, and tools that send things off your Mac are held back.",
+            "When an agent needs a key Slinky doesn't have, Slinky opens Add Item with the name filled in. Paste it there, not in the chat.",
+            "Activity in the sidebar shows what was copied or used, when, and by whom. Names only.",
+        ]),
+        Topic(symbol: "heart.text.square", title: "Health", body: [
+            "Slinky looks for exact copies of your saved values in linked projects and their git history, AI tools' saved conversations, and your shell history. It reads them on this Mac and reports names and places only.",
+            "A .env in a project can move into Slinky in one click: its variables are saved, a .env.example with names only is written, and the file goes to the Trash. History lines with a value can be removed.",
+            "Stop Commits with Secrets, in a project's Add menu, checks each commit for saved values before it's made.",
+            "Make New Key on GitHub… opens the page where you make keys, and Edit to paste the new one. The old one waits in Recently Deleted, and projects using it get the new one.",
+        ]),
+        Topic(symbol: "apple.logo", title: "Apple developer files", body: [
+            "Drop an App Store Connect key (.p8), a certificate or a service-account JSON on the library, or use File › Add Secret File…. It's kept in the vault, up to 256 KB.",
+            "Add the Issuer ID to an App Store Connect key, then Save a notarytool Profile: notarize with --keychain-profile and no .p8 lying in a folder.",
+            "App-specific passwords (for notarization) are recognised when you paste them.",
+        ]),
+        Topic(symbol: "icloud.and.arrow.up", title: "Sending to your host", body: [
+            "Share › Send to Host… in a project sends its variables to Vercel, Netlify, Cloudflare or Fly through their own command-line tools, signed in as you. You see the names first, and Touch ID confirms it.",
+            "Compare shows which names the host has and Slinky doesn't, and the other way round. Never values.",
+        ]),
         Topic(symbol: "square.and.arrow.down.on.square", title: "Importing", body: [
             "Bring keys over from another app with File › Import… (⇧⌘I). Slinky reads a .1pux export from 1Password, or a CSV from Apple Passwords, Bitwarden or a spreadsheet of keys.",
             "Slinky picks out API keys, tokens, backup codes and recovery keys, and skips website passwords, which belong in Apple Passwords. You choose what comes in. Things already in Slinky start unchecked.",
@@ -63,7 +90,8 @@ struct HelpView: View {
         ]),
         Topic(symbol: "internaldrive", title: "Where your things live", body: [
             "In one encrypted file on this Mac. There's no account and nothing goes to a server.",
-            "Slinky goes online for two things: a daily check with GitHub for a newer version, and, only if you turn on Load icons from websites, a request to each saved website for its icon. Both are in Settings › General.",
+            "Slinky goes online for two things: a daily check with GitHub for a newer version, and, only if you turn on Load icons from websites, a request to each saved website for its icon. Both are in Settings › General. When you choose Send to Host, that host's own tool sends the values you picked to that service.",
+            "Optional, in Settings › General: reminders as Mac notifications (names only), and an offer to save a key you copy in another app (Slinky checks its shape and keeps nothing unless you choose Save).",
             "Time Machine backs the file up like any other. It stays encrypted, and only your Touch ID or your Recovery Key opens it.",
             "File › Export Backup… saves your whole vault as one encrypted file to keep somewhere else. It opens only with the Recovery Key you have when you make it. Restore it with File › Restore from Backup…, which replaces the vault on this Mac.",
         ]),
