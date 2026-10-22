@@ -195,6 +195,7 @@ Slinky should be the pleasant, HIG-native fix: a real Mac app, plus a `slinky` C
 - **Later**
   - Tier 2 (Developer ID)
   - CloudKit sync
+  - Teams (thinking only; see `docs/teams.md`)
   - Claude Code `sandbox.credentials` mask bridge
   - Opt-in FIFO `.env` mounting
   - TOTP (maybe; Passwords already does it well)
