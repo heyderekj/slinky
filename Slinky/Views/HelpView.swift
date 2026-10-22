@@ -92,10 +92,17 @@ struct HelpView: View {
         ]),
         Topic(symbol: "internaldrive", title: "Where your things live", body: [
             "In one encrypted file on this Mac. There's no account and nothing goes to a server.",
+            "If you turn on sync (Settings › Sync), an encrypted copy also goes in a folder you choose, like one in iCloud Drive or Dropbox, and your sync service moves it between your Macs. It opens only with your Recovery Key or on a Mac you've set up, so the sync service can't read it. Slinky itself sends nothing.",
             "Slinky goes online for two things: a daily check with GitHub for a newer version, and, only if you turn on Load icons from websites, a request to each saved website for its icon. Both are in Settings › General. When you choose Send to Host, that host's own tool sends the values you picked to that service.",
             "Optional, in Settings › General: reminders as Mac notifications (names only), and an offer to save a key you copy in another app (Slinky checks its shape and keeps nothing unless you choose Save).",
             "Time Machine backs the file up like any other. It stays encrypted, and only your Touch ID or your Recovery Key opens it.",
             "File › Export Backup… saves your whole vault as one encrypted file to keep somewhere else. It opens only with the Recovery Key you have when you make it. Restore it with File › Restore from Backup…, which replaces the vault on this Mac.",
+        ]),
+        Topic(symbol: "arrow.triangle.2.circlepath", title: "Sync between your Macs", body: [
+            "Settings › Sync › Choose Folder… on the Mac that has your vault. Pick a folder your sync service keeps on every Mac, like one in iCloud Drive.",
+            "On your other Mac, choose the same folder and enter your Recovery Key once. Anything already on that Mac is added to the synced vault, and from then on the synced vault's Recovery Key opens everything.",
+            "Changes on either Mac come together item by item: the newer change to each item wins, and something deleted on one Mac stays deleted unless it was changed again later.",
+            "The copy in the folder is also a backup: Restore from Backup… opens it with your Recovery Key.",
         ]),
         Topic(symbol: "envelope", title: "Questions", body: [
             "Write to derek@testamentmade.com. Slinky is free and open source, made by Testament Made, LLC.",

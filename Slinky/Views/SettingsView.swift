@@ -6,7 +6,7 @@ import SwiftUI
 /// Small on purpose. No secret, name or value is ever stored here.
 struct SettingsView: View {
     enum Pane: String, CaseIterable, Identifiable {
-        case general, security, recovery, agents, about
+        case general, security, recovery, sync, agents, about
         var id: String { rawValue }
 
         var title: String {
@@ -14,6 +14,7 @@ struct SettingsView: View {
             case .general: "General"
             case .security: "Security"
             case .recovery: "Recovery Key"
+            case .sync: "Sync"
             case .agents: "Command Line & Agents"
             case .about: "About"
             }
@@ -24,6 +25,7 @@ struct SettingsView: View {
             case .general: "gearshape"
             case .security: "lock"
             case .recovery: "lifepreserver"
+            case .sync: "arrow.triangle.2.circlepath"
             case .agents: "terminal"
             case .about: "info.circle"
             }
@@ -40,7 +42,7 @@ struct SettingsView: View {
         NavigationSplitView {
             List(selection: Binding(get: { pane }, set: { select($0) })) {
                 Section("Settings") {
-                    ForEach([Pane.general, .security, .recovery, .agents]) { row($0) }
+                    ForEach([Pane.general, .security, .recovery, .sync, .agents]) { row($0) }
                 }
                 Section("Slinky") {
                     row(.about)
@@ -58,6 +60,7 @@ struct SettingsView: View {
                     case .security: SecurityPane()
                     case .recovery: RecoveryKeyPane()
                     case .agents: AgentsPane()
+                    case .sync: SyncPane()
                     case .about: AboutPane()
                     }
                 }
@@ -288,6 +291,112 @@ private struct RecoveryKeyPane: View {
             if let newKey {
                 RecoveryKeySheet(key: newKey, isReplacement: true) { self.newKey = nil }
             }
+        }
+    }
+}
+
+/// Settings › Sync: the vault, the same on each of your Macs, through a folder you choose. Honest about what
+/// goes where: an encrypted copy in that folder, moved by your sync service; nothing sent by Slinky.
+private struct SyncPane: View {
+    @Environment(AppModel.self) private var model
+    @State private var recoveryText = ""
+    @State private var problem: String?
+    @State private var working = false
+    private var sync: VaultSync { .shared }
+
+    var body: some View {
+        Form {
+            Section {
+                if let folder = sync.folder {
+                    LabeledContent("Folder") {
+                        HStack(spacing: 8) {
+                            Text((folder.path as NSString).abbreviatingWithTildeInPath)
+                                .font(.callout.monospaced()).foregroundStyle(.secondary)
+                                .lineLimit(1).truncationMode(.head)
+                            Button("Show in Finder") {
+                                NSWorkspace.shared.activateFileViewerSelecting([sync.copyURL ?? folder])
+                            }
+                        }
+                    }
+                    LabeledContent("Status") {
+                        if let p = sync.problem {
+                            Text(p).foregroundStyle(Color.attention).fixedSize(horizontal: false, vertical: true)
+                        } else if let last = sync.lastSynced {
+                            Text("Synced \(last.formatted(.relative(presentation: .named)))" + (sync.serviceName.map { " · \($0)" } ?? ""))
+                                .foregroundStyle(.secondary)
+                        } else {
+                            Text(model.isUnlocked ? "Waiting to sync" : "Syncs when Slinky is unlocked").foregroundStyle(.secondary)
+                        }
+                    }
+                    HStack {
+                        Button("Sync Now") { sync.pull(thenPush: true) }
+                            .disabled(!model.isUnlocked)
+                        Spacer()
+                        Button("Stop Syncing", role: .destructive) { sync.stop() }
+                    }
+                } else {
+                    LabeledContent("Sync folder") {
+                        Button(model.hasVault ? "Choose Folder…" : "Use a Vault from a Sync Folder…", action: choose)
+                            .disabled(model.hasVault && !model.isUnlocked)
+                    }
+                }
+            } footer: {
+                Text("Keeps your vault the same on each of your Macs, through a folder you choose, like one in iCloud Drive or Dropbox. Slinky puts an encrypted copy of the vault there and your sync service moves it. It opens only with your Recovery Key or on a Mac you've set up, so the sync service can't read it. Slinky itself sends nothing anywhere. The copy is also a backup.")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            if let foreign = sync.foreignCopy {
+                Section {
+                    Text("This folder already has a Slinky vault, from another Mac. Enter its Recovery Key to use it here. Slinky adds this Mac's items to it.")
+                        .fixedSize(horizontal: false, vertical: true)
+                    SecureField("Recovery Key", text: $recoveryText, prompt: Text("XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"))
+                        .labelsHidden()
+                        .font(.body.monospaced())
+                    if let problem, !problem.isEmpty {
+                        Text(problem).foregroundStyle(Color.danger).fixedSize(horizontal: false, vertical: true)
+                    }
+                    HStack {
+                        Spacer()
+                        Button("Cancel") { sync.cancelForeign(); recoveryText = "" }
+                        Button(working ? "Opening…" : "Use This Vault") { adopt(foreign) }
+                            .glassProminentButton()
+                            .disabled(recoveryText.trimmingCharacters(in: .whitespaces).isEmpty || working)
+                    }
+                } header: {
+                    Text("Use the vault in this folder")
+                } footer: {
+                    Text("After this, the synced vault's Recovery Key opens everything on this Mac, and this Mac's old Recovery Key no longer does. The vault this Mac had is kept, untouched, as a file you can restore.")
+                        .font(.caption).foregroundStyle(.secondary)
+                }
+            }
+        }
+        .onDisappear { recoveryText = "" }
+    }
+
+    private func choose() {
+        let panel = NSOpenPanel()
+        panel.canChooseDirectories = true
+        panel.canChooseFiles = false
+        panel.canCreateDirectories = true
+        panel.prompt = "Sync Here"
+        panel.message = "Choose a folder your sync service keeps on all your Macs, like one in iCloud Drive. Slinky puts an encrypted copy of your vault in it."
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        if model.hasVault {
+            sync.choose(url)
+        } else if FileManager.default.fileExists(atPath: url.appendingPathComponent("Slinky/vault.slinky").path) {
+            sync.offerForeign(url.appendingPathComponent("Slinky/vault.slinky"))
+        } else {
+            problem = "There's no Slinky vault in that folder yet. Turn on sync on the Mac that has your vault first."
+        }
+    }
+
+    private func adopt(_ url: URL) {
+        working = true
+        problem = nil
+        Task {
+            problem = await model.adoptSyncedVault(at: url, recoveryText: recoveryText)
+            working = false
+            if problem == nil { recoveryText = "" }
         }
     }
 }

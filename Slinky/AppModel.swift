@@ -282,6 +282,8 @@ final class AppModel {
         errorMessage = nil
         // Recently Deleted keeps things for 30 days.
         if document.purgeTrash() > 0 { persist() }
+        // Catch up with the sync folder, if there is one.
+        VaultSync.shared.unlocked(self)
         // Look for leaks once a day, quietly, after unlocking.
         if Date.now.timeIntervalSince(Preferences.shared.lastLeakCheck) > 86_400 { Task { await checkForLeaks() } }
         if let value = pendingSave {
@@ -449,6 +451,7 @@ final class AppModel {
         document = VaultDocument()
         recent = []
         searchText = ""
+        VaultSync.shared.locked()
         setUndo(nil)
         // A message from while it was open would otherwise sit on the lock screen and hold up Touch ID.
         errorMessage = nil
@@ -502,6 +505,8 @@ final class AppModel {
                 toastStyle: Toast.Style? = nil, _ edit: (inout VaultDocument) -> Void) -> Bool {
         let before = document
         edit(&document)
+        // What changed carries today's date, so syncing knows it's the newer version.
+        document.stampChanges(since: before)
         if let activity { document.log.insert(activity, at: 0) }
         var undoable = false
         switch rule {
@@ -541,6 +546,9 @@ final class AppModel {
         // Undo restores items, not history, and keeps website icons that arrived since.
         restored.siteIcons = document.siteIcons
         restored.log = document.log.filter { $0.id != step.activityID }
+        // Taking something back is a change of its own: dated now, so a synced copy doesn't bring it back.
+        restored.removed = document.removed
+        restored.stampChanges(since: document)
         document = restored
         undoStep = nil
         if let manager = windowUndoManager, !manager.isUndoing { manager.removeAllActions(withTarget: self) }
@@ -1199,7 +1207,65 @@ final class AppModel {
             return false
         }
         Reminders.schedule(document)
+        VaultSync.shared.saved()
         return true
+    }
+
+    // MARK: Sync (the crypto stays in the vault; VaultSync moves files)
+
+    /// The sync copy of the vault as it is now.
+    func syncCopyData() throws -> Data {
+        guard var current = session else { throw VaultError.notFound }
+        current.document = document
+        return try store.syncCopy(for: current)
+    }
+
+    /// The document in a sync copy, if it's this vault (nil for a different one).
+    func openSyncCopy(_ data: Data) throws -> VaultDocument? {
+        guard let session else { throw VaultError.notFound }
+        return try store.openSyncCopy(data, session: session)
+    }
+
+    func takeNewerRecoveryKey(from data: Data) {
+        _ = try? store.takeNewerRecoveryKey(from: data)
+    }
+
+    /// A merge with another Mac's copy: saved as it is (no new dates, which would make it look newer than it is).
+    func applySynced(_ merged: VaultDocument) {
+        guard var current = session else { return }
+        current.document = merged
+        session = current
+        document = merged
+        do { try store.save(current) } catch { show("Couldn't save the synced changes: \(Self.friendly(error))", style: .info) }
+        Reminders.schedule(document)
+    }
+
+    /// Settings › Sync, when the folder holds a different vault: make that vault this Mac's, with its Recovery
+    /// Key, folding this Mac's items in. Returns a plain message if it didn't work.
+    func adoptSyncedVault(at url: URL, recoveryText: String) async -> String? {
+        guard let key = RecoveryKey(recoveryText) else { return "That isn't a valid Recovery Key. It has 8 groups of 4 characters." }
+        guard let data = try? Data(contentsOf: url) else { return "Couldn't read the vault in that folder." }
+        if hasVault {
+            let context = LAContext()
+            do {
+                try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "use the vault in your sync folder on this Mac")
+            } catch { return "" }
+        }
+        do {
+            try enclave.ensureKey()
+            let adopted = try store.adopt(syncCopy: data, recovery: key, merging: isUnlocked ? document : nil)
+            hasVault = true
+            setUndo(nil)
+            recent = []
+            didUnlock(adopted)
+            VaultSync.shared.adopted(folder: url.deletingLastPathComponent().deletingLastPathComponent())
+            show("This Mac uses the synced vault now. Its Recovery Key opens everything; this Mac's old one no longer does.")
+            return nil
+        } catch VaultError.wrongRecoveryKey {
+            return "That Recovery Key doesn't open the vault in this folder. Use the key from the Mac that made it."
+        } catch {
+            return Self.friendly(error)
+        }
     }
 
     // MARK: Locking

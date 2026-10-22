@@ -13,6 +13,8 @@ struct AttentionItem: Identifiable {
     var recoveryKeyID: UUID?
     /// No recent backup: the row offers Export Backup….
     var isBackup = false
+    /// Sync can't read or write its folder: the row opens Settings › Sync.
+    var isSync = false
 }
 
 extension AppModel {
@@ -50,6 +52,10 @@ extension AppModel {
                     : "\(key.name) expires in \(days) \(days == 1 ? "day" : "days")",
                 detail: "Make a new one\(key.provider.map { " on \($0)" } ?? ""), then replace it here.",
                 target: .library(.keys)))
+        }
+        if let problem = VaultSync.shared.problem {
+            items.append(AttentionItem(id: "sync", symbol: "arrow.triangle.2.circlepath", title: "Sync needs a look",
+                                       detail: problem, target: .attention, isSync: true))
         }
         // A backup now and then, and always after a new Recovery Key (older backups open only with the old one).
         let prefs = Preferences.shared
@@ -522,6 +528,7 @@ private struct HealthRow<Actions: View>: View {
 }
 
 private struct AttentionRow: View {
+    @Environment(\.openWindow) private var openWindow
     @Environment(AppModel.self) private var model
     let item: AttentionItem
     let show: () -> Void
@@ -538,7 +545,9 @@ private struct AttentionRow: View {
                 Text(item.detail).font(.callout).foregroundStyle(.secondary).lineLimit(2)
             }
             Spacer(minLength: 8)
-            if item.isBackup {
+            if item.isSync {
+                Button("Open Settings") { openWindow(id: "settings"); NSApp.activate() }
+            } else if item.isBackup {
                 Button("Export Backup…") { Task { await model.exportBackup() } }
                     .glassProminentButton()
             } else if let id = item.recoveryKeyID, let kept = model.document.kept.first(where: { $0.id == id }) {
