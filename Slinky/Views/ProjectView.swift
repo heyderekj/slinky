@@ -37,6 +37,8 @@ struct ProjectView: View {
                 }
             }
             .screenTitle(project.name, subtitle: subtitle(project))
+            .onAppear(perform: revealIfAsked)
+            .onChange(of: model.revealVariable?.id) { revealIfAsked() }
             .toolbar {
                 // Import, Share and + share one capsule (like Passwords' sort and +); the details toggle has its own.
                 // Import and Share step away while Slinky locks or unlocks, when the toolbar is the locked window's.
@@ -188,6 +190,17 @@ struct ProjectView: View {
             if case let .variable(id)? = selection { model.deleteVariable(id, in: projectID) }
         }
         .focusedSceneValue(\.selectionActions, variableActions(p))
+    }
+
+    /// Search or Activity asked for one variable: show its environment and select it.
+    private func revealIfAsked() {
+        guard let reveal = model.revealVariable else { return }
+        model.revealVariable = nil
+        env = reveal.env
+        if let id = reveal.id, project?.variables.contains(where: { $0.id == id }) == true {
+            selection = .variable(id)
+            showInspector = true
+        }
     }
 
     /// Edit menu shortcuts for the selected variable, in the environment that's showing.
@@ -595,6 +608,8 @@ struct VariableInspector: View {
                         Text("Only web addresses (https) are kept.").font(.caption).foregroundStyle(Color.attention)
                     }
                 }
+
+                UsageSection(names: [variable.name], id: variable.id)
 
                 Section {
                     LabeledContent("Updated", value: variable.updated.formatted(.relative(presentation: .named)))

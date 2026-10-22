@@ -84,6 +84,11 @@ struct ActivityView: View {
                 .fixedSize()
         }
         .padding(.vertical, 8)
+        // Click a line to go to what it's about.
+        .contentShape(.rect)
+        .onTapGesture { if !model.reveal(e) { model.show("That item isn't in Slinky any more.", style: .info) } }
+        .help("Show it")
+        .accessibilityAddTraits(.isButton)
     }
 
     private func names(_ e: ActivityEntry) -> String {

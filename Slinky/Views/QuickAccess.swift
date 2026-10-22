@@ -61,7 +61,7 @@ final class QuickAccessPanel: NSPanel {
 }
 
 struct QuickItem: Identifiable, Hashable {
-    enum Kind: Hashable { case variable(project: UUID, env: AppEnvironment), key, kept, codes(UUID) }
+    enum Kind: Hashable { case variable(project: UUID, env: AppEnvironment), key, kept, codes(UUID), file(UUID) }
     let id: String
     let kind: Kind
     let title: String
@@ -79,6 +79,23 @@ extension AppModel {
         let items = buildQuickItems()
         quickItemsCache = items
         return items
+    }
+
+    /// Quick Access with nothing typed: what was copied most recently first, then everything else as it was.
+    func recentFirst(_ items: [QuickItem]) -> [QuickItem] {
+        var last: [String: Date] = [:]
+        for entry in document.log where entry.action == .copied || entry.action == .codeUsed {
+            for name in entry.names where last[name] == nil { last[name] = entry.date }
+        }
+        func date(_ item: QuickItem) -> Date? { last[item.title] ?? last[item.title.replacingOccurrences(of: " recovery codes", with: " recovery code")] }
+        return items.enumerated().sorted { a, b in
+            switch (date(a.element), date(b.element)) {
+            case let (x?, y?): return x > y
+            case (.some, nil): return true
+            case (nil, .some): return false
+            default: return a.offset < b.offset
+            }
+        }.map(\.element)
     }
 
     private func buildQuickItems() -> [QuickItem] {
@@ -104,10 +121,17 @@ extension AppModel {
                                    value: item.value, provider: item.from, isLive: false, mono: false, icon: item.iconSubject))
         }
         for set in document.codeSets {
-            guard let next = set.nextUnused else { continue }
+            // A used-up set is still findable (to make new codes), with nothing to copy.
+            let next = set.nextUnused
             items.append(QuickItem(id: set.id.uuidString, kind: .codes(set.id), title: "\(set.account) recovery codes",
-                                   subtitle: "\(set.remaining) left · copies the next unused code",
-                                   value: set.codes[next], provider: set.account, isLive: false, mono: false, icon: set.iconSubject))
+                                   subtitle: next == nil ? "No codes left · make new ones on \(set.account)" : "\(set.remaining) left · copies the next unused code",
+                                   value: next.map { set.codes[$0] } ?? "", provider: set.account, isLive: false, mono: false, icon: set.iconSubject))
+        }
+        for file in document.secretFiles {
+            // Text files (PEM, JSON) copy their contents; others (.p12) are saved from their details.
+            items.append(QuickItem(id: file.id.uuidString, kind: .file(file.id), title: file.name,
+                                   subtitle: file.text == nil ? "\(file.kind.title) · save it from its details" : file.kind.title,
+                                   value: file.text ?? "", provider: nil, isLive: false, mono: false, icon: file.iconSubject))
         }
         return items
     }
@@ -122,7 +146,7 @@ struct QuickAccessView: View {
     private var results: [QuickItem] {
         let q = query.trimmingCharacters(in: .whitespaces).lowercased()
         let all = model.quickItems
-        guard !q.isEmpty else { return Array(all.prefix(40)) }
+        guard !q.isEmpty else { return Array(model.recentFirst(all).prefix(40)) }
         return all.filter { "\($0.title) \($0.subtitle)".lowercased().contains(q) }
     }
 
@@ -284,6 +308,9 @@ struct QuickAccessView: View {
     private func copy(_ item: QuickItem, asLine: Bool) {
         if case let .codes(setID) = item.kind, let index = model.document.codeSets.first(where: { $0.id == setID })?.nextUnused {
             model.useCode(index, in: setID)
+        } else if item.value.isEmpty {
+            model.show("Nothing to copy from \(item.title).", style: .info)
+            return
         } else if asLine {
             model.copy("\(item.title)=\(item.value)", label: "\(item.title)=…")
         } else {

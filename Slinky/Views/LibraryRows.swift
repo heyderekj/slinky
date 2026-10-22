@@ -409,7 +409,10 @@ private struct DetailScaffold<Content: View>: View {
 
             WebsiteIconButton(subject: icon, ref: ref)
 
-            Form { content }
+            Form {
+                content
+                UsageSection(names: [title, "\(title) recovery code"], id: ref.id)
+            }
                 .formStyle(.grouped)
                 .scrollContentBackground(.hidden)
 
@@ -621,6 +624,55 @@ enum FileExport {
         Task {
             let r = await model.notarizeProfile(Broker.Request(op: .notarize, name: field.stringValue, text: file.name), peer: me)
             model.show(r.message ?? (r.ok ? "Saved." : "Couldn't save the profile."), style: r.ok ? .success : .info)
+        }
+    }
+}
+
+extension LibraryRef {
+    var id: UUID {
+        switch self {
+        case let .key(id), let .codes(id), let .kept(id), let .file(id): id
+        }
+    }
+}
+
+/// When an item was last used and its last few uses, from Activity: names, who and when, never a value.
+struct UsageSection: View {
+    @Environment(AppModel.self) private var model
+    let names: [String]
+    var id: UUID?
+
+    var body: some View {
+        let entries = Array(model.document.log.filter { e in
+            e.action != .imported && (e.names.contains { names.contains($0) } || (id.map { e.itemIDs?.contains($0) ?? false } ?? false))
+        }.prefix(5))
+        if let last = entries.first {
+            Section("Activity") {
+                LabeledContent("Last used", value: "\(last.date.formatted(.relative(presentation: .named))), \(Self.verb(last))")
+                ForEach(entries.dropFirst()) { e in
+                    LabeledContent(e.date.formatted(date: .abbreviated, time: .shortened), value: Self.verb(e))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    /// "copied by You", "used by Claude Code".
+    static func verb(_ e: ActivityEntry) -> String {
+        let who = e.actor
+        switch e.action {
+        case .copied: return "copied by \(who)"
+        case .codeUsed: return "a code used by \(who)"
+        case .ran, .xcconfig: return "used by \(who)"
+        case .exported: return "loaded into a shell by \(who)"
+        case .requested: return "asked for by \(who)"
+        case .guarded: return "stopped in a commit"
+        case .leakFound: return "found outside Slinky"
+        case .pushed: return "sent to a host by \(who)"
+        case .notarized: return "used for notarizing by \(who)"
+        case .rotated: return "replaced by \(who)"
+        case .imported: return "imported"
+        case .other: return "used"
         }
     }
 }

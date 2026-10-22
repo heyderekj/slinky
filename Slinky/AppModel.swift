@@ -127,6 +127,9 @@ final class AppModel {
     @ObservationIgnored var quickItemsCache: [QuickItem]?
     var selection: SidebarItem? = .library(.all)
     var showTuck = false
+    /// A variable to select when its project shows (from search, Activity): its id and environment.
+    var revealVariable: (id: UUID?, env: AppEnvironment)?
+
     /// The folder review (New Project, Update from Folder), while it's open.
     var review: FolderReview?
     /// The item open in the Edit panel, if any.
@@ -1002,6 +1005,34 @@ final class AppModel {
             recent = Array(recent.prefix(3))
         }
         show("Copied \(label). \(Self.clipboardNote)")
+    }
+
+    /// Shows the item an Activity line is about: a key, recovery key, code set, file, or a project's variable.
+    /// Returns false when it's gone (or was renamed before item ids were recorded).
+    @discardableResult
+    func reveal(_ entry: ActivityEntry) -> Bool {
+        let ids = Set(entry.itemIDs ?? [])
+        let names = Set(entry.names.map { $0.replacingOccurrences(of: " recovery code", with: "") })
+        if let key = document.keys.first(where: { ids.contains($0.id) || names.contains($0.name) }) {
+            selection = .library(.keys); librarySelection = .key(key.id); return true
+        }
+        if let set = document.codeSets.first(where: { ids.contains($0.id) || names.contains($0.account) }) {
+            selection = .library(.codes); librarySelection = .codes(set.id); return true
+        }
+        if let item = document.kept.first(where: { ids.contains($0.id) || names.contains($0.label) }) {
+            selection = .library(.recoveryKeys); librarySelection = .kept(item.id); return true
+        }
+        if let file = document.secretFiles.first(where: { ids.contains($0.id) || names.contains($0.name) }) {
+            selection = .library(.keys); librarySelection = .file(file.id); return true
+        }
+        for project in document.projects {
+            if let v = project.variables.first(where: { ids.contains($0.id) || names.contains($0.name) }) {
+                selection = .project(project.id)
+                revealVariable = (v.id, AppEnvironment.allCases.first { v.value(in: $0) != nil } ?? .local)
+                return true
+            }
+        }
+        return false
     }
 
     /// A name with no value (for `process.env.NAME` in code). Still through Clipboard, like every copy, but not

@@ -558,7 +558,8 @@ struct SearchResultsView: View {
         let keys = r.filter { if case .key = $0.kind { true } else { false } }
         let variables = r.filter { if case .variable = $0.kind { true } else { false } }
         let recovery = r.filter { switch $0.kind { case .codes, .kept: true; default: false } }
-        return [("Keys & Tokens", keys), ("Project Variables", variables), ("Recovery Codes & Keys", recovery)].filter { !$0.1.isEmpty }
+        let files = r.filter { if case .file = $0.kind { true } else { false } }
+        return [("Keys & Tokens", keys), ("Project Variables", variables), ("Recovery Codes & Keys", recovery), ("Files", files)].filter { !$0.1.isEmpty }
     }
 
     var body: some View {
@@ -609,6 +610,8 @@ struct SearchResultsView: View {
     private func copy(_ item: QuickItem) {
         if case let .codes(setID) = item.kind, let index = model.document.codeSets.first(where: { $0.id == setID })?.nextUnused {
             model.useCode(index, in: setID)
+        } else if item.value.isEmpty {
+            model.show("Nothing to copy from \(item.title).", style: .info)
         } else {
             model.copy(item.value, label: item.title)
         }
@@ -616,7 +619,10 @@ struct SearchResultsView: View {
 
     private func show(_ item: QuickItem) {
         switch item.kind {
-        case let .variable(project, _): model.selection = .project(project)
+        case let .variable(project, env):
+            model.selection = .project(project)
+            // The project view picks this up and selects the variable in that environment.
+            model.revealVariable = (UUID(uuidString: String(item.id.prefix(36))), env)
         case .key:
             model.selection = .library(.keys)
             model.librarySelection = UUID(uuidString: item.id).map(LibraryRef.key)
@@ -626,7 +632,11 @@ struct SearchResultsView: View {
         case let .codes(id):
             model.selection = .library(.codes)
             model.librarySelection = .codes(id)
+        case let .file(id):
+            model.selection = .library(.keys)
+            model.librarySelection = .file(id)
         }
         model.searchText = ""
     }
+
 }

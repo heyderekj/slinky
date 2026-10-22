@@ -67,7 +67,7 @@ struct CopyFromSlinkyIntent: AppIntent {
     func perform() async throws -> some IntentResult & ProvidesDialog {
         let model = AppModel.shared
         guard model.isUnlocked else { throw SlinkyIntentError.locked }
-        guard let found = model.quickItems.first(where: { $0.id == item.id }) else { throw SlinkyIntentError.notFound }
+        guard let found = model.quickItems.first(where: { $0.id == item.id }), !found.value.isEmpty else { throw SlinkyIntentError.notFound }
         let context = LAContext()
         do {
             try await context.evaluatePolicy(.deviceOwnerAuthentication, localizedReason: "copy \(found.title)")
