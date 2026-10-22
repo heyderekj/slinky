@@ -20,7 +20,7 @@ struct HelpView: View {
             "Press ⌘N or the + button and paste. Slinky turns the value into dots straight away, says what it looks like, and suggests where it goes. Change anything with the chips, then press Return.",
             "You can also press ⌘V anywhere in the window (when you're not typing in a field), or drop text on it. In a project, adding puts a variable in that project.",
             "Closed Add Item by accident? It keeps what you typed until you save, discard it, or Slinky locks. Locking clears it.",
-            "Drop a project folder or a .env file on the sidebar to make a project. Slinky reads the .env files, guesses each file's environment, and tells you if git could commit them.",
+            "Drop a project folder or a .env file on the Projects heading (or anywhere in the sidebar) to make a project. Slinky reads the .env files, including apps inside the folder, guesses each file's environment, and tells you if git could commit them. You see what it found before anything is saved.",
             "If you paste something that's already saved, Slinky tells you where. You can still save it again.",
         ]),
         Topic(symbol: "note.text", title: "Notes, links and icons", body: [
@@ -39,12 +39,12 @@ struct HelpView: View {
             "Connect Claude Code, Cursor, Codex or Claude in Settings › Command Line & Agents. They see names, never values.",
             "To use a secret, an agent runs its command through slinky run, and you approve it with Touch ID, seeing the command. Live keys, anything marked never for agents, shells, inline code, and tools that send things off your Mac are held back.",
             "When an agent needs a key Slinky doesn't have, Slinky opens Add Item with the name filled in. Paste it there, not in the chat.",
-            "Activity in the sidebar shows what was copied or used, when, and by whom. Names only.",
+            "Activity (the clock at the bottom of the sidebar) shows what was copied, used or imported, when, and by whom. Names only.",
         ]),
         Topic(symbol: "heart.text.square", title: "Health", body: [
             "Slinky looks for exact copies of your saved values in linked projects and their git history, AI tools' saved conversations, and your shell history. It reads them on this Mac and reports names and places only.",
             "A .env in a project can move into Slinky in one click: its variables are saved, a .env.example with names only is written, and the file goes to the Trash. History lines with a value can be removed.",
-            "Stop Commits with Secrets, in a project's Add menu, checks each commit for saved values before it's made.",
+            "Stop Commits with Secrets, in a project's Import menu, checks each commit for saved values before it's made.",
             "Make New Key on GitHub… opens the page where you make keys, and Edit to paste the new one. The old one waits in Recently Deleted, and projects using it get the new one.",
         ]),
         Topic(symbol: "apple.logo", title: "Apple developer files", body: [
@@ -57,14 +57,16 @@ struct HelpView: View {
             "Compare shows which names the host has and Slinky doesn't, and the other way round. Never values.",
         ]),
         Topic(symbol: "square.and.arrow.down.on.square", title: "Importing", body: [
-            "Bring keys over from another app with File › Import… (⇧⌘I). Slinky reads a .1pux export from 1Password, or a CSV from Apple Passwords, Bitwarden or a spreadsheet of keys.",
-            "Slinky picks out API keys, tokens, backup codes and recovery keys, and skips website passwords, which belong in Apple Passwords. You choose what comes in. Things already in Slinky start unchecked.",
-            "Export files aren't encrypted. Slinky can move the file to the Trash for you after importing.",
+            "Bring keys over from another app with File › Import… (⇧⌘I), or drop the export on the window. Slinky reads a .1pux export from 1Password, a CSV from Apple Passwords, Bitwarden, LastPass, KeePass or a spreadsheet of keys, or a text file of codes or KEY=value lines.",
+            "Slinky picks out API keys, tokens, backup codes and recovery keys, including keys in notes, and skips website passwords, which belong in Apple Passwords. You choose what comes in and can rename things first. Things already in Slinky start unchecked.",
+            "Changed your mind? Undo (⌘Z) takes the whole import back.",
+            "Export files aren't encrypted. Slinky can move the file to the Trash for you once the import is saved.",
         ]),
         Topic(symbol: "folder", title: "Projects", body: [
-            "Link the project folder and Slinky reads its .env.example to show which variables are missing.",
+            "Link the project folder and Slinky reads its example files (.env.example, .sample, .template) to show which variables are missing.",
+            "Update from Folder… (in the project's Import menu, or drop the folder or a .env file on the project) shows what's new, what changed and what's the same, environment by environment. Only what you check is saved, and Undo takes it back.",
             "Share › Copy as .env puts one environment's lines on the clipboard, for pasting into a host's dashboard. Share › Save .env.example writes the names only, with no values, so it's safe to commit.",
-            "Slinky never changes files in your project folder unless you choose Save .env.example.",
+            "Slinky changes files in your project folder only when you ask: Save .env.example, Move into Slinky, and Stop Commits with Secrets.",
         ]),
         Topic(symbol: "doc.on.doc", title: "Copying", body: [
             "Press ⌥⌘K anywhere for Quick Access. Type to find something, then press Return to copy it.",
@@ -82,7 +84,7 @@ struct HelpView: View {
         Topic(symbol: "lifepreserver", title: "Your Recovery Key", body: [
             "Slinky shows your Recovery Key once, when you save your first item. It opens your vault on another Mac, or if Touch ID stops working.",
             "Print it or keep it in Apple Passwords. Slinky doesn't keep a copy. If you lose it, make a new one in Settings › Recovery Key while Slinky is unlocked.",
-            "Recovery keys you save for other accounts show up in Needs Attention until you print them or mark that you have a copy somewhere else.",
+            "Recovery keys you save for other accounts show up in Health until you print them or mark that you have a copy somewhere else.",
         ]),
         Topic(symbol: "square.stack.3d.up", title: "Shortcuts", body: [
             "Slinky adds four actions to the Shortcuts app: Add to Slinky, Copy from Slinky, Open Quick Access and Lock Slinky.",

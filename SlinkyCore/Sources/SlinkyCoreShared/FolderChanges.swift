@@ -129,14 +129,11 @@ public struct FolderChanges: Sendable, Equatable {
                              expectedRemoved: project.expected.filter { !want.contains($0) })
     }
 
-    /// New and changed rows, except a change to an empty value (more often a blank in the file than a real reset).
+    /// New and changed rows, except empty values: a blank in a file is more often a placeholder (`KEY=`) than a
+    /// value someone meant to save. They're listed, unchecked.
     public var defaultPicks: Picks {
         Picks(rows: Set(changes.filter { c in
-            switch c.status() {
-            case .new: true
-            case .changed: !(c.offer()?.value.isEmpty ?? true)
-            default: false
-            }
+            [.new, .changed].contains(c.status()) && !(c.offer()?.value.isEmpty ?? true)
         }.map(\.id)))
     }
 

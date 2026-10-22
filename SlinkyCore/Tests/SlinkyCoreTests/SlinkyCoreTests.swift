@@ -431,6 +431,9 @@ struct FolderChangesTests {
         let blank = changes.changes.first { $0.name == "CHANGES" }!
         #expect(blank.status() == .changed)
         #expect(!picks.rows.contains(blank.id))
+        let placeholder = FolderChanges.compare(Project(name: "x"), with: [source(".env", .local, "TODO_KEY=")])
+        #expect(placeholder.changes.first?.status() == .new)
+        #expect(placeholder.defaultPicks.rows.isEmpty)
         let conflict = changes.changes.first { $0.name == "NEW_ONE" }!
         #expect(conflict.isConflict)
         #expect(conflict.offer()?.source == ".env.local")
