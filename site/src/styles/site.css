@@ -340,22 +340,22 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mac__lights i:nth-child(3) { background: #28c840; }
 /* The sidebar's tiles: a 2×3 grid, a colored circle, the count and the name. The selected one fills with its color. */
 .mac__tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 2px 0 4px; }
-.tile { --tc: #0b7f8f; --tt: #80e3f2; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 6px 4px; padding: 8px; border-radius: 10px; background: color-mix(in oklch, var(--app-text) 5.5%, transparent); cursor: default; transition: background var(--t-ui); }
-.tile:hover { background: color-mix(in oklch, var(--app-text) 9%, transparent); }
-.tile__circle { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: linear-gradient(var(--tt), var(--tc)); }
-.tile__circle svg { width: 12px; height: 12px; }
-.tile__count { justify-self: end; font-size: 11px; font-weight: 600; color: var(--app-secondary); font-variant-numeric: tabular-nums; }
-.tile__count.is-needs { color: var(--app-health); }
-.tile__label { grid-column: 1 / -1; font-size: 13.5px; font-weight: 650; letter-spacing: -0.01em; white-space: nowrap; }
-.tile.is-on { background: var(--tc); color: #fff; }
-.tile.is-on .tile__circle { background: #fff; color: var(--tc); }
-.tile.is-on .tile__count { color: rgb(255 255 255 / 0.85); }
-.tile--glacier { --tt: #80e3f2; --tc: #0b7f8f; }
-.tile--sky { --tt: #8cc2fa; --tc: #296bd6; }
-.tile--mint { --tt: #8feba8; --tc: #148057; }
-.tile--violet { --tt: #cca3ff; --tc: #7a42d6; }
-.tile--pink { --tt: #ffa3cc; --tc: #cc387a; }
-.tile--slate { --tt: #b8c7d4; --tc: #61707f; }
+.sbtile { --tc: #0b7f8f; --tt: #80e3f2; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 6px 4px; padding: 8px; border-radius: 10px; background: color-mix(in oklch, var(--app-text) 5.5%, transparent); cursor: default; transition: background var(--t-ui); }
+.sbtile:hover { background: color-mix(in oklch, var(--app-text) 9%, transparent); }
+.sbtile__circle { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: linear-gradient(var(--tt), var(--tc)); }
+.sbtile__circle svg { width: 12px; height: 12px; }
+.sbtile__count { justify-self: end; font-size: 11px; font-weight: 600; color: var(--app-secondary); font-variant-numeric: tabular-nums; }
+.sbtile__count.is-needs { color: var(--app-health); }
+.sbtile__label { grid-column: 1 / -1; font-size: 13.5px; font-weight: 650; letter-spacing: -0.01em; white-space: nowrap; }
+.sbtile.is-on { background: var(--tc); color: #fff; }
+.sbtile.is-on .sbtile__circle { background: #fff; color: var(--tc); }
+.sbtile.is-on .sbtile__count { color: rgb(255 255 255 / 0.85); }
+.sbtile--glacier { --tt: #80e3f2; --tc: #0b7f8f; }
+.sbtile--sky { --tt: #8cc2fa; --tc: #296bd6; }
+.sbtile--mint { --tt: #8feba8; --tc: #148057; }
+.sbtile--violet { --tt: #cca3ff; --tc: #7a42d6; }
+.sbtile--pink { --tt: #ffa3cc; --tc: #cc387a; }
+.sbtile--slate { --tt: #b8c7d4; --tc: #61707f; }
 .mac__row { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: 8px; font-size: 13.5px; }
 .mac__row svg { width: 16px; height: 16px; color: var(--brand); flex: none; }
 .mac__row .count { margin-left: auto; color: var(--app-secondary); font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -837,8 +837,18 @@ a.b-pill--gh:focus-visible { outline: 2px solid var(--brand); outline-offset: 2p
 @media (max-width: 620px) { .sync__macs { grid-template-columns: 1fr; } .sync__mac:last-child { display: none; } }
 .keycap--lg { min-width: 38px; text-align: center; font-size: 12px; padding: 3px 7px; }
 .b-tile--full { grid-column: 1 / -1; }
-.b-keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px 16px; }
-.b-key { display: flex; align-items: center; gap: 10px; font-size: 14px; }
-.b-key .keycap { min-width: 48px; }
+/* The keyboard tile: Mac keys, ⌘ beside 1–7 with each place under its key, then three combos. */
+.b-kb { display: grid; gap: 18px; justify-items: start; }
+.b-kb__row { display: flex; gap: 6px; align-items: flex-start; }
+.b-kb__place { display: grid; justify-items: center; gap: 6px; width: 52px; }
+.b-kb__place small { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.kkey { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; font: 500 15px var(--app-font); color: var(--ink); background: var(--card); box-shadow: 0 0 0 0.5px var(--hair), 0 1.5px 0 color-mix(in oklch, var(--ink) 22%, transparent), 0 3px 8px -4px rgb(0 0 0 / 0.18); }
+.kkey--wide { width: 52px; font-size: 18px; }
+.kkey--sm { width: 30px; height: 30px; border-radius: 7px; font-size: 13px; }
+.kkey.is-down { background: var(--brand); color: #fff; box-shadow: 0 0 0 0.5px var(--brand), 0 0.5px 0 color-mix(in oklch, var(--ink) 30%, transparent); transform: translateY(1px); }
+.b-kb__combos { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.b-kb__combo { display: inline-flex; align-items: center; gap: 4px; }
+.b-kb__combo small { margin-left: 6px; font-size: 13px; color: var(--ink-soft); }
+@media (max-width: 760px) { .b-kb__row { flex-wrap: wrap; } .b-kb__place { width: 46px; } .kkey { width: 34px; height: 34px; } .kkey--wide { width: 44px; } }
 /* Phone width: the panels' footers keep just the button. */
 @media (max-width: 560px) { .review .encnote, .sync .encnote { display: none; } }
