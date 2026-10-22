@@ -72,7 +72,7 @@ struct LockSwitchAccessory: NSViewRepresentable {
     private static func install(in window: NSWindow?, model: AppModel) {
         guard let window, !window.titlebarAccessoryViewControllers.contains(where: { $0.identifier == id }) else { return }
         let size = NSSize(width: 66, height: 34)
-        let container = NSView(frame: NSRect(x: 0, y: 0, width: 94, height: 52))
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: 110, height: 52))   // room for the glass's shadow
         let content: NSView
         if #available(macOS 26, *) {
             // AppKit's Liquid Glass, so the switch is the same material as the toolbar's buttons.
@@ -100,6 +100,16 @@ struct LockSwitchAccessory: NSViewRepresentable {
         // around the switch. The soft style fades instead, so over the window's plain background it doesn't show.
         if #available(macOS 26.1, *) { accessory.preferredScrollEdgeEffectStyle = .soft }
         window.addTitlebarAccessoryViewController(accessory)
+        // The glass's shadow reaches past the accessory's bounds; let it, up to the title bar itself, rather than
+        // being cut off in a square around the switch.
+        let frameView = window.contentView?.superview
+        DispatchQueue.main.async {
+            var view: NSView? = container
+            while let v = view, v !== frameView, !String(describing: type(of: v)).contains("NSTitlebarView") {
+                v.clipsToBounds = false
+                view = v.superview
+            }
+        }
     }
 }
 
