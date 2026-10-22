@@ -141,8 +141,8 @@ struct SidebarView: View {
                     .badge(count(filter))
                     .tag(SidebarItem.library(filter))
                 }
-                // Health: always here (leaks can be checked any time). The count says when something needs you; the
-                // icon stays the same, calm amber then, and plain on the selected row so it never clashes with it.
+                // Health: always here (leaks can be checked any time). The count and a small dot say when something
+                // needs you.
                 Label {
                     Text("Health")
                 } icon: {
