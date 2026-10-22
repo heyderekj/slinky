@@ -7,13 +7,15 @@ import SlinkyCoreVault
 import UniformTypeIdentifiers
 
 enum LibraryFilter: String, CaseIterable, Hashable {
-    case all, keys, recovery
+    // One per kind of item, like Passwords' Passkeys, Codes and Wi-Fi. Secret files sit with keys.
+    case all, keys, codes, recoveryKeys
 
     var title: String {
         switch self {
         case .all: "All Items"
         case .keys: "Keys & Tokens"
-        case .recovery: "Recovery"
+        case .codes: "Recovery Codes"
+        case .recoveryKeys: "Recovery Keys"
         }
     }
 
@@ -21,7 +23,8 @@ enum LibraryFilter: String, CaseIterable, Hashable {
         switch self {
         case .all: "square.grid.2x2"
         case .keys: "key"
-        case .recovery: "lifepreserver"
+        case .codes: "number"
+        case .recoveryKeys: "lifepreserver"
         }
     }
 }
@@ -476,9 +479,9 @@ final class AppModel {
     }
 
     func addKept(_ item: KeptItem) {
-        animated { change("Saved to Recovery.") { $0.kept.insert(item, at: 0) } }
+        animated { change("Saved to Recovery Keys.") { $0.kept.insert(item, at: 0) } }
         Sounds.play(.saved)
-        selection = .library(.recovery)
+        selection = .library(.recoveryKeys)
     }
 
     func addKey(_ key: Key) {
@@ -490,7 +493,7 @@ final class AppModel {
     func addCodeSet(_ set: CodeSet) {
         animated { change("Saved \(set.codes.count) recovery codes.") { $0.codeSets.insert(set, at: 0) } }
         Sounds.play(.saved)
-        selection = .library(.recovery)
+        selection = .library(.codes)
     }
 
     @discardableResult

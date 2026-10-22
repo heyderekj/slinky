@@ -1,28 +1,33 @@
 import SlinkyCoreShared
 import SwiftUI
 
-/// The top of the sidebar, like Apple Passwords: a grid of tiles, each a place with its count. Always all six,
-/// so nothing jumps around as Activity and Recently Deleted fill up. Projects stay a list below. Names are short
-/// to fit a tile ("Keys"); the toolbar title above the list says the full name ("Keys & Tokens").
+/// The top of the sidebar, like Apple Passwords: a grid of tiles, each a kind of item (or Health, or Deleted) with
+/// its count. Always all six, so nothing jumps around as they fill up. Projects and Activity are rows below. Names
+/// are short to fit a tile ("Keys"); the toolbar title above the list says the full name ("Keys & Tokens").
 struct CategoryGrid: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
+        // The kinds of item first (like Passwords' Passkeys, Codes, Wi-Fi), then Health and Deleted (its Security
+        // and Deleted).
         Grid(horizontalSpacing: 8, verticalSpacing: 8) {
             GridRow {
-                tile(.library(.all), "All Items", "square.grid.2x2", .accentColor, count: libraryCount(.all))
+                tile(.library(.all), "All", "square.grid.2x2", .accentColor, count: libraryCount(.all))
                 tile(.library(.keys), "Keys", "key", Color(nsColor: .systemBlue), count: libraryCount(.keys))
             }
             GridRow {
-                tile(.library(.recovery), "Recovery", "lifepreserver", Color(nsColor: .systemYellow), count: libraryCount(.recovery))
-                tile(.attention, "Health", "heart", Color(nsColor: .systemPink), count: model.healthCount,
-                     needsYou: model.healthCount > 0)
+                tile(.library(.codes), "Codes", "number", Color(nsColor: .systemYellow), count: libraryCount(.codes))
+                tile(.library(.recoveryKeys), "Recovery Keys", "lifepreserver", Color(nsColor: .systemPurple),
+                     count: libraryCount(.recoveryKeys))
             }
             GridRow {
-                tile(.activity, "Activity", "clock.arrow.circlepath", Color(nsColor: .systemIndigo), count: model.document.log.count)
+                tile(.attention, "Health", "heart", Color(nsColor: .systemPink), count: model.healthCount,
+                     needsYou: model.healthCount > 0)
                 tile(.trash, "Deleted", "trash", Color(nsColor: .systemGray), count: model.document.trashed.count)
             }
         }
+        // Each row as tall as its tallest tile, and no taller.
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func tile(_ item: SidebarItem, _ title: String, _ symbol: String, _ tint: Color, count: Int,
@@ -38,7 +43,8 @@ struct CategoryGrid: View {
         switch filter {
         case .all: return d.keys.count + d.codeSets.count + d.kept.count + d.secretFiles.count
         case .keys: return d.keys.count + d.secretFiles.count
-        case .recovery: return d.codeSets.count + d.kept.count
+        case .codes: return d.codeSets.count
+        case .recoveryKeys: return d.kept.count
         }
     }
 }
@@ -58,7 +64,7 @@ struct CategoryTile: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack(alignment: .top) {
                     Image(systemName: symbol)
                         .font(.callout.weight(.semibold))
@@ -72,14 +78,17 @@ struct CategoryTile: View {
                         .contentTransition(.numericText(value: Double(count)))
                         .animation(.snappy, value: count)
                 }
+                Spacer(minLength: 8)
+                // Every name at the same size; a long one ("Recovery Keys") wraps rather than shrinking.
                 Text(title)
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(selected ? Color.onAccent : Color.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.75)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(10)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            // Both tiles in a row match the taller one, names along the bottom.
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
             .background(fill, in: .rect(cornerRadius: 12, style: .continuous))
             .contentShape(.rect(cornerRadius: 12, style: .continuous))
         }

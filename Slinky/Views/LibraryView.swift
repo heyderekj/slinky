@@ -52,10 +52,10 @@ struct LibraryView: View {
         }
     }
 
-    private var showKeys: Bool { filter != .recovery && !keys.isEmpty }
-    private var showCodes: Bool { filter != .keys && !codeSets.isEmpty }
-    private var showKept: Bool { filter != .keys && !kept.isEmpty }
-    private var showFiles: Bool { filter != .recovery && !files.isEmpty }
+    private var showKeys: Bool { (filter == .all || filter == .keys) && !keys.isEmpty }
+    private var showCodes: Bool { (filter == .all || filter == .codes) && !codeSets.isEmpty }
+    private var showKept: Bool { (filter == .all || filter == .recoveryKeys) && !kept.isEmpty }
+    private var showFiles: Bool { (filter == .all || filter == .keys) && !files.isEmpty }
 
     // MARK: Sort and filter
 
@@ -188,7 +188,7 @@ struct LibraryView: View {
             }
             if showCodes {
                 Section {
-                    groupTitle("Recovery Codes")
+                    if filter == .all { groupTitle("Recovery Codes") }
                     ForEach(codeSets) { CodeSetRow(set: $0).tag(LibraryRef.codes($0.id)) }
                 }
             }
@@ -200,7 +200,7 @@ struct LibraryView: View {
             }
             if showKept {
                 Section {
-                    groupTitle("Recovery Keys")
+                    if filter == .all { groupTitle("Recovery Keys") }
                     ForEach(kept) { KeptRow(item: $0).tag(LibraryRef.kept($0.id)) }
                 }
             }
@@ -259,7 +259,8 @@ struct LibraryView: View {
         switch filter {
         case .all: model.document.keys.isEmpty && model.document.codeSets.isEmpty && model.document.kept.isEmpty && model.document.secretFiles.isEmpty
         case .keys: model.document.keys.isEmpty && model.document.secretFiles.isEmpty
-        case .recovery: model.document.codeSets.isEmpty && model.document.kept.isEmpty
+        case .codes: model.document.codeSets.isEmpty
+        case .recoveryKeys: model.document.kept.isEmpty
         }
     }
 
@@ -278,9 +279,11 @@ struct LibraryView: View {
             return count(doc.keys.count + doc.codeSets.count + doc.kept.count + doc.secretFiles.count, "item", "items")
         case .keys:
             return count(doc.keys.count + doc.secretFiles.count, "item", "items")
-        case .recovery:
+        case .codes:
             let low = doc.codeSets.filter(\.isLow).count
-            return count(doc.codeSets.count + doc.kept.count, "item", "items") + (low > 0 ? " · \(low) running low" : "")
+            return count(doc.codeSets.count, "set", "sets") + (low > 0 ? " · \(low) running low" : "")
+        case .recoveryKeys:
+            return count(doc.kept.count, "key", "keys")
         }
     }
 
@@ -322,7 +325,8 @@ struct LibraryView: View {
         switch filter {
         case .all: playing.flatMap { samples.indices.contains($0) ? samples[$0].headline : nil } ?? VaultIdleAnimation.restHeadline
         case .keys: "No keys or tokens yet"
-        case .recovery: "No recovery codes or keys yet"
+        case .codes: "No recovery codes yet"
+        case .recoveryKeys: "No recovery keys yet"
         }
     }
 
@@ -330,7 +334,8 @@ struct LibraryView: View {
         switch filter {
         case .all: "Paste a key, recovery codes or a .env line with ⌘N. Slinky sorts it for you."
         case .keys: "For the API keys and access tokens your software and AI tools use."
-        case .recovery: "For backup codes and recovery keys that get you back into your accounts."
+        case .codes: "For the backup codes a website gives you when you turn on two-step sign-in."
+        case .recoveryKeys: "For the keys that get you back into an account, like an Apple Account recovery key."
         }
     }
 
@@ -339,7 +344,8 @@ struct LibraryView: View {
         let s = VaultIdleAnimation.defaultSamples   // API key, project variable, recovery codes, recovery key
         switch filter {
         case .all, .keys: return s
-        case .recovery: return [s[2], s[3], s[0], s[1]]
+        case .codes: return [s[2], s[3], s[0], s[1]]
+        case .recoveryKeys: return [s[3], s[2], s[0], s[1]]
         }
     }
 }
@@ -386,7 +392,8 @@ enum LibraryShow: String, CaseIterable {
         switch filter {
         case .all: allCases
         case .keys: [.all, .live, .expiring]
-        case .recovery: [.all, .low]
+        case .codes: [.all, .low]
+        case .recoveryKeys: [.all]
         }
     }
 }

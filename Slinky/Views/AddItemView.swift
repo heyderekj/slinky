@@ -26,7 +26,8 @@ extension Detection.Destination {
         switch self {
         case .key: "Keys & Tokens"
         case .project: "a project"
-        case .codes, .kept: "Recovery"
+        case .codes: "Recovery Codes"
+        case .kept: "Recovery Keys"
         }
     }
 }

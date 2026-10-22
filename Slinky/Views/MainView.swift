@@ -170,8 +170,16 @@ struct SidebarView: View {
             } header: {
                 Text("Projects")
             }
+            // A history, not a kind of item, so a row rather than a tile. There once something's been copied or used.
+            if !model.document.log.isEmpty || model.selection == .activity {
+                Section {
+                    Label("Activity", systemImage: "clock.arrow.circlepath")
+                        .tag(SidebarItem.activity)
+                }
+            }
         }
         .listStyle(.sidebar)
+        .animation(.smooth, value: model.document.log.isEmpty)
         .safeAreaInset(edge: .bottom, spacing: 0) { footer }
     }
 

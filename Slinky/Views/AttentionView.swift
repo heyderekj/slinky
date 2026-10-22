@@ -21,7 +21,7 @@ extension AppModel {
                 id: "codes-\(set.id)", symbol: "number.square",
                 title: set.remaining == 0 ? "No \(set.account) codes left" : "Only \(set.remaining) \(set.account) \(set.remaining == 1 ? "code" : "codes") left",
                 detail: "Make new recovery codes on \(set.account), then add them here.",
-                target: .library(.recovery)))
+                target: .library(.codes)))
         }
         for project in document.projects where !project.missing.isEmpty {
             let n = project.missing.count
@@ -36,7 +36,7 @@ extension AppModel {
                 id: "copy-\(item.id)", symbol: "printer",
                 title: "\(item.label) has no copy outside Slinky",
                 detail: "If you lose this Mac and your Recovery Key, a printed copy is your way back in.",
-                target: .library(.recovery), recoveryKeyID: item.id))
+                target: .library(.recoveryKeys), recoveryKeyID: item.id))
         }
         let soon = Calendar.current.date(byAdding: .day, value: ExpiryChip.soonDays, to: .now) ?? .now
         for key in document.keys {
@@ -558,7 +558,7 @@ struct SearchResultsView: View {
         let keys = r.filter { if case .key = $0.kind { true } else { false } }
         let variables = r.filter { if case .variable = $0.kind { true } else { false } }
         let recovery = r.filter { switch $0.kind { case .codes, .kept: true; default: false } }
-        return [("Keys & Tokens", keys), ("Project Variables", variables), ("Recovery", recovery)].filter { !$0.1.isEmpty }
+        return [("Keys & Tokens", keys), ("Project Variables", variables), ("Recovery Codes & Keys", recovery)].filter { !$0.1.isEmpty }
     }
 
     var body: some View {
@@ -621,10 +621,10 @@ struct SearchResultsView: View {
             model.selection = .library(.keys)
             model.librarySelection = UUID(uuidString: item.id).map(LibraryRef.key)
         case .kept:
-            model.selection = .library(.recovery)
+            model.selection = .library(.recoveryKeys)
             model.librarySelection = UUID(uuidString: item.id).map(LibraryRef.kept)
         case let .codes(id):
-            model.selection = .library(.recovery)
+            model.selection = .library(.codes)
             model.librarySelection = .codes(id)
         }
         model.searchText = ""
