@@ -17,23 +17,24 @@ struct ItemRowLayout<Tags: View, Action: View>: View {
     @ViewBuilder var action: Action
 
     var body: some View {
-        HStack(spacing: 10) {
+        // Roomy, like Passwords: a 32-point icon, the name in semibold, a quiet second line.
+        HStack(spacing: 12) {
             if let plainSymbol {
                 Image(systemName: plainSymbol)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(.secondary)
-                    .frame(width: 28, height: 28)
-                    .background(Color.secondary.opacity(0.1), in: .rect(cornerRadius: 7, style: .continuous))
+                    .frame(width: 32, height: 32)
+                    .background(Color.secondary.opacity(0.1), in: .rect(cornerRadius: 8, style: .continuous))
             } else {
-                ServiceIcon(subject: icon, size: 28)
+                ServiceIcon(subject: icon, size: 32)
             }
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 // Cut in the middle: names that share a start (…_EU_WEST, …_US_EAST) stay tellable apart.
                 Text(title)
-                    .font(.system(size: 13, weight: .medium, design: mono ? .monospaced : .default))
+                    .font(mono ? .body.monospaced().weight(.semibold) : .body.weight(.semibold))
                     .lineLimit(1)
                     .truncationMode(.middle)
-                Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                Text(subtitle).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
             }
             .layoutPriority(1)
             Spacer(minLength: 8)
@@ -42,7 +43,7 @@ struct ItemRowLayout<Tags: View, Action: View>: View {
                 // Whole or not at all: in a narrow list a cut-off peek ("•", "c") says nothing.
                 ViewThatFits(in: .horizontal) {
                     Text(peek)
-                        .font(.system(size: 11.5, design: .monospaced))
+                        .font(.callout.monospaced())
                         .foregroundStyle(.tertiary)
                         .fixedSize()
                     Color.clear.frame(width: 0, height: 0)
@@ -56,7 +57,7 @@ struct ItemRowLayout<Tags: View, Action: View>: View {
                 .lineLimit(1)
                 .fixedSize()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 }
 

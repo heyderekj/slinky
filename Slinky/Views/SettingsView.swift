@@ -49,7 +49,6 @@ struct SettingsView: View {
             .listStyle(.sidebar)
             .navigationTitle("")
             .toolbar(removing: .sidebarToggle)
-            .toolbarBackground(.clear, for: .automatic)
             .navigationSplitViewColumnWidth(min: 200, ideal: 220, max: 260)
         } detail: {
             NavigationStack {
@@ -63,28 +62,23 @@ struct SettingsView: View {
                     }
                 }
                 .formStyle(.grouped)
-                .scrollContentBackground(.hidden)
                 .frame(minWidth: 480, maxWidth: .infinity, maxHeight: .infinity)
                 .navigationTitle(pane.title)
                 .toolbar {
-                    ToolbarItem(placement: .navigation) {
-                        Button { index -= 1 } label: { Image(systemName: "chevron.backward") }
-                            .buttonStyle(.bordered)
+                    // One shared capsule, like Finder's and System Settings' back and forward. No button style
+                    // of our own: the toolbar draws them (glass on Tahoe, standard on Sequoia).
+                    ToolbarItemGroup(placement: .navigation) {
+                        Button { index -= 1 } label: { Label("Back", systemImage: "chevron.backward") }
                             .help("Back")
                             .disabled(index == 0)
-                    }
-                    ToolbarItem(placement: .navigation) {
-                        Button { index += 1 } label: { Image(systemName: "chevron.forward") }
-                            .buttonStyle(.bordered)
+                        Button { index += 1 } label: { Label("Forward", systemImage: "chevron.forward") }
                             .help("Forward")
                             .disabled(index >= history.count - 1)
                     }
-                    if #available(macOS 26.0, *) { ToolbarSpacer(.flexible) }
                 }
             }
         }
         .navigationSplitViewStyle(.balanced)
-        .toolbarBackground(.clear, for: .windowToolbar)
         .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         .frame(minWidth: 760, minHeight: 560)
     }

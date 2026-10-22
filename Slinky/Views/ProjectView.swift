@@ -34,9 +34,10 @@ struct ProjectView: View {
             }
             .screenTitle(project.name, subtitle: subtitle(project))
             .toolbar {
-                // Away while Slinky locks or unlocks, when the toolbar is the locked window's.
-                if !model.lockedChrome {
-                    ToolbarItem {
+                // Import, Share and + share one capsule (like Passwords' sort and +); the details toggle has its own.
+                // Import and Share step away while Slinky locks or unlocks, when the toolbar is the locked window's.
+                ToolbarItemGroup(placement: .primaryAction) {
+                    if !model.lockedChrome {
                         Menu {
                             Button("Import .env File…") { pickEnvFile(project) }
                             Button("Link Folder…") { pickFolder(project) }
@@ -50,11 +51,9 @@ struct ProjectView: View {
                             Divider()
                             Button("Edit Project…") { model.editing = .project(project.id) }
                         } label: {
-                            Label("Add", systemImage: "square.and.arrow.down")
+                            Label("Import", systemImage: "square.and.arrow.down")
                         }
                         .help("Import a .env file or link the project folder")
-                    }
-                    ToolbarItem {
                         Menu {
                             Button("Copy \(env.title) as .env") { copyAsEnv(project) }
                                 .disabled(!project.variables.contains { $0.value(in: env) != nil })
@@ -68,7 +67,10 @@ struct ProjectView: View {
                         }
                         .help("Copy this environment as .env lines, or save a .env.example with names only")
                     }
-                    ToolbarItem {
+                    AddItemButton()
+                }
+                if !model.lockedChrome {
+                    ToolbarItem(placement: .primaryAction) {
                         Button { showInspector.toggle() } label: { Label("Details", systemImage: "sidebar.right") }
                             .help(showInspector ? "Hide Details" : "Show Details")
                     }
@@ -236,11 +238,7 @@ struct ProjectView: View {
     }
 
     private var nothingSelected: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "cursorarrow.click").font(.title).foregroundStyle(.tertiary)
-            Text("Select a variable to see its details.").foregroundStyle(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        NothingSelected(title: "No Variable Selected", message: "Select a variable to see its value in each environment.")
     }
 
     private func tuckMissing(_ name: String) {
@@ -462,17 +460,17 @@ struct MissingRow: View {
     let add: () -> Void
 
     var body: some View {
-        HStack(spacing: 10) {
-            RoundedRectangle(cornerRadius: 7, style: .continuous)
+        HStack(spacing: 12) {
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
                 .strokeBorder(Color.attention.opacity(0.7), style: StrokeStyle(lineWidth: 1.2, dash: [3, 2.5]))
-                .frame(width: 28, height: 28)
-                .overlay(Image(systemName: "plus").font(.system(size: 11, weight: .semibold)).foregroundStyle(Color.attention))
-            VStack(alignment: .leading, spacing: 1) {
+                .frame(width: 32, height: 32)
+                .overlay(Image(systemName: "plus").font(.callout.weight(.semibold)).foregroundStyle(Color.attention))
+            VStack(alignment: .leading, spacing: 2) {
                 Text(name)
-                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .font(.body.monospaced().weight(.semibold))
                     .foregroundStyle(.secondary)
                     .lineLimit(1).truncationMode(.middle)
-                Text("Not saved in Slinky yet").font(.caption).foregroundStyle(.tertiary)
+                Text("Not saved in Slinky yet").font(.subheadline).foregroundStyle(.tertiary)
             }
             .layoutPriority(1)
             Spacer(minLength: 8)
@@ -481,7 +479,7 @@ struct MissingRow: View {
                 .controlSize(.small)
                 .fixedSize()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 }
 

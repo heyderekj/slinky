@@ -67,3 +67,18 @@ private struct DetailsPaneLayout<Pane: View>: ViewModifier {
             .animation(.smooth(duration: 0.32), value: isPresented)
     }
 }
+
+/// The details pane with nothing picked, like Passwords' "No Item Selected": a large quiet symbol and a line.
+struct NothingSelected: View {
+    let title: String
+    let message: String
+
+    var body: some View {
+        ContentUnavailableView {
+            Label(title, systemImage: "key.2.on.ring")
+        } description: {
+            Text(message)
+        }
+        .foregroundStyle(.secondary)
+    }
+}

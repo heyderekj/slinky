@@ -132,7 +132,7 @@ struct AddItemPanel: View {
                         .buttonStyle(.link).font(.callout)
                 }
                 Spacer()
-                Keycap("esc")
+                PanelCloseButton(action: requestClose)
             }
             .padding(.bottom, 14)
 
@@ -183,7 +183,8 @@ struct AddItemPanel: View {
     // MARK: Empty: the field
 
     private var input: some View {
-        TextField("", text: $text, prompt: Text("Paste a key, recovery codes or .env lines"), axis: .vertical)
+        TextField("Item", text: $text, prompt: Text("Paste a key, recovery codes or .env lines"), axis: .vertical)
+            .labelsHidden()
             .textFieldStyle(.plain)
             // The prompt reads as a sentence; what you type reads as code.
             .font(text.isEmpty ? .system(size: 19, weight: .regular) : .system(size: 17, weight: .medium, design: .monospaced))
@@ -249,7 +250,8 @@ struct AddItemPanel: View {
                 if destination == .project, envLines.count > 1 {
                     Text("\(envLines.count) variables").font(.system(size: 17, weight: .semibold))
                 } else if !isSeed {
-                    TextField("", text: nameBinding, prompt: Text(namePrompt))
+                    TextField("Name", text: nameBinding, prompt: Text(namePrompt))
+                        .labelsHidden()
                         .textFieldStyle(.plain)
                         .limit($name, to: FieldLimit.name)
                         .font(.system(size: 17, weight: .semibold, design: nameIsCode ? .monospaced : .default))
@@ -492,7 +494,8 @@ struct AddItemPanel: View {
     }
 
     private var noteField: some View {
-        TextField("", text: $note, prompt: Text("Note, like what it's for or who gave it to you"), axis: .vertical)
+        TextField("Note", text: $note, prompt: Text("Note, like what it's for or who gave it to you"), axis: .vertical)
+            .labelsHidden()
             .limit($note, to: FieldLimit.note)
             .textFieldStyle(.plain)
             .lineLimit(1...4)
@@ -912,7 +915,8 @@ struct ChipField: View {
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: symbol).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
-            TextField("", text: $text, prompt: Text(prompt))
+            TextField(prompt, text: $text, prompt: Text(prompt))
+                .labelsHidden()
                 .textFieldStyle(.plain)
                 .frame(width: 150)
                 .limit($text, to: FieldLimit.link)

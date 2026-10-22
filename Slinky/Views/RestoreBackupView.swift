@@ -45,11 +45,11 @@ struct RestoreBackupView: View {
                 }
             }
             if let message, !message.isEmpty {
-                Text(message).font(.callout).foregroundStyle(.red)
+                Text(message).font(.callout).foregroundStyle(Color.danger)
             }
             HStack {
                 Spacer()
-                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction)
+                Button("Cancel") { dismiss() }.keyboardShortcut(.cancelAction).glassButton()
                 Button(working ? "Restoring…" : "Restore") {
                     guard let file else { return }
                     working = true
@@ -63,6 +63,7 @@ struct RestoreBackupView: View {
                 .glassProminentButton()
                 .disabled(file == nil || recovery.trimmingCharacters(in: .whitespaces).isEmpty || working)
             }
+            .dialogButtons()
         }
         .padding(22)
         .frame(width: 480)

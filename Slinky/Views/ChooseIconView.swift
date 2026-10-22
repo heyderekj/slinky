@@ -68,7 +68,7 @@ struct ChooseIconView: View {
             HStack {
                 Text("Logos belong to their owners.").font(.caption).foregroundStyle(.tertiary)
                 Spacer()
-                Button("Done") { dismiss() }.keyboardShortcut(.defaultAction)
+                Button("Done") { dismiss() }.keyboardShortcut(.defaultAction).glassProminentButton().dialogButtons()
             }
             .padding(12)
         }

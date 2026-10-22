@@ -540,7 +540,7 @@ private struct AttentionRow: View {
     }
 }
 
-/// Search from the sidebar field: every key, variable, code set and recovery key, by name.
+/// Search from the toolbar field: every key, variable, code set and recovery key, by name.
 struct SearchResultsView: View {
     @Environment(AppModel.self) private var model
     let query: String
@@ -550,33 +550,61 @@ struct SearchResultsView: View {
         return model.quickItems.filter { $0.title.lowercased().contains(q) || $0.subtitle.lowercased().contains(q) }
     }
 
+    @State private var selection: String?
+
+    /// Grouped like the library, so a result looks the same as the item does everywhere else.
+    private var groups: [(String, [QuickItem])] {
+        let r = results
+        let keys = r.filter { if case .key = $0.kind { true } else { false } }
+        let variables = r.filter { if case .variable = $0.kind { true } else { false } }
+        let recovery = r.filter { switch $0.kind { case .codes, .kept: true; default: false } }
+        return [("Keys & Tokens", keys), ("Project Variables", variables), ("Recovery", recovery)].filter { !$0.1.isEmpty }
+    }
+
     var body: some View {
         let results = results
         Group {
             if results.isEmpty {
                 ContentUnavailableView.search(text: query)
             } else {
-                List(results) { item in
-                    HStack(spacing: 10) {
-                        ServiceIcon(subject: item.icon, size: 26)
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text(item.title)
-                                .font(.system(size: 13, weight: .medium, design: item.mono ? .monospaced : .default))
-                                .lineLimit(1)
-                            Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                List(selection: $selection) {
+                    ForEach(groups, id: \.0) { title, items in
+                        Section {
+                            Text(title)
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 6)
+                                .selectionDisabled()
+                                .listRowSeparator(.hidden)
+                                .accessibilityAddTraits(.isHeader)
+                            ForEach(items) { item in
+                                ItemRowLayout(icon: item.icon, title: item.title, mono: item.mono, subtitle: item.subtitle, peek: nil) {
+                                    if item.isLive { Chip(text: "live", style: .live) }
+                                } action: {
+                                    CopyButton { copy(item) }
+                                }
+                                .tag(item.id)
+                            }
                         }
-                        Spacer()
-                        if item.isLive { Chip(text: "LIVE", style: .live) }
-                        Button("Show") { show(item) }
-                        CopyButton { copy(item) }
                     }
-                    .padding(.vertical, 3)
                 }
-                .scrollContentBackground(.hidden)
+                .listStyle(.inset)
+                .contextMenu(forSelectionType: String.self) { ids in
+                    if let item = ids.first.flatMap(find) {
+                        Button("Show") { show(item) }
+                        Button("Copy") { copy(item) }
+                    }
+                } primaryAction: { ids in
+                    // Double-click or Return goes to the item.
+                    if let item = ids.first.flatMap(find) { show(item) }
+                }
+                .onCommand(#selector(NSText.copy(_:))) { selection.flatMap(find).map(copy) }
             }
         }
         .screenTitle("Search", subtitle: "\(results.count) \(results.count == 1 ? "result" : "results")")
     }
+
+    private func find(_ id: String) -> QuickItem? { results.first { $0.id == id } }
 
     private func copy(_ item: QuickItem) {
         if case let .codes(setID) = item.kind, let index = model.document.codeSets.first(where: { $0.id == setID })?.nextUnused {

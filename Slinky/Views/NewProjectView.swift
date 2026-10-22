@@ -39,7 +39,7 @@ struct NewProjectPanel: View {
             HStack {
                 Text("New Project").font(.headline)
                 Spacer()
-                Keycap("esc")
+                PanelCloseButton(action: close)
             }
             .padding(.bottom, 14)
 
@@ -86,8 +86,9 @@ struct NewProjectPanel: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 14) {
                 Monogram(text: name, size: 42)
-                TextField("", text: Binding(get: { name }, set: { name = $0; nameTouched = true }),
+                TextField("Project name", text: Binding(get: { name }, set: { name = $0; nameTouched = true }),
                           prompt: Text("Project name, like Slinky"))
+                    .labelsHidden()
                     .textFieldStyle(.plain)
                     .limit($name, to: FieldLimit.name)
                     .font(.system(size: 20, weight: .semibold))
@@ -189,7 +190,7 @@ struct NewProjectPanel: View {
     private func fileRow(_ file: ProjectScan.EnvFile) -> some View {
         let on = include.contains(file.id)
         return HStack(spacing: 12) {
-            Toggle("", isOn: Binding(get: { on }, set: { if $0 { include.insert(file.id) } else { include.remove(file.id) } }))
+            Toggle(file.fileName, isOn: Binding(get: { on }, set: { if $0 { include.insert(file.id) } else { include.remove(file.id) } }))
                 .toggleStyle(.checkbox)
                 .labelsHidden()
                 .frame(width: 16)

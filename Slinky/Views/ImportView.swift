@@ -71,7 +71,7 @@ private struct ImportPanel: View {
                     Text(fileName).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                 }
                 Spacer()
-                Keycap("esc")
+                PanelCloseButton(action: close)
             }
             .padding(.bottom, 16)
 
@@ -159,7 +159,7 @@ private struct ImportPanel: View {
         let on = chosen.contains(item.id)
         let duplicate = isDuplicate(item)
         return HStack(spacing: 12) {
-            Toggle("", isOn: Binding(get: { on }, set: { if $0 { chosen.insert(item.id) } else { chosen.remove(item.id) } }))
+            Toggle(item.name, isOn: Binding(get: { on }, set: { if $0 { chosen.insert(item.id) } else { chosen.remove(item.id) } }))
                 .toggleStyle(.checkbox)
                 .labelsHidden()
             ServiceIcon(subject: IconSubject(name: item.name, provider: provider(item)), size: 30)

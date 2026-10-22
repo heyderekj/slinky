@@ -6,6 +6,7 @@ struct MainView: View {
     // Never animated around locking: the split view's column animation stuttered over the keyhole. Unlocking
     // reveals the window with its sidebar already in place; locking leaves it until the curtain has covered it.
     @State private var columns: NavigationSplitViewVisibility = .all
+    @FocusState private var searchFocused: Bool
 
     var body: some View {
         @Bindable var model = model
@@ -14,7 +15,7 @@ struct MainView: View {
                 // The built-in toggle lives in the sidebar's part of the toolbar. While the sidebar opens
                 // or closes that part is too narrow for it, so macOS shows the overflow » for a moment.
                 .toolbar(removing: .sidebarToggle)
-                .navigationSplitViewColumnWidth(min: 220, ideal: 250, max: 320)
+                .navigationSplitViewColumnWidth(min: 230, ideal: 260, max: 320)
         } detail: {
             Group {
                 if model.searchText.trimmingCharacters(in: .whitespaces).isEmpty {
@@ -36,11 +37,10 @@ struct MainView: View {
                     .accessibilityLabel(columns == .detailOnly ? "Show sidebar" : "Hide sidebar")
                     .disabled(model.lockedChrome)
                 }
-                // Always here, whatever's on screen: in a project it adds a variable to that project.
-                ToolbarItem(placement: .primaryAction) {
-                    Button { addHere() } label: { Label("Add Item", systemImage: "plus") }
-                        .help(isProject ? "Add a variable to this project (⌘N)" : "Add Item (⌘N)")
-                        .disabled(model.lockedChrome || model.panelOpen)
+                // Always somewhere, whatever's on screen. The library and projects put it in a group with their
+                // own buttons (like Passwords' sort and +), so it's only here for the other screens.
+                if !screenHasOwnAdd {
+                    ToolbarItem(placement: .primaryAction) { AddItemButton() }
                 }
             }
             // Drop a secret file (.p8, .pem, .p12, service-account JSON) onto the library to keep it in the vault.
@@ -63,6 +63,16 @@ struct MainView: View {
                 addHere(prefill: text)
                 return true
             }
+        }
+        // Search sits at the right end of the toolbar, like Passwords. It searches names, never values.
+        .searchable(text: $model.searchText, placement: .toolbar, prompt: "Search")
+        .searchFocused($searchFocused)
+        .background {
+            Button("Find") { searchFocused = true }
+                .keyboardShortcut("f")
+                .opacity(0)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
         }
         .background(PasteToAdd { text in
             guard canAdd else { return false }
@@ -96,6 +106,14 @@ struct MainView: View {
 
     private var isProject: Bool { if case .project? = model.selection { true } else { false } }
 
+    private var screenHasOwnAdd: Bool {
+        guard model.searchText.trimmingCharacters(in: .whitespaces).isEmpty else { return false }
+        switch model.selection {
+        case .library?, .project?, nil: return true
+        default: return false
+        }
+    }
+
     /// Nothing else is open on top, so adding makes sense right now.
     private var canAdd: Bool {
         model.isUnlocked && !model.showTuck && !model.showNewProject && model.editing == nil && model.importing == nil
@@ -128,52 +146,17 @@ struct MainView: View {
 struct SidebarView: View {
     @Environment(AppModel.self) private var model
     @State private var dropTarget: UUID?
-    @FocusState private var searchFocused: Bool
 
     var body: some View {
         @Bindable var model = model
-        let attention = model.attention
         List(selection: $model.selection) {
-            // The top group needs no heading (like Passwords and Notes). Projects keeps its own.
+            // The places, as tiles with counts (like Passwords). Not rows, so the list's selection skips them.
             Section {
-                ForEach(LibraryFilter.allCases, id: \.self) { filter in
-                    Label(filter.title, systemImage: filter.symbol)
-                    .badge(count(filter))
-                    .tag(SidebarItem.library(filter))
-                }
-                // Health: always here (leaks can be checked any time). The count and a small dot say when something
-                // needs you.
-                Label {
-                    Text("Health")
-                } icon: {
-                    // The same icon as its neighbours; a small dot says something needs you (white on the selected row).
-                    Image(systemName: "heart.text.square")
-                        .overlay(alignment: .topTrailing) {
-                            if model.healthCount > 0 {
-                                Circle()
-                                    .fill(model.selection == .attention ? Color.white : Color.attention)
-                                    .frame(width: 6, height: 6)
-                                    .offset(x: 3, y: -2)
-                                    .transition(.scale.combined(with: .opacity))
-                            }
-                        }
-                        .animation(.smooth(duration: 0.25), value: model.healthCount > 0)
-                }
-                .badge(model.healthCount)
-                .tag(SidebarItem.attention)
-                // Only there once something's been copied or used.
-                if !model.document.log.isEmpty || model.selection == .activity {
-                    Label("Activity", systemImage: "clock.arrow.circlepath")
-                        .tag(SidebarItem.activity)
-                        .transition(.opacity)
-                }
-                // Only there when something's waiting to be restored.
-                if !model.document.trashed.isEmpty || model.selection == .trash {
-                    Label("Recently Deleted", systemImage: "trash")
-                        .badge(model.document.trashed.count)
-                        .tag(SidebarItem.trash)
-                        .transition(.opacity)
-                }
+                CategoryGrid()
+                    .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 10, trailing: 0))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .selectionDisabled()
             }
             Section {
                 if model.document.projects.isEmpty {
@@ -189,29 +172,6 @@ struct SidebarView: View {
             }
         }
         .listStyle(.sidebar)
-        // Our own search field. The built-in one moves into the toolbar when the sidebar hides,
-        // and overflows (») while the sidebar animates.
-        .safeAreaInset(edge: .top, spacing: 0) {
-            SidebarSearchField(text: $model.searchText, focused: $searchFocused)
-                .padding(.horizontal, 10)
-                .padding(.top, 2)
-                .padding(.bottom, 6)
-        }
-        .onAppear {
-            // macOS hands focus to the first text field when the window opens. Search shouldn't take it.
-            DispatchQueue.main.async { searchFocused = false }
-        }
-        .background {
-            Button("Find") { searchFocused = true }
-                .keyboardShortcut("f")
-                .opacity(0)
-                .allowsHitTesting(false)
-                .accessibilityHidden(true)
-        }
-        .animation(.smooth, value: attention.isEmpty)
-        // Activity and Recently Deleted come and go with what's in them.
-        .animation(.smooth, value: model.document.log.isEmpty)
-        .animation(.smooth, value: model.document.trashed.isEmpty)
         .safeAreaInset(edge: .bottom, spacing: 0) { footer }
     }
 
@@ -292,14 +252,23 @@ struct SidebarView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
     }
+}
 
-    private func count(_ filter: LibraryFilter) -> Int {
-        switch filter {
-        case .all: model.document.keys.count + model.document.codeSets.count + model.document.kept.count + model.document.secretFiles.count
-        case .keys: model.document.keys.count + model.document.secretFiles.count
-        case .recovery: model.document.codeSets.count + model.document.kept.count
+/// The toolbar's +. In a project it adds a variable to that project.
+struct AddItemButton: View {
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        Button {
+            if case let .project(id)? = model.selection { model.openAddItem(project: id) } else { model.openAddItem() }
+        } label: {
+            Label("Add Item", systemImage: "plus")
         }
+        .help(isProject ? "Add a variable to this project (⌘N)" : "Add Item (⌘N)")
+        .disabled(model.lockedChrome || model.panelOpen)
     }
+
+    private var isProject: Bool { if case .project? = model.selection { true } else { false } }
 }
 
 /// "Slinky 1.1 is available" at the bottom of the sidebar, like Dinky's update banner.
@@ -333,38 +302,6 @@ struct UpdateBanner: View {
         }
         .padding(12)
         .glass(in: .rect(cornerRadius: 14))
-    }
-}
-
-/// Looks like the system search field: a capsule with a magnifying glass, a clear button, Esc to clear.
-struct SidebarSearchField: View {
-    @Binding var text: String
-    var focused: FocusState<Bool>.Binding
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass")
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(.secondary)
-            TextField("", text: $text, prompt: Text("Search"))
-                .textFieldStyle(.plain)
-                .focused(focused)
-                .onExitCommand { text = "" }
-            if !text.isEmpty {
-                Button { text = "" } label: {
-                    Image(systemName: "xmark.circle")
-                        .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-                .help("Clear search")
-            }
-        }
-        .padding(.horizontal, 10)
-        .frame(height: 30)
-        .background(Color.primary.opacity(0.07), in: Capsule())
-        .overlay(Capsule().strokeBorder(focused.wrappedValue ? Color.accentColor.opacity(0.6) : .clear, lineWidth: 1.5))
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Search Slinky")
     }
 }
 

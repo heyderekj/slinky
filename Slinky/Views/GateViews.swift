@@ -51,6 +51,7 @@ struct RecoveryKeySheet: View {
                     .keyboardShortcut(.defaultAction)
                     .disabled(!saved)
             }
+            .dialogButtons()
         }
         .padding(24)
         .frame(width: 520)
@@ -94,6 +95,7 @@ struct LockView: View {
     var autoUnlock = true
     @State private var showRecovery = false
     @State private var recoveryText = ""
+    @State private var recoveryError: String?
 
     var body: some View {
         // The ring scrambles while Touch ID waits; with Reduce Motion it stays still (the button's pulse says it's waiting).
@@ -120,18 +122,29 @@ struct LockView: View {
                 Text("Unlock with your Recovery Key").font(.headline)
                 Text("For a new Mac, a restored backup, or if Touch ID stopped working. Slinky sets up Touch ID again afterwards.")
                     .font(.callout).foregroundStyle(.secondary)
-                TextField("XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX", text: $recoveryText)
+                TextField("Recovery Key", text: $recoveryText, prompt: Text("XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX"))
+                    .labelsHidden()
                     .font(.system(.body, design: .monospaced))
                     .textFieldStyle(.roundedBorder)
+                    .onChange(of: recoveryText) { recoveryError = nil }
+                // Here, not behind the sheet on the lock screen where it couldn't be seen.
+                if let recoveryError {
+                    Text(recoveryError).font(.callout).foregroundStyle(Color.danger)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 HStack {
                     Spacer()
                     Button("Cancel") { showRecovery = false }
+                        .keyboardShortcut(.cancelAction)
+                        .glassButton()
                     Button("Unlock") {
-                        if model.unlock(recoveryText: recoveryText) { showRecovery = false }
+                        if model.unlock(recoveryText: recoveryText) { showRecovery = false } else { recoveryError = model.errorMessage }
                     }
                     .glassProminentButton()
                     .keyboardShortcut(.defaultAction)
+                    .disabled(recoveryText.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
+                .dialogButtons()
             }
             .padding(22)
             .frame(width: 460)

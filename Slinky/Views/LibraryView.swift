@@ -29,9 +29,13 @@ struct LibraryView: View {
         .onChange(of: filter) { show = .all }
         .toolbar {
             // Away while Slinky locks or unlocks, when the toolbar is the locked window's.
+            // Sort and + share one capsule, like Passwords; the details toggle has its own.
+            ToolbarItemGroup(placement: .primaryAction) {
+                if !isEmpty, !model.lockedChrome { sortAndFilter }
+                AddItemButton()
+            }
             if !isEmpty, !model.lockedChrome {
-                ToolbarItem { sortAndFilter }
-                ToolbarItem {
+                ToolbarItem(placement: .primaryAction) {
                     Button { showInspector.toggle() } label: { Label("Details", systemImage: "sidebar.right") }
                         .help(showInspector ? "Hide details" : "Show details")
                 }
@@ -42,14 +46,7 @@ struct LibraryView: View {
                 if let ref = visibleSelection {
                     ItemDetail(ref: ref).id(ref)
                 } else {
-                    // Quiet: this sits in a narrow sidebar.
-                    VStack(spacing: 8) {
-                        Image(systemName: "sidebar.right").font(.system(size: 22)).foregroundStyle(.tertiary)
-                        Text("Select an item to see its details.")
-                            .font(.callout).foregroundStyle(.secondary).multilineTextAlignment(.center)
-                    }
-                    .padding(24)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    NothingSelected(title: "No Item Selected", message: "Select an item to see its details.")
                 }
             }
         }

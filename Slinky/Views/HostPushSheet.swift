@@ -88,12 +88,13 @@ struct HostPushSheet: View {
             HStack {
                 if working { ProgressView().controlSize(.small) }
                 Spacer()
-                Button("Close") { dismiss() }.keyboardShortcut(.cancelAction)
+                Button("Close") { dismiss() }.keyboardShortcut(.cancelAction).glassButton()
                 Button("Send \(chosen.count)…") { send() }
                     .keyboardShortcut(.defaultAction)
                     .glassProminentButton()
                     .disabled(working || chosen.isEmpty || folder == nil || (host.targetLabel != nil && target.trimmingCharacters(in: .whitespaces).isEmpty))
             }
+            .dialogButtons()
         }
         .padding(22)
         .frame(width: 520, height: 600)

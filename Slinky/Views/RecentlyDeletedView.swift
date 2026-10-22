@@ -55,23 +55,23 @@ struct RecentlyDeletedView: View {
 
     private func row(_ entry: TrashEntry) -> some View {
         HStack(spacing: 12) {
-            ServiceIcon(subject: subject(entry.item), size: 28)
+            ServiceIcon(subject: subject(entry.item), size: 32)
             VStack(alignment: .leading, spacing: 2) {
-                Text(entry.item.title).font(.system(size: 13, weight: .semibold))
+                Text(entry.item.title).font(.body.weight(.semibold))
                     .lineLimit(2).truncationMode(.middle).help(entry.item.title)
                 Text("\(kind(entry.item)) · \(Self.goesIn(entry))")
-                    .font(.caption)
+                    .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
             }
             .layoutPriority(1)
             Spacer(minLength: 8)
+            // A quiet text button, like the library's Copy: one glass button per row was a lot of glass.
             Button("Restore") { model.restore(entry.id) }
-                .glassButton()
-                .controlSize(.small)
+                .buttonStyle(.borderless)
                 .fixedSize()
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
         .contextMenu {
             Button("Restore") { model.restore(entry.id) }
             Divider()

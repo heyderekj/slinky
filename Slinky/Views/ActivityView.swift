@@ -63,9 +63,9 @@ struct ActivityView: View {
         let tint = warn ? Color.attention : Color.accentColor
         return HStack(alignment: .top, spacing: 12) {
             Image(systemName: symbol(e.action))
-                .font(.system(size: 13, weight: .semibold))
+                .font(.callout.weight(.semibold))
                 .foregroundStyle(tint)
-                .frame(width: 30, height: 30)
+                .frame(width: 32, height: 32)
                 .background(tint.opacity(0.12), in: .rect(cornerRadius: 8, style: .continuous))
             VStack(alignment: .leading, spacing: 3) {
                 sentence(e)
@@ -75,12 +75,12 @@ struct ActivityView: View {
                     Text(e.detail).font(.callout).foregroundStyle(.secondary).lineLimit(2).truncationMode(.middle)
                 }
             }
-            .padding(.top, 5)
+            .padding(.top, 6)
             .layoutPriority(1)
             Spacer(minLength: 8)
             Text(e.date.formatted(date: .omitted, time: .shortened))
                 .font(.callout).foregroundStyle(.tertiary).monospacedDigit()
-                .padding(.top, 6)
+                .padding(.top, 7)
                 .fixedSize()
         }
         .padding(.vertical, 8)

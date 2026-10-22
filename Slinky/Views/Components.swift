@@ -382,3 +382,20 @@ struct EnvPreview: View {
         return String(repeating: "•", count: masked) + value.dropFirst(masked)
     }
 }
+
+/// The ✕ at the top right of a floating panel. Same as Cancel and esc; a glass circle on Tahoe.
+struct PanelCloseButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Label("Close", systemImage: "xmark")
+                .labelStyle(.iconOnly)
+                .fontWeight(.semibold)
+        }
+        .glassButton()
+        .buttonBorderShape(.circle)
+        .controlSize(.large)
+        .help("Close (esc)")
+    }
+}

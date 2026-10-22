@@ -110,17 +110,7 @@ private struct EditPanel: View {
                 Text(kindLabel).font(.callout).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer(minLength: 12)
-            Button(action: requestClose) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 30, height: 30)
-                    .contentShape(.circle)
-            }
-            .buttonStyle(.plain)
-            .glass(in: .circle, interactive: true)
-            .help("Close (esc)")
-            .accessibilityLabel("Close")
+            PanelCloseButton(action: requestClose)
         }
     }
 
@@ -148,14 +138,14 @@ private struct EditPanel: View {
                 FieldRow("Expires") {
                     HStack {
                         if hasExpiry {
-                            DatePicker("", selection: $expiry, displayedComponents: .date).labelsHidden()
+                            DatePicker("Expiry date", selection: $expiry, displayedComponents: .date).labelsHidden()
                         }
                         Spacer()
-                        Toggle("", isOn: $hasExpiry).labelsHidden().toggleStyle(.switch).controlSize(.small)
+                        Toggle("Expires", isOn: $hasExpiry).labelsHidden().toggleStyle(.switch).controlSize(.small)
                     }
                 }
                 FieldRow("AI agents") {
-                    Picker("", selection: $policy) {
+                    Picker("AI agents", selection: $policy) {
                         ForEach(AgentPolicy.allCases, id: \.self) { Text($0.title).tag($0) }
                     }
                     .labelsHidden()
@@ -169,7 +159,7 @@ private struct EditPanel: View {
             if let item = model.document.kept.first(where: { $0.id == id }) {
                 FieldRow("Name") { plainField($name, prompt: "Apple Account recovery key", max: FieldLimit.name) }
                 FieldRow("Type") {
-                    Picker("", selection: $keptKind) {
+                    Picker("Type", selection: $keptKind) {
                         Text(KeptKind.recoveryKey.title).tag(KeptKind.recoveryKey)
                         Text(KeptKind.setupKey.title).tag(KeptKind.setupKey)
                     }
@@ -205,7 +195,7 @@ private struct EditPanel: View {
                 if replacing {
                     FieldRow("New codes", last: true) {
                         VStack(alignment: .leading, spacing: 6) {
-                            TextField("", text: $newCodes, prompt: Text("Paste the new codes from \(name.isEmpty ? "the website" : name)"), axis: .vertical)
+                            TextField("New codes", text: $newCodes, prompt: Text("Paste the new codes from \(name.isEmpty ? "the website" : name)"), axis: .vertical)
                                 .textFieldStyle(.plain)
                                 .font(.system(size: 13, design: .monospaced))
                                 .lineLimit(3...6)
@@ -273,7 +263,7 @@ private struct EditPanel: View {
         FieldRow(replacing ? "New value" : "Value") {
             if replacing {
                 HStack {
-                    SecureField("", text: $newValue, prompt: Text("Paste the new value"))
+                    SecureField("New value", text: $newValue, prompt: Text("Paste the new value"))
                         .textFieldStyle(.plain)
                         .font(.system(size: 13, design: .monospaced))
                     Button("Keep Current") { replacing = false; newValue = "" }.buttonStyle(.borderless)
@@ -289,10 +279,7 @@ private struct EditPanel: View {
     }
 
     private func plainField(_ text: Binding<String>, prompt: String, mono: Bool = false, max: Int = FieldLimit.note) -> some View {
-        TextField("", text: text, prompt: Text(prompt))
-            .textFieldStyle(.plain)
-            .font(mono ? .system(size: 13, weight: .medium, design: .monospaced) : .body)
-            .limit(text, to: max)
+        PlainField(text: text, prompt: prompt, mono: mono, max: max)
     }
 
     // MARK: Footer
@@ -326,8 +313,9 @@ private struct EditPanel: View {
         HStack(spacing: 10) {
             // Undoable (Recently Deleted keeps it 30 days), so no confirmation.
             Button(deleteButton, role: .destructive) { delete() }
-                .buttonStyle(.borderless)
-                .foregroundStyle(.red)
+                .glassButton()
+                .controlSize(.large)
+                .foregroundStyle(Color.danger)
             Spacer()
             Button("Cancel", action: requestClose)
                 .keyboardShortcut(.cancelAction)
@@ -593,6 +581,27 @@ struct FieldCard<Content: View>: View {
     }
 }
 
+/// A text field in a FieldRow, named after the row for VoiceOver ("Name", "Note"), not after its example text.
+private struct PlainField: View {
+    @Environment(\.fieldRowLabel) private var label
+    @Binding var text: String
+    let prompt: String
+    var mono = false
+    var max: Int
+
+    var body: some View {
+        TextField(label, text: $text, prompt: Text(prompt))
+            .labelsHidden()
+            .textFieldStyle(.plain)
+            .font(mono ? .body.monospaced().weight(.medium) : .body)
+            .limit($text, to: max)
+    }
+}
+
+extension EnvironmentValues {
+    @Entry var fieldRowLabel = ""
+}
+
 struct FieldRow<Content: View>: View {
     let label: String
     var last: Bool
@@ -612,6 +621,7 @@ struct FieldRow<Content: View>: View {
                     .frame(width: 112, alignment: .leading)
                 HStack { content }
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .environment(\.fieldRowLabel, label)
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)

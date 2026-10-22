@@ -35,6 +35,12 @@ extension View {
         }
     }
 
+    /// A dialog's row of buttons: large capsules, all the same height, like Tahoe's own sheets. Cancel uses
+    /// `glassButton()` and the default action `glassProminentButton()`. Capsules work on Sequoia too.
+    func dialogButtons() -> some View {
+        controlSize(.large).buttonBorderShape(.capsule)
+    }
+
     /// An SF Symbol that draws itself in on Tahoe; a plain fade on Sequoia.
     @ViewBuilder
     func drawOnTransition() -> some View {

@@ -41,7 +41,7 @@ struct SlinkyApp: App {
                 .background(WindowOpenerBridge())
                 .background(TransparentTitlebar())
                 .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
-                .containerBackground(for: .window) { WindowGlass() }
+                .containerBackground(Color.surface, for: .window)
                 .environment(model)
         }
         .windowToolbarStyle(.unified(showsTitle: true))
@@ -105,7 +105,6 @@ struct SlinkyApp: App {
                 .environment(model)
                 .environment(prefs)
                 .background(TransparentTitlebar(autosaveName: "SlinkySettingsWindow"))
-                .containerBackground(for: .window) { WindowGlass() }
         }
         // Same chrome as Dinky's Settings: a Window scene with a unified title bar showing the pane's name.
         .windowToolbarStyle(.unified(showsTitle: true))
@@ -117,7 +116,6 @@ struct SlinkyApp: App {
             HelpView()
                 .symbolVariant(.fill)
                 .background(TransparentTitlebar(autosaveName: "SlinkyHelpWindow"))
-                .containerBackground(for: .window) { WindowGlass() }
         }
         .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
@@ -147,8 +145,6 @@ struct TransparentTitlebar: NSViewRepresentable {
         guard let window else { return }
         window.titlebarAppearsTransparent = true
         window.styleMask.insert(.fullSizeContentView)
-        window.isOpaque = false
-        window.backgroundColor = .clear
         if window.frameAutosaveName != autosaveName { window.setFrameAutosaveName(autosaveName) }
     }
 }
