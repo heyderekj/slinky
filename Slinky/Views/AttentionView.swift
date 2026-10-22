@@ -11,6 +11,8 @@ struct AttentionItem: Identifiable {
     let target: SidebarItem
     /// Set for a recovery key with no copy outside Slinky: the row offers Print… and "I Have a Copy".
     var recoveryKeyID: UUID?
+    /// No recent backup: the row offers Export Backup….
+    var isBackup = false
 }
 
 extension AppModel {
@@ -48,6 +50,19 @@ extension AppModel {
                     : "\(key.name) expires in \(days) \(days == 1 ? "day" : "days")",
                 detail: "Make a new one\(key.provider.map { " on \($0)" } ?? ""), then replace it here.",
                 target: .library(.keys)))
+        }
+        // A backup now and then, and always after a new Recovery Key (older backups open only with the old one).
+        let prefs = Preferences.shared
+        let since = prefs.lastBackup ?? prefs.backupClockStart
+        if hasVault, !document.keys.isEmpty || !document.projects.isEmpty || !document.codeSets.isEmpty || !document.kept.isEmpty,
+           prefs.newKeySinceBackup || since < Date.now.addingTimeInterval(-30 * 86_400) {
+            items.append(AttentionItem(
+                id: "backup", symbol: "externaldrive",
+                title: prefs.newKeySinceBackup ? "Make a backup with your new Recovery Key"
+                    : prefs.lastBackup == nil ? "No backup yet" : "No backup in the last 30 days",
+                detail: prefs.newKeySinceBackup ? "Backups made before it open only with your old key."
+                    : "A backup is your vault in one encrypted file, to keep somewhere else, like a USB drive.",
+                target: .attention, isBackup: true))
         }
         return items
     }
@@ -523,7 +538,10 @@ private struct AttentionRow: View {
                 Text(item.detail).font(.callout).foregroundStyle(.secondary).lineLimit(2)
             }
             Spacer(minLength: 8)
-            if let id = item.recoveryKeyID, let kept = model.document.kept.first(where: { $0.id == id }) {
+            if item.isBackup {
+                Button("Export Backup…") { Task { await model.exportBackup() } }
+                    .glassProminentButton()
+            } else if let id = item.recoveryKeyID, let kept = model.document.kept.first(where: { $0.id == id }) {
                 Button("I Have a Copy") { model.markPrinted(id) }
                     .help("You've saved it somewhere else, like on paper or in Apple Passwords")
                 Button("Print…") {

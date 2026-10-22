@@ -30,6 +30,12 @@ final class Preferences {
     var loadWebsiteIcons: Bool { didSet { defaults.set(loadWebsiteIcons, forKey: "loadWebsiteIcons") } }
     /// When Health last looked for saved values outside Slinky. A date only.
     var lastLeakCheck: Date { didSet { defaults.set(lastLeakCheck, forKey: "lastLeakCheck") } }
+    /// The day of the last backup export (a date only, nothing about the vault), and whether the Recovery Key has
+    /// changed since. Health asks for a backup when there's none in 30 days or the key changed.
+    var lastBackup: Date? { didSet { defaults.set(lastBackup, forKey: "lastBackup") } }
+    var newKeySinceBackup: Bool { didSet { defaults.set(newKeySinceBackup, forKey: "newKeySinceBackup") } }
+    /// When Slinky started counting the 30 days for someone who's never exported a backup.
+    var backupClockStart: Date { didSet { defaults.set(backupClockStart, forKey: "backupClockStart") } }
     /// Offer to save a key you copy in another app (it checks the shape only). Off unless turned on.
     var offerToSaveCopies: Bool { didSet { defaults.set(offerToSaveCopies, forKey: "offerToSaveCopies") } }
     /// Mac notifications for expiring keys, codes running low and leaks (names only). Off unless turned on.
@@ -53,6 +59,11 @@ final class Preferences {
         checkForUpdates = defaults.bool(forKey: "checkForUpdates")
         loadWebsiteIcons = defaults.bool(forKey: "loadWebsiteIcons")
         lastLeakCheck = defaults.object(forKey: "lastLeakCheck") as? Date ?? .distantPast
+        lastBackup = defaults.object(forKey: "lastBackup") as? Date
+        newKeySinceBackup = defaults.bool(forKey: "newKeySinceBackup")
+        let clock = defaults.object(forKey: "backupClockStart") as? Date ?? .now
+        if defaults.object(forKey: "backupClockStart") == nil { defaults.set(clock, forKey: "backupClockStart") }
+        backupClockStart = clock
         offerToSaveCopies = defaults.bool(forKey: "offerToSaveCopies")
         reminders = defaults.bool(forKey: "reminders")
         copyCount = defaults.integer(forKey: "copyCount")

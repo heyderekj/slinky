@@ -352,6 +352,8 @@ final class AppModel {
             return nil
         }
         do {
+            // Backups made before now open only with the old key: Health asks for a new one.
+            Preferences.shared.newKeySinceBackup = true
             return try store.replaceRecoveryKey(for: session).display
         } catch {
             show(Self.friendly(error), style: .info)
@@ -385,6 +387,8 @@ final class AppModel {
         current.document = document
         do {
             try store.exportBackup(for: current, to: url)
+            Preferences.shared.lastBackup = Calendar.current.startOfDay(for: .now)
+            Preferences.shared.newKeySinceBackup = false
             show("Backup saved. It opens with your current Recovery Key.")
         } catch {
             show("Couldn't save the backup: \(Self.friendly(error))", style: .info)
@@ -1039,6 +1043,14 @@ final class AppModel {
         Sounds.play(.imported)
         selection = .library(.all)
         return true
+    }
+
+    /// A code crossed off by mistake goes back on the list.
+    func markUnused(_ index: Int, in setID: UUID) {
+        change("Marked as unused.") { doc in
+            guard let s = doc.codeSets.firstIndex(where: { $0.id == setID }) else { return }
+            doc.codeSets[s].used.remove(index)
+        }
     }
 
     func markPrinted(_ id: UUID) {

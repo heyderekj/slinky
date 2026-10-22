@@ -328,6 +328,13 @@ struct ItemDetail: View {
                     .contentTransition(.numericText(value: Double(set.remaining)))
                     .animation(.snappy, value: set.remaining)
             }
+            Section {
+                Button("Print Codes…") {
+                    RecoveryPrinter.print(set.codes.enumerated().map { set.used.contains($0.offset) ? "\($0.element)  (used)" : $0.element }
+                        .joined(separator: "\n"), title: "\(set.account) recovery codes" + (set.username.map { " · \($0)" } ?? ""))
+                }
+                .help("A paper copy, for when your Mac isn't there. Used codes are marked.")
+            }
             RotateRow(subject: set.iconSubject, ref: ref, what: "Codes")
             NoteAndLink(note: set.note, link: set.link)
             Section { Dates(created: set.created, updated: set.regenerated, updatedLabel: "New codes") }
@@ -547,7 +554,7 @@ struct CodeGrid: View {
             ForEach(Array(set.codes.enumerated()), id: \.offset) { index, code in
                 let used = set.used.contains(index)
                 Button {
-                    model.useCode(index, in: set.id)
+                    if !used { model.useCode(index, in: set.id) }
                 } label: {
                     HStack(spacing: 4) {
                         // One line, so every tile is the same height: shrink a little first, then cut in the middle.
@@ -576,8 +583,15 @@ struct CodeGrid: View {
                     .background(Color.paper, in: .rect(cornerRadius: 7))
                 }
                 .buttonStyle(.plain)
-                .disabled(used)
-                .help(used ? "Used" : "Copy and cross off")
+                .help(used ? "Used. Right-click to mark it unused." : "Copy and cross off")
+                // A code copied by mistake can be put back.
+                .contextMenu {
+                    if used {
+                        Button("Mark as Unused") { model.markUnused(index, in: set.id) }
+                    } else {
+                        Button("Copy and Cross Off") { model.useCode(index, in: set.id) }
+                    }
+                }
                 .accessibilityLabel(used ? "\(code), used" : "Copy code \(code)")
             }
         }

@@ -242,9 +242,12 @@ private struct RecoveryKeyPane: View {
                 }
             }
             Section {
-                LabeledContent("Export a backup") {
+                LabeledContent {
                     Button("Export Backup…") { Task { await model.exportBackup() } }
                         .disabled(!model.canExportBackup)
+                } label: {
+                    Text("Export a backup")
+                    Text(Preferences.shared.lastBackup.map { "Last one \($0.formatted(date: .abbreviated, time: .omitted))" } ?? "None yet")
                 }
                 LabeledContent("Restore") {
                     Button("Restore from Backup…") { restoring = true }
