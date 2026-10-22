@@ -407,7 +407,8 @@ private struct AboutPane: View {
 
     private var version: String {
         let info = Bundle.main.infoDictionary
-        return "Version \(info?["CFBundleShortVersionString"] as? String ?? "1.0") (\(info?["CFBundleVersion"] as? String ?? "1"))"
+        // The version people see on the site and in updates; the build number means nothing to them.
+        return "Version \(info?["CFBundleShortVersionString"] as? String ?? "1.0")"
     }
 
     var body: some View {
