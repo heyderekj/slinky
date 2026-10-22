@@ -2,7 +2,8 @@ import SlinkyCoreShared
 import SwiftUI
 
 /// The top of the sidebar, like Apple Passwords: a grid of tiles, each a place with its count. Always all six,
-/// so nothing jumps around as Activity and Recently Deleted fill up. Projects stay a list below.
+/// so nothing jumps around as Activity and Recently Deleted fill up. Projects stay a list below. Names are short
+/// to fit a tile ("Keys"); the toolbar title above the list says the full name ("Keys & Tokens").
 struct CategoryGrid: View {
     @Environment(AppModel.self) private var model
 
@@ -10,7 +11,7 @@ struct CategoryGrid: View {
         Grid(horizontalSpacing: 8, verticalSpacing: 8) {
             GridRow {
                 tile(.library(.all), "All Items", "square.grid.2x2", .accentColor, count: libraryCount(.all))
-                tile(.library(.keys), "Keys & Tokens", "key", Color(nsColor: .systemBlue), count: libraryCount(.keys))
+                tile(.library(.keys), "Keys", "key", Color(nsColor: .systemBlue), count: libraryCount(.keys))
             }
             GridRow {
                 tile(.library(.recovery), "Recovery", "lifepreserver", Color(nsColor: .systemYellow), count: libraryCount(.recovery))
@@ -66,7 +67,7 @@ struct CategoryTile: View {
                         .background(selected ? Color.white : tint, in: .circle)
                     Spacer(minLength: 4)
                     Text(count, format: .number)
-                        .font(.callout.weight(.semibold).monospacedDigit())
+                        .font(.subheadline.weight(.semibold).monospacedDigit())
                         .foregroundStyle(countStyle)
                         .contentTransition(.numericText(value: Double(count)))
                         .animation(.snappy, value: count)
