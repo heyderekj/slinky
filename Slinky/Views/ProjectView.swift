@@ -10,6 +10,8 @@ struct ProjectView: View {
     let projectID: UUID
     @State private var env: AppEnvironment = .local
     @State private var selection: ProjectRow?
+    /// Two or more selected (⌘-click, ⇧-click): the details pane acts on all of them.
+    @State private var several: Set<ProjectRow> = []
     // Only whether the pane is open, like the library's. Nothing about any variable.
     @AppStorage("projectInspector") private var showInspector = true
     @State private var dropTargeted = false
@@ -141,7 +143,12 @@ struct ProjectView: View {
     private func list(_ p: Project) -> some View {
         let secrets = p.variables.filter { !$0.isPlain }
         let plain = p.variables.filter(\.isPlain)
-        return List(selection: $selection) {
+        let picks = Binding<Set<ProjectRow>>(
+            get: { several.count > 1 ? several : Set([selection].compactMap { $0 }) },
+            set: { new in
+                if new.count > 1 { several = new; selection = nil } else { several = []; selection = new.first }
+            })
+        return List(selection: picks) {
             if !p.missing.isEmpty {
                 Section {
                     groupTitle("Missing", note: "Listed in .env.example, not saved in Slinky yet")
@@ -175,6 +182,11 @@ struct ProjectView: View {
                 Button("Delete", role: .destructive) { model.deleteVariable(id, in: projectID) }
             } else if rows.count == 1, case let .missing(name)? = rows.first {
                 Button("Add Value…") { tuckMissing(name) }
+            } else {
+                let ids = variableIDs(rows)
+                if !ids.isEmpty {
+                    Button("Delete \(counted(ids.count, "Variable"))", role: .destructive) { model.deleteVariables(ids, in: projectID); several = [] }
+                }
             }
         } primaryAction: { rows in
             if rows.count == 1, case let .missing(name)? = rows.first { tuckMissing(name) } else { showInspector = true }
@@ -187,7 +199,12 @@ struct ProjectView: View {
             }
         }
         .onDeleteCommand {
-            if case let .variable(id)? = selection { model.deleteVariable(id, in: projectID) }
+            if several.count > 1 {
+                model.deleteVariables(variableIDs(several), in: projectID)
+                several = []
+            } else if case let .variable(id)? = selection {
+                model.deleteVariable(id, in: projectID)
+            }
         }
         .focusedSceneValue(\.selectionActions, variableActions(p))
     }
@@ -197,6 +214,7 @@ struct ProjectView: View {
         guard let reveal = model.revealVariable else { return }
         model.revealVariable = nil
         env = reveal.env
+        several = []
         if let id = reveal.id, project?.variables.contains(where: { $0.id == id }) == true {
             selection = .variable(id)
             showInspector = true
@@ -229,8 +247,29 @@ struct ProjectView: View {
 
     // MARK: Details
 
+    private func variableIDs(_ rows: Set<ProjectRow>) -> Set<UUID> {
+        Set(rows.compactMap { if case let .variable(id) = $0 { id } else { nil } })
+    }
+
     @ViewBuilder
     private func inspector(_ p: Project) -> some View {
+        let ids = variableIDs(several)
+        if several.count > 1, !ids.isEmpty {
+            let chosen = p.variables.filter { ids.contains($0.id) }
+            let policies = Set(chosen.map(\.agentPolicy))
+            MultiSelectionPane(count: ids.count, noun: "variables",
+                               policy: policies.count == 1 ? policies.first : nil,
+                               setPolicy: { model.setPolicy($0, variables: ids, in: projectID) },
+                               makePublic: chosen.contains { !$0.isPlain } ? { model.setPlain(true, variables: ids, in: projectID) } : nil,
+                               makeSecret: chosen.contains(where: \.isPlain) ? { model.setPlain(false, variables: ids, in: projectID) } : nil,
+                               delete: { model.deleteVariables(ids, in: projectID); several = [] })
+        } else {
+            singleInspector(p)
+        }
+    }
+
+    @ViewBuilder
+    private func singleInspector(_ p: Project) -> some View {
         switch selection {
         case let .variable(id)?:
             if let v = p.variables.first(where: { $0.id == id }) {

@@ -937,6 +937,64 @@ final class AppModel {
         }
     }
 
+    // MARK: Several at once
+
+    /// Several library items to Recently Deleted as one change, so one Undo puts them all back.
+    func deleteItems(_ refs: [LibraryRef]) {
+        guard !refs.isEmpty else { return }
+        change("Moved \(counted(refs.count, "item")) to Recently Deleted.", undo: .records(name: "Delete")) { doc in
+            for ref in refs {
+                switch ref {
+                case let .key(id):
+                    if let k = doc.keys.first(where: { $0.id == id }) { doc.keys.removeAll { $0.id == id }; doc.trashed.insert(TrashEntry(.key(k)), at: 0) }
+                case let .codes(id):
+                    if let c = doc.codeSets.first(where: { $0.id == id }) { doc.codeSets.removeAll { $0.id == id }; doc.trashed.insert(TrashEntry(.codes(c)), at: 0) }
+                case let .kept(id):
+                    if let k = doc.kept.first(where: { $0.id == id }) { doc.kept.removeAll { $0.id == id }; doc.trashed.insert(TrashEntry(.kept(k)), at: 0) }
+                case let .file(id):
+                    if let f = doc.secretFiles.first(where: { $0.id == id }) { doc.secretFiles.removeAll { $0.id == id }; doc.trashed.insert(TrashEntry(.file(f)), at: 0) }
+                }
+            }
+        }
+        librarySelection = nil
+    }
+
+    /// Who may use these keys: AI agents, or only you.
+    func setPolicy(_ policy: AgentPolicy, keys ids: Set<UUID>) {
+        change("Updated \(counted(ids.count, "key")).") { doc in
+            for i in doc.keys.indices where ids.contains(doc.keys[i].id) { doc.keys[i].agentPolicy = policy }
+        }
+    }
+
+    func setPolicy(_ policy: AgentPolicy, variables ids: Set<UUID>, in projectID: UUID) {
+        change("Updated \(counted(ids.count, "variable")).") { doc in
+            guard let p = doc.projects.firstIndex(where: { $0.id == projectID }) else { return }
+            for i in doc.projects[p].variables.indices where ids.contains(doc.projects[p].variables[i].id) {
+                doc.projects[p].variables[i].agentPolicy = policy
+            }
+        }
+    }
+
+    func setPlain(_ plain: Bool, variables ids: Set<UUID>, in projectID: UUID) {
+        change(plain ? "Moved \(counted(ids.count, "variable")) to Public settings." : "Moved \(counted(ids.count, "variable")) to Secrets.") { doc in
+            guard let p = doc.projects.firstIndex(where: { $0.id == projectID }) else { return }
+            for i in doc.projects[p].variables.indices where ids.contains(doc.projects[p].variables[i].id) {
+                doc.projects[p].variables[i].isPlain = plain
+            }
+        }
+    }
+
+    /// Several variables to Recently Deleted as one change.
+    func deleteVariables(_ ids: Set<UUID>, in projectID: UUID) {
+        change("Moved \(counted(ids.count, "variable")) to Recently Deleted.", undo: .records(name: "Delete")) { doc in
+            guard let p = doc.projects.firstIndex(where: { $0.id == projectID }) else { return }
+            for v in doc.projects[p].variables where ids.contains(v.id) {
+                doc.trashed.insert(TrashEntry(.variable(v, projectID: projectID, projectName: doc.projects[p].name)), at: 0)
+            }
+            doc.projects[p].variables.removeAll { ids.contains($0.id) }
+        }
+    }
+
     // MARK: Recently Deleted
 
     /// Puts something back where it was. A variable whose project is gone comes back in a project of that name.

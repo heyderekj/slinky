@@ -12,6 +12,8 @@ struct LibraryView: View {
     @AppStorage("librarySort") private var sort: LibrarySort = .added
     /// Not remembered: a filter left on would make items seem to vanish next time.
     @State private var show: LibraryShow = .all
+    /// Two or more selected (⌘-click, ⇧-click). One selection lives in the model, so other screens can set it.
+    @State private var several: Set<LibraryRef> = []
 
     var body: some View {
         @Bindable var model = model
@@ -26,7 +28,9 @@ struct LibraryView: View {
         }
         .screenTitle(filter.title, subtitle: subtitle)
         // A filter belongs to the view it was picked in.
-        .onChange(of: filter) { show = .all }
+        .onChange(of: filter) { show = .all; several = [] }
+        // Something chosen elsewhere (search, Activity) replaces a multiple selection.
+        .onChange(of: model.librarySelection) { _, ref in if ref != nil { several = [] } }
         .toolbar {
             // Away while Slinky locks or unlocks, when the toolbar is the locked window's.
             // Sort and + share one capsule, like Passwords; the details toggle has its own.
@@ -43,7 +47,14 @@ struct LibraryView: View {
         }
         .detailsPane(isPresented: Binding(get: { showInspector && !isEmpty }, set: { showInspector = $0 })) {
             Group {
-                if let ref = visibleSelection {
+                if several.count > 1 {
+                    let keyIDs = Set(several.compactMap { if case let .key(id) = $0 { id } else { nil } })
+                    let policies = Set(model.document.keys.filter { keyIDs.contains($0.id) }.map(\.agentPolicy))
+                    MultiSelectionPane(count: several.count, noun: "items",
+                                       policy: policies.count == 1 ? policies.first : nil,
+                                       setPolicy: keyIDs.count == several.count ? { model.setPolicy($0, keys: keyIDs) } : nil,
+                                       delete: { model.deleteItems(Array(several)); several = [] })
+                } else if let ref = visibleSelection {
                     ItemDetail(ref: ref).id(ref)
                 } else {
                     NothingSelected(title: "No Item Selected", message: "Select an item to see its details.")
@@ -179,7 +190,13 @@ struct LibraryView: View {
 
     private var list: some View {
         @Bindable var model = model
-        return List(selection: $model.librarySelection) {
+        // One pick goes to the model (other screens set it too); two or more stay here.
+        let picks = Binding<Set<LibraryRef>>(
+            get: { several.count > 1 ? several : Set([visibleSelection].compactMap { $0 }) },
+            set: { new in
+                if new.count > 1 { several = new; model.librarySelection = nil } else { several = []; model.librarySelection = new.first }
+            })
+        return List(selection: picks) {
             if showKeys {
                 Section {
                     if filter == .all { groupTitle("Keys & Tokens") }
@@ -212,7 +229,7 @@ struct LibraryView: View {
             if refs.count == 1, let ref = refs.first {
                 ItemActions(ref: ref)
             } else if !refs.isEmpty {
-                Button("Delete \(refs.count) Items", role: .destructive) { refs.forEach(delete) }
+                Button("Delete \(refs.count) Items", role: .destructive) { model.deleteItems(Array(refs)); several = [] }
             }
         } primaryAction: { refs in
             // Double-click opens the full Edit panel. A single click already shows the details on the right.
@@ -225,7 +242,9 @@ struct LibraryView: View {
         // ⌘C (and Edit › Copy) copies the selected item. Return opens the details; Delete moves it to Recently Deleted.
         .onCommand(#selector(NSText.copy(_:))) { visibleSelection.map(copy) }
         .focusedSceneValue(\.selectionActions, SelectionActions.library(visibleSelection, model: model))
-        .onDeleteCommand { visibleSelection.map(delete) }
+        .onDeleteCommand {
+            if several.count > 1 { model.deleteItems(Array(several)); several = [] } else { visibleSelection.map(delete) }
+        }
         .onKeyPress(.return) {
             guard visibleSelection != nil else { return .ignored }
             showInspector = true
