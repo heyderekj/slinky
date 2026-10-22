@@ -3,7 +3,8 @@ import SlinkyCoreShared
 
 /// Health: leaks, things that need a person, and tidying up.
 extension AppModel {
-    func checkForLeaks() async {
+    /// `manual`: started with Check Now (an all-clear result then gets its quiet sound), not the daily check.
+    func checkForLeaks(manual: Bool = false) async {
         guard isUnlocked, !checkingLeaks else { return }
         checkingLeaks = true
         let before = Set(leaks.map(\.id))

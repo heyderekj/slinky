@@ -171,7 +171,7 @@ struct NewProjectPanel: View {
                 Label("Some of these files aren't in .gitignore, so git could commit them. Slinky won't change your files; add them to .gitignore to keep them out of git.",
                       systemImage: "exclamationmark.triangle")
                     .font(.caption)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.attention)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
@@ -181,7 +181,7 @@ struct NewProjectPanel: View {
                                       : "Still missing after import: " + missing.prefix(5).joined(separator: ", ") + (missing.count > 5 ? " and \(missing.count - 5) more" : ""),
                       systemImage: missing.isEmpty ? "checkmark.circle" : "circle.dashed")
                     .font(.caption)
-                    .foregroundStyle(missing.isEmpty ? Color.green : Color.secondary)
+                    .foregroundStyle(missing.isEmpty ? Color.done : Color.secondary)
             }
         }
     }

@@ -51,7 +51,7 @@ struct HostPushSheet: View {
 
             if folder == nil {
                 Label("Link the project folder first (Add › Link Folder…): the host's tool reads its settings from there.", systemImage: "folder.badge.questionmark")
-                    .foregroundStyle(.orange).font(.callout)
+                    .foregroundStyle(Color.attention).font(.callout)
             } else if names.isEmpty {
                 Text("No variables have a \(env.title) value.").foregroundStyle(.secondary)
             } else {
@@ -70,7 +70,7 @@ struct HostPushSheet: View {
                         Spacer()
                         if let remote {
                             Text(remote.contains(name) ? "replaces the host's" : "new on the host")
-                                .font(.caption).foregroundStyle(remote.contains(name) ? Color.orange : Color.secondary)
+                                .font(.caption).foregroundStyle(remote.contains(name) ? Color.attention : Color.secondary)
                         }
                     }
                 }

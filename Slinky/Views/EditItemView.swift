@@ -210,7 +210,7 @@ private struct EditPanel: View {
                                 .font(.system(size: 13, design: .monospaced))
                                 .lineLimit(3...6)
                             Text(parsedCodes.count >= 2 ? "\(parsedCodes.count) codes found. They'll replace the old ones." : "When you make new codes, the old ones stop working.")
-                                .font(.caption).foregroundStyle(parsedCodes.count >= 2 ? Color.green : Color.secondary)
+                                .font(.caption).foregroundStyle(parsedCodes.count >= 2 ? Color.done : Color.secondary)
                         }
                     }
                 }

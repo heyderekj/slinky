@@ -37,7 +37,7 @@ struct RestoreBackupView: View {
             if model.hasVault {
                 Label("This replaces the vault on this Mac. Slinky keeps one copy of it next to the vault file, but to be safe, export it first.",
                       systemImage: "exclamationmark.triangle.fill")
-                    .font(.callout).foregroundStyle(.orange)
+                    .font(.callout).foregroundStyle(Color.attention)
                     .fixedSize(horizontal: false, vertical: true)
                 if model.canExportBackup {
                     Button("Export Current Vault First…") { Task { await model.exportBackup() } }

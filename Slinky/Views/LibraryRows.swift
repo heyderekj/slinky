@@ -77,7 +77,7 @@ struct CodeSetRow: View {
                 .font(.caption.monospacedDigit())
                 .lineLimit(1)
                 .fixedSize()
-                .foregroundStyle(set.isLow ? Color.orange : Color.secondary)
+                .foregroundStyle(set.isLow ? Color.attention : Color.secondary)
         } action: {
             CopyButton(title: "Copy Next") {
                 if let next = set.nextUnused { model.useCode(next, in: set.id) }
@@ -304,7 +304,7 @@ struct ItemDetail: View {
             Section {
                 if set.isLow {
                     Label(set.remaining == 0 ? "No codes left. Make new ones." : "Only \(set.remaining) left. Consider making new ones.", systemImage: "exclamationmark.triangle.fill")
-                        .font(.callout).foregroundStyle(.orange)
+                        .font(.callout).foregroundStyle(Color.attention)
                 }
                 CodeGrid(set: set)
             } header: {

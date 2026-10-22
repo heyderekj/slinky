@@ -87,7 +87,7 @@ struct Chip: View {
         case .live: .red
         case .test, .accent: .accentColor
         case .plain: .secondary
-        case .warn: .orange
+        case .warn: .attention
         }
     }
 
@@ -154,7 +154,7 @@ struct ToastView: View {
         if let toast = model.toast {
             HStack(spacing: 10) {
                 Image(systemName: symbol(toast.style))
-                    .foregroundStyle(toast.style == .success ? Color.green : Color.secondary)
+                    .foregroundStyle(toast.style == .success ? Color.done : Color.secondary)
                 Text(toast.text).font(.callout)
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
@@ -255,7 +255,7 @@ struct CopyButton: View {
                 Text(title)
             } icon: {
                 Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                    .foregroundStyle(copied ? Color.green : Color.primary)
+                    .foregroundStyle(copied ? Color.done : Color.primary)
                     .contentTransition(.symbolEffect(.replace))
             }
         }

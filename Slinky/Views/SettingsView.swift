@@ -112,7 +112,7 @@ private struct GeneralPane: View {
                     get: { prefs.openAtLogin },
                     set: { loginMessage = prefs.setOpenAtLogin($0) }))
                 if let loginMessage {
-                    Text(loginMessage).font(.caption).foregroundStyle(.orange)
+                    Text(loginMessage).font(.caption).foregroundStyle(Color.attention)
                 }
                 Toggle("Show Slinky in the menu bar", isOn: $prefs.showInMenuBar)
             }

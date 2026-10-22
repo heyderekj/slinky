@@ -88,7 +88,7 @@ struct VaultIdleAnimation: View {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 26))
                             .symbolRenderingMode(.palette)
-                            .foregroundStyle(.white, Color.green)
+                            .foregroundStyle(.white, Color.done)
                             .offset(x: 10, y: 10)
                             .scaleEffect(checkFade ? 0.5 : 1)
                             .opacity(checkFade ? 0 : 1)

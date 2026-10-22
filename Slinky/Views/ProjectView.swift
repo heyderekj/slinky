@@ -22,14 +22,14 @@ struct ProjectView: View {
             VStack(spacing: 0) {
                 if !project.missing.isEmpty {
                     HStack(spacing: 10) {
-                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Color.attention)
                         Text("**.env.example** lists \(project.missing.count) variable\(project.missing.count == 1 ? "" : "s") that \(project.missing.count == 1 ? "isn't" : "aren't") saved in Slinky yet.")
                         Spacer()
                     }
                     .font(.callout)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
-                    .background(Color.orange.opacity(0.12), in: .rect(cornerRadius: 11))
+                    .background(Color.attention.opacity(0.12), in: .rect(cornerRadius: 11))
                     .padding([.horizontal, .top], 14)
                 }
                 // Values stay on opaque paper: the .env is a sheet floating on the glass.
@@ -220,7 +220,7 @@ struct ProjectView: View {
                     if variable.isPlain { Chip(text: "public", style: .plain) }
                     if detection?.isLive == true { Chip(text: "live", style: .live) }
                 } else {
-                    Text("not in \(env.title)").font(.callout).foregroundStyle(.orange)
+                    Text("not in \(env.title)").font(.callout).foregroundStyle(Color.attention)
                 }
             }
             .padding(.leading, 12)
@@ -254,7 +254,7 @@ struct ProjectView: View {
             .frame(width: dotsWidth)
             .opacity(narrow ? 0 : 1)
             HStack(spacing: 8) {
-                Text("missing").foregroundStyle(.orange)
+                Text("missing").foregroundStyle(Color.attention)
                 Button("Add") { tuckMissing(name) }
                     .glassButton().controlSize(.small)
             }
@@ -374,7 +374,7 @@ struct VariableInspector: View {
                     .glassButton()
                     .controlSize(.small)
                 } else {
-                    Text("Not set for \(env.title).").foregroundStyle(.orange)
+                    Text("Not set for \(env.title).").foregroundStyle(Color.attention)
                     Button("Set \(env.title) Value…") { draft = ""; editing = true }.glassButton()
                 }
 
@@ -405,7 +405,7 @@ struct VariableInspector: View {
                         }
                     }
                     if !link.trimmingCharacters(in: .whitespaces).isEmpty, Links.normalized(link) == nil {
-                        Text("Only web addresses (https) are kept.").font(.caption2).foregroundStyle(.orange)
+                        Text("Only web addresses (https) are kept.").font(.caption2).foregroundStyle(Color.attention)
                     }
                 }
                 .textFieldStyle(.roundedBorder)

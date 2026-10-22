@@ -159,7 +159,7 @@ struct AttentionView: View {
         case let .commit(_, _, project): "\(what) \(verb) in \(findings.count) \(project) commits"
         default: findings[0].title
         }
-        return HealthRow(symbol: symbol(findings[0]), tint: .orange, title: title, detail: findings[0].detail,
+        return HealthRow(symbol: symbol(findings[0]), tint: Color.attention, title: title, detail: findings[0].detail,
                          path: findings[0].place.isCommit ? findings[0].shownPath : nil) {
             Button("Show") {
                 let urls = Array(Set(findings.map(\.path))).sorted().map { URL(fileURLWithPath: $0) }
@@ -169,7 +169,7 @@ struct AttentionView: View {
     }
 
     private func leakRow(_ finding: LeakFinding) -> some View {
-        HealthRow(symbol: symbol(finding), tint: .orange, title: finding.title, detail: finding.detail, path: finding.shownPath) {
+        HealthRow(symbol: symbol(finding), tint: Color.attention, title: finding.title, detail: finding.detail, path: finding.shownPath) {
             switch finding.place {
             case .envFile:
                 Button("Move into Slinky") { confirmMove = finding }.glassProminentButton()
@@ -238,14 +238,6 @@ struct HealthCheck: Identifiable {
     let status: Status
     let section: Section
 
-    var tint: Color {
-        switch status {
-        case .clear: .green
-        case .found: .orange
-        case .notChecked, .checking, .nothingToCheck: .secondary
-        }
-    }
-
     @MainActor
     static func all(_ model: AppModel) -> [HealthCheck] {
         let leaks = model.leaks
@@ -289,34 +281,54 @@ private struct HealthSummary: View {
     @Environment(AppModel.self) private var model
     let checks: [HealthCheck]
 
+    private enum Center: Equatable { case looking, issues, unchecked, clear }
+
     var body: some View {
         // Tidy-ups are suggestions, not problems: left out here and from the sidebar badge (healthCount), so they agree.
         let issues = checks.filter { $0.section != .tidy }.reduce(0) { n, c in if case let .found(k) = c.status { n + k } else { n } }
         let unchecked = checks.contains { $0.status == .notChecked }
+        let center: Center = model.checkingLeaks ? .looking : issues > 0 ? .issues : unchecked ? .unchecked : .clear
         HStack(spacing: 22) {
             HealthRing(checks: checks, spinning: model.checkingLeaks)
                 .frame(width: 96, height: 96)
                 .overlay {
-                    if model.checkingLeaks {
-                        ProgressView().controlSize(.small)
-                    } else if issues > 0 {
-                        Text("\(issues)").font(.system(size: 30, weight: .semibold, design: .rounded)).foregroundStyle(.orange)
-                            .contentTransition(.numericText())
-                    } else {
-                        Image(systemName: unchecked ? "questionmark" : "checkmark")
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundStyle(unchecked ? Color.secondary : Color.green)
+                    ZStack {
+                        switch center {
+                        case .looking:
+                            ProgressView().controlSize(.small).transition(.opacity)
+                        case .issues:
+                            // Plain ink: the ring already says where; the number just says how many.
+                            Text("\(issues)")
+                                .font(.system(size: 30, weight: .semibold, design: .rounded))
+                                .monospacedDigit()
+                                .contentTransition(.numericText(value: Double(issues)))
+                                .transition(.opacity)
+                        case .unchecked:
+                            Image(systemName: "questionmark")
+                                .font(.system(size: 26, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .transition(.opacity)
+                        case .clear:
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 28, weight: .bold))
+                                .foregroundStyle(Color.done)
+                                .drawOnTransition()
+                        }
                     }
+                    .animation(.smooth(duration: 0.3), value: center)
+                    .animation(.snappy, value: issues)
                 }
             VStack(alignment: .leading, spacing: 6) {
                 Text(headline(issues: issues, unchecked: unchecked))
                     .font(.system(size: 22, weight: .semibold))
+                    .contentTransition(.numericText(value: Double(issues)))
+                    .animation(.snappy, value: issues)
                 Text(subline(issues: issues))
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 HStack(spacing: 10) {
-                    Button(model.checkingLeaks ? "Looking…" : "Check Now") { Task { await model.checkForLeaks() } }
+                    Button(model.checkingLeaks ? "Looking…" : "Check Now") { Task { await model.checkForLeaks(manual: true) } }
                         .glassProminentButton()
                         .disabled(model.checkingLeaks)
                     Text(lastChecked).font(.caption).foregroundStyle(.secondary)
@@ -349,31 +361,44 @@ private struct HealthSummary: View {
     }
 }
 
-/// A ring of segments, one per check, colored by how each went. Turns slowly while a check runs.
+/// A ring of segments, one per check, colored by how each went. The segments draw in one after another when
+/// Health opens and when a check finishes, and the ring turns slowly while a check runs (not with Reduce Motion).
 private struct HealthRing: View {
     let checks: [HealthCheck]
     var spinning: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var turn = 0.0
+    @State private var drawn = false
 
     var body: some View {
         let n = max(checks.count, 1)
         let gap = 0.018
         ZStack {
             ForEach(Array(checks.enumerated()), id: \.element.id) { i, check in
+                let start = Double(i) / Double(n) + gap
+                let end = Double(i + 1) / Double(n) - gap
                 Circle()
-                    .trim(from: Double(i) / Double(n) + gap, to: Double(i + 1) / Double(n) - gap)
+                    .trim(from: start, to: drawn ? end : start + 0.0001)
                     .stroke(color(check), style: StrokeStyle(lineWidth: 9, lineCap: .round))
                     .rotationEffect(.degrees(-90))
-                    .animation(.snappy, value: check.status)
+                    .animation(reduceMotion ? nil : .easeOut(duration: 0.32).delay(Double(i) * 0.045), value: drawn)
+                    .animation(.smooth(duration: 0.35), value: check.status)
             }
         }
         .padding(5)
         .rotationEffect(.degrees(turn))
-        .onChange(of: spinning, initial: true) { _, now in
+        .onAppear { drawn = true }
+        .onChange(of: spinning, initial: true) { was, now in
             if now {
+                guard !reduceMotion else { return }
                 withAnimation(.linear(duration: 2.4).repeatForever(autoreverses: false)) { turn = 360 }
             } else {
                 withAnimation(.snappy) { turn = 0 }
+                // A finished check redraws the ring, one check after another, in its new colors.
+                if was, !reduceMotion {
+                    drawn = false
+                    DispatchQueue.main.async { drawn = true }
+                }
             }
         }
         .accessibilityHidden(true)
@@ -381,14 +406,15 @@ private struct HealthRing: View {
 
     private func color(_ check: HealthCheck) -> Color {
         switch check.status {
-        case .clear: .green.opacity(0.85)
-        case .found: .orange
-        case .notChecked, .checking, .nothingToCheck: .secondary.opacity(0.25)
+        case .clear: Color.done.opacity(0.55)
+        case .found: Color.attention
+        case .notChecked, .checking, .nothingToCheck: Color.secondary.opacity(0.2)
         }
     }
 }
 
-/// One check: what it looked at and what it found. A tile with something found takes you to it.
+/// One check: what it looked at and what it found. Neutral until something's found; a tile with something found
+/// takes you to it.
 private struct HealthTile: View {
     let check: HealthCheck
     let show: () -> Void
@@ -400,9 +426,10 @@ private struct HealthTile: View {
                 HStack {
                     Image(systemName: check.symbol)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(found ? Color.orange : Color.accentColor)
+                        .foregroundStyle(found ? Color.attention : Color.secondary)
                         .frame(width: 30, height: 30)
-                        .background((found ? Color.orange : Color.accentColor).opacity(0.13), in: .rect(cornerRadius: 8, style: .continuous))
+                        .background(found ? Color.attention.opacity(0.14) : Color.secondary.opacity(0.1),
+                                    in: .rect(cornerRadius: 8, style: .continuous))
                     Spacer()
                     status
                 }
@@ -415,8 +442,9 @@ private struct HealthTile: View {
             .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
             .background(Color.paper.opacity(0.6), in: .rect(cornerRadius: 16, style: .continuous))
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(found ? Color.orange.opacity(0.45) : Color.secondary.opacity(0.16), lineWidth: 1))
+                .strokeBorder(found ? Color.attention.opacity(0.38) : Color.secondary.opacity(0.14), lineWidth: 1))
             .contentShape(.rect(cornerRadius: 16))
+            .animation(.smooth(duration: 0.35), value: check.status)
         }
         .buttonStyle(.plain)
         .disabled(!found)
@@ -427,16 +455,17 @@ private struct HealthTile: View {
     private var status: some View {
         switch check.status {
         case .clear:
-            Label("Clear", systemImage: "checkmark.circle.fill")
-                .labelStyle(.titleAndIcon)
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.green)
+            HStack(spacing: 4) {
+                Image(systemName: "checkmark").font(.system(size: 9.5, weight: .bold)).foregroundStyle(Color.done)
+                Text("Clear").font(.caption).foregroundStyle(.secondary)
+            }
         case let .found(n):
             Text("\(n) found")
                 .font(.caption.weight(.semibold))
-                .foregroundStyle(.white)
+                .monospacedDigit()
+                .foregroundStyle(Color.attention)
                 .padding(.horizontal, 8).padding(.vertical, 3)
-                .background(Color.orange, in: .capsule)
+                .background(Color.attention.opacity(0.14), in: .capsule)
         case .checking:
             ProgressView().controlSize(.mini)
         case .notChecked:
@@ -486,9 +515,9 @@ private struct AttentionRow: View {
         HStack(spacing: 12) {
             Image(systemName: item.symbol)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.attention)
                 .frame(width: 32, height: 32)
-                .background(Color.orange.opacity(0.14), in: .rect(cornerRadius: 9))
+                .background(Color.attention.opacity(0.14), in: .rect(cornerRadius: 9))
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title).font(.headline)
                 Text(item.detail).font(.callout).foregroundStyle(.secondary).lineLimit(2)

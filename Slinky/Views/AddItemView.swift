@@ -145,7 +145,7 @@ struct AddItemPanel: View {
                 if let duplicate = duplicateNote {
                     Label(duplicate, systemImage: "exclamationmark.triangle")
                         .font(.callout)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(Color.attention)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 6)
                         .transition(.opacity)

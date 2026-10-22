@@ -21,7 +21,7 @@ struct AgentsPane: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("The slinky command")
                         Text(command == .installed ? "Installed in ~/.local/bin" : command == .stale ? "Points at another copy of Slinky" : "Not installed")
-                            .font(.caption).foregroundStyle(command == .installed ? Color.secondary : Color.orange)
+                            .font(.caption).foregroundStyle(command == .installed ? Color.secondary : Color.attention)
                     }
                 }
                 if command == .installed, !onPath, !hasPathLine {
@@ -87,7 +87,7 @@ struct AgentsPane: View {
             }
 
             if let message {
-                Text(message).font(.callout).foregroundStyle(.orange)
+                Text(message).font(.callout).foregroundStyle(Color.attention)
             }
         }
         .formStyle(.grouped)

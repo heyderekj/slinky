@@ -141,12 +141,14 @@ struct SidebarView: View {
                     .badge(count(filter))
                     .tag(SidebarItem.library(filter))
                 }
-                // Health: always here (leaks can be checked any time); orange when something needs you.
+                // Health: always here (leaks can be checked any time). The count says when something needs you; the
+                // icon stays the same, calm amber then, and plain on the selected row so it never clashes with it.
                 Label {
                     Text("Health")
                 } icon: {
-                    Image(systemName: model.healthCount > 0 ? "exclamationmark.triangle" : "heart.text.square")
-                        .foregroundStyle(model.healthCount > 0 ? Color.orange : Color.secondary)
+                    Image(systemName: "heart.text.square")
+                        .foregroundStyle(model.selection == .attention ? AnyShapeStyle(.primary)
+                                         : model.healthCount > 0 ? AnyShapeStyle(Color.attention) : AnyShapeStyle(.secondary))
                 }
                 .badge(model.healthCount)
                 .tag(SidebarItem.attention)
@@ -208,7 +210,7 @@ struct SidebarView: View {
         } icon: {
             Monogram(text: project.name, size: 18)
         }
-        .badge(missing > 0 ? Text("\(missing) missing").foregroundStyle(.orange) : Text("\(project.variables.count)"))
+        .badge(missing > 0 ? Text("\(missing) missing").foregroundStyle(Color.attention) : Text("\(project.variables.count)"))
         .tag(SidebarItem.project(project.id))
         .listRowBackground(dropTarget == project.id ? RoundedRectangle(cornerRadius: 6).fill(Color.accentColor.opacity(0.18)) : nil)
         .help(missing > 0 ? "\(project.name) is missing \(counted(missing, "variable"))" : "Drop a .env file here to import it")
@@ -299,7 +301,7 @@ struct UpdateBanner: View {
                     switch updater.installState {
                     case .downloading: Text("Downloading…").font(.caption).foregroundStyle(.secondary)
                     case .installing: Text("Installing…").font(.caption).foregroundStyle(.secondary)
-                    case let .failed(message): Text(message).font(.caption).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+                    case let .failed(message): Text(message).font(.caption).foregroundStyle(Color.attention).fixedSize(horizontal: false, vertical: true)
                     case .idle: Text("You're on \(updater.currentVersion).").font(.caption).foregroundStyle(.secondary)
                     }
                 }

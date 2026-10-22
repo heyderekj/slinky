@@ -48,7 +48,7 @@ struct ActivityView: View {
     private func row(_ e: ActivityEntry) -> some View {
         HStack(spacing: 12) {
             Image(systemName: symbol(e.action))
-                .foregroundStyle(e.action == .guarded || e.action == .leakFound ? Color.orange : Color.accentColor)
+                .foregroundStyle(e.action == .guarded || e.action == .leakFound ? Color.attention : Color.accentColor)
                 .frame(width: 22)
             VStack(alignment: .leading, spacing: 2) {
                 Text(sentence(e)).lineLimit(2)

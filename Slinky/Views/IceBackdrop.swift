@@ -62,24 +62,19 @@ extension ShapeStyle where Self == Color {
     /// dark) is deep enough for it, about 4.7:1. The old pale dark-mode accent wasn't.
     static var onAccent: Color { .white }
 
-}
+    // Status colors. Calm on purpose: amber only where something needs a person, the brand's cyan for done.
+    // (DESIGN.md › Color. Not system orange or green, which read as a default UI.)
 
-/// A gentle float for the mark on welcome and lock screens. Off with Reduce Motion.
-struct Floating: ViewModifier {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var up = false
+    /// Something needs you: an expiring key, low codes, a key left in a file. A calm amber, not system orange.
+    static var attention: Color { Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(red: 0.886, green: 0.710, blue: 0.396, alpha: 1)   // #E2B565
+            : NSColor(red: 0.722, green: 0.525, blue: 0.180, alpha: 1)   // #B8862E
+    }) }
 
-    func body(content: Content) -> some View {
-        content
-            .offset(y: up ? -4 : 4)
-            .onAppear {
-                guard !reduceMotion else { return }
-                withAnimation(.easeInOut(duration: 2.8).repeatForever(autoreverses: true)) { up = true }
-            }
-    }
-}
+    /// Done, all clear, used: the glacier cyan accent.
+    static var done: Color { .accentColor }
 
-extension View {
-    func floating() -> some View { modifier(Floating()) }
-
+    /// Live keys, deleting, errors. Rare, so it can stay plain red.
+    static var danger: Color { .red }
 }

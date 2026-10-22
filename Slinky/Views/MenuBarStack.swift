@@ -57,7 +57,7 @@ struct MenuBarStack: View {
                 Text("Slinky").font(.headline)
                 HStack(spacing: 5) {
                     Circle()
-                        .fill(model.isUnlocked ? Color.green : Color.orange)
+                        .fill(model.isUnlocked ? Color.done : Color.secondary)   // locked isn't a warning
                         .frame(width: 6, height: 6)
                     Text(status).font(.caption).foregroundStyle(.secondary)
                 }
