@@ -141,7 +141,7 @@ private struct ImportPanel: View {
             }
             .padding(.top, 14)
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 18)
         .padding(.vertical, 16)
         .frame(width: 680)
         .glass(in: .rect(cornerRadius: 28))

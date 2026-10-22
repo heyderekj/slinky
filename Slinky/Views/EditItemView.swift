@@ -69,7 +69,7 @@ private struct EditPanel: View {
 
             footer.padding(.top, 14)
         }
-        .padding(.horizontal, 24)
+        .padding(.horizontal, 18)
         .padding(.vertical, 16)
         .frame(width: 620)
         .glass(in: .rect(cornerRadius: 28))
