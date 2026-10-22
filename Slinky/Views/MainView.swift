@@ -170,16 +170,8 @@ struct SidebarView: View {
             } header: {
                 Text("Projects")
             }
-            // A history, not a kind of item, so a row rather than a tile. There once something's been copied or used.
-            if !model.document.log.isEmpty || model.selection == .activity {
-                Section {
-                    Label("Activity", systemImage: "clock.arrow.circlepath")
-                        .tag(SidebarItem.activity)
-                }
-            }
         }
         .listStyle(.sidebar)
-        .animation(.smooth, value: model.document.log.isEmpty)
         .safeAreaInset(edge: .bottom, spacing: 0) { footer }
     }
 
@@ -256,6 +248,18 @@ struct SidebarView: View {
             .help("New Project (⇧⌘N)")
             .disabled(model.panelOpen)
             Spacer()
+            // A history, not a kind of item or a place: a quiet button in the footer, like Notes' footer actions,
+            // rather than a row or a tile. Cyan while it's showing.
+            Button {
+                model.selection = .activity
+            } label: {
+                Label("Activity", systemImage: "clock.arrow.circlepath")
+                    .labelStyle(.iconOnly)
+            }
+            .buttonStyle(.borderless)
+            .foregroundStyle(model.selection == .activity ? Color.accentColor : .secondary)
+            .help("Activity: what was copied or used, and by whom")
+            .accessibilityAddTraits(model.selection == .activity ? .isSelected : [])
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
