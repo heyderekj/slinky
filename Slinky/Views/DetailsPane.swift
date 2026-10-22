@@ -7,9 +7,11 @@ import SwiftUI
 /// content must be (once as the content's inset, once as its own column), so at the window's smaller sizes the
 /// content demanded more than the window had: the left sidebar was squeezed and pushed off the left edge, or the
 /// inspector stopped short of the right one. This pane is plain layout: its width comes out of the list, and the
-/// numbers always fit (left sidebar ~258 + content 300 + details 280 + insets < the 880 minimum).
+/// numbers always fit (left sidebar ~260 + content 300 + details 280–340 + insets ≤ the window).
 extension View {
-    func detailsPane<Pane: View>(isPresented: Binding<Bool>, width: CGFloat = 280, @ViewBuilder pane: () -> Pane) -> some View {
+    /// 340 wide, so its left edge lines up with the toolbar's search field above it. In a window too small for
+    /// that and the list's 300, it narrows, down to 280.
+    func detailsPane<Pane: View>(isPresented: Binding<Bool>, width: CGFloat = 340, @ViewBuilder pane: () -> Pane) -> some View {
         modifier(DetailsPaneLayout(isPresented: isPresented.wrappedValue, width: width, pane: pane()))
     }
 
@@ -35,8 +37,21 @@ private struct PaneGlass: View {
 
 private struct DetailsPaneLayout<Pane: View>: ViewModifier {
     let isPresented: Bool
-    let width: CGFloat
+    let idealWidth: CGFloat
     let pane: Pane
+    @State private var available: CGFloat = 0
+
+    init(isPresented: Bool, width: CGFloat, pane: Pane) {
+        self.isPresented = isPresented
+        self.idealWidth = width
+        self.pane = pane
+    }
+
+    /// The ideal width, unless the content would drop below its 300.
+    private var width: CGFloat {
+        guard available > 0 else { return idealWidth }
+        return min(idealWidth, max(280, available - 300 - paneInset * 2))
+    }
 
     func body(content: Content) -> some View {
         // Like the left sidebar on Tahoe, the panel floats over the content rather than sitting beside it: the
@@ -44,6 +59,7 @@ private struct DetailsPaneLayout<Pane: View>: ViewModifier {
         // panel in while the list's rows make room, instead of rebuilding a row of views.
         content
             .shrinkable()
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { available = $0 }
             .safeAreaPadding(.trailing, isPresented ? width + paneInset : 0)
             .overlay(alignment: .trailing) {
                 // Always there, slid off the edge when closed. Adding and removing it made the glass play its own
