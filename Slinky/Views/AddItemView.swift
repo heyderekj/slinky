@@ -819,12 +819,45 @@ struct AddItemPanel: View {
 
 // MARK: Small parts
 
-/// The reassurance in every panel footer. Readable, not fine print.
+/// The reassurance in every panel footer: a quiet capsule with a small glacier lock. Click it for where things
+/// are kept, in the same words as the website's FAQ (honest and plain, no promise beyond that).
 struct EncryptedNote: View {
+    @State private var open = false
+    @State private var hovering = false
+
     var body: some View {
-        Label("Encrypted on this Mac", systemImage: "lock.shield")
-            .font(.callout)
-            .foregroundStyle(.secondary)
+        Button { open.toggle() } label: {
+            HStack(spacing: 7) {
+                Image(systemName: "lock")
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(Color.onAccent)
+                    .frame(width: 20, height: 20)
+                    .background(Color.accentColor, in: .circle)
+                Text("Encrypted on this Mac")
+                    .font(.callout)
+                    .foregroundStyle(hovering ? .primary : .secondary)
+            }
+            .padding(.leading, 4)
+            .padding(.trailing, 12)
+            .padding(.vertical, 4)
+            .background(Color.primary.opacity(hovering ? 0.08 : 0.05), in: .capsule)
+            .contentShape(.capsule)
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering = $0 }
+        .animation(.easeOut(duration: 0.12), value: hovering)
+        .help("Where your things are kept")
+        .popover(isPresented: $open, arrowEdge: .top) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Where it's kept").font(.headline)
+                Text("In one encrypted file on your Mac. The key that opens it is protected by your Mac's Secure Enclave and opened with Touch ID. A printed Recovery Key is the backup.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(14)
+            .frame(width: 300)
+        }
     }
 }
 
