@@ -14,6 +14,8 @@ struct VaultFile: Codable {
     /// AES-GCM (combined) of the JSON VaultDocument.
     var payload: Data
     var saved: Date
+    /// When the Recovery Key was last made (added in 1.5), so a synced Mac takes the newer one.
+    var recoverySet: Date?
 }
 
 /// An unlocked vault. Holds the vault key in memory until it's locked (dropped).
@@ -45,7 +47,7 @@ public final class VaultStore: @unchecked Sendable {
         let recovery = RecoveryKey.generate()
         let raw = vaultKey.withUnsafeBytes { Data($0) }
         let file = VaultFile(enclaveWrappedKey: try enclave.wrap(raw), recoveryWrappedKey: try recovery.wrap(raw),
-                             payload: try seal(document, with: vaultKey), saved: .now)
+                             payload: try seal(document, with: vaultKey), saved: .now, recoverySet: .now)
         try write(file)
         return (VaultSession(vaultKey: vaultKey, document: document), recovery)
     }
@@ -77,6 +79,7 @@ public final class VaultStore: @unchecked Sendable {
         let raw = session.vaultKey.withUnsafeBytes { Data($0) }
         file.recoveryWrappedKey = try recovery.wrap(raw)
         file.saved = .now
+        file.recoverySet = .now
         try write(file)
         return recovery
     }
@@ -105,6 +108,62 @@ public final class VaultStore: @unchecked Sendable {
                              payload: backup.payload, saved: .now)
         try write(file)
         return VaultSession(vaultKey: vaultKey, document: document)
+    }
+
+    // MARK: Sync
+
+    /// The copy that goes in a sync folder: the same file as a backup (no Touch ID key, so it opens only with the
+    /// Recovery Key or on a Mac that already holds the vault key). No new crypto.
+    public func syncCopy(for session: VaultSession) throws -> Data {
+        let current = try read()
+        let copy = VaultFile(enclaveWrappedKey: Data(), recoveryWrappedKey: current.recoveryWrappedKey,
+                             payload: try seal(session.document, with: session.vaultKey), saved: .now,
+                             recoverySet: current.recoverySet)
+        return try JSONEncoder.vault.encode(copy)
+    }
+
+    /// Opens a sync copy with this vault's key. nil when it's a different vault (made with another key), which
+    /// needs its Recovery Key and `adopt` instead.
+    public func openSyncCopy(_ data: Data, session: VaultSession) throws -> VaultDocument? {
+        let copy = try decode(data)
+        return try? open(copy.payload, with: session.vaultKey)
+    }
+
+    /// If the sync copy carries a newer Recovery Key (made on another Mac), this Mac takes it too, so every copy
+    /// opens with the same printed key. Returns whether it changed.
+    @discardableResult
+    public func takeNewerRecoveryKey(from data: Data) throws -> Bool {
+        let copy = try decode(data)
+        var file = try read()
+        guard let theirs = copy.recoverySet, theirs > (file.recoverySet ?? .distantPast),
+              copy.recoveryWrappedKey != file.recoveryWrappedKey else { return false }
+        file.recoveryWrappedKey = copy.recoveryWrappedKey
+        file.recoverySet = theirs
+        try write(file)
+        return true
+    }
+
+    /// Makes a synced vault this Mac's own: opened with its Recovery Key, wrapped for Touch ID here, with this Mac's
+    /// items (`merging`) folded in. The vault it replaces is kept as `vault.slinky.previous`, and this Mac's old
+    /// Recovery Key stops working. Throws `wrongRecoveryKey` without touching anything if the key doesn't fit.
+    public func adopt(syncCopy data: Data, recovery: RecoveryKey, merging local: VaultDocument?) throws -> VaultSession {
+        let copy = try decode(data)
+        let raw = try recovery.unwrap(copy.recoveryWrappedKey)
+        let key = SymmetricKey(data: raw)
+        var document = try open(copy.payload, with: key)
+        if let local { document = VaultMerge.merge(document, local) }
+        let file = VaultFile(enclaveWrappedKey: try enclave.wrap(raw), recoveryWrappedKey: copy.recoveryWrappedKey,
+                             payload: try seal(document, with: key), saved: .now, recoverySet: copy.recoverySet)
+        try write(file)
+        return VaultSession(vaultKey: key, document: document)
+    }
+
+    private func decode(_ data: Data) throws -> VaultFile {
+        let file: VaultFile
+        do { file = try JSONDecoder.vault.decode(VaultFile.self, from: data) }
+        catch { throw VaultError.badFormat("not a Slinky vault") }
+        guard file.format == "slinky-vault", file.version == 1 else { throw VaultError.badFormat("unknown version \(file.version)") }
+        return file
     }
 
     /// Whether a file is a Slinky vault or backup, without opening it.

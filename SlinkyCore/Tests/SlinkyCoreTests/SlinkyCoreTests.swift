@@ -233,6 +233,34 @@ struct VaultTests {
         #expect(try newMac.unlock(recovery: recovery).document == session.document)
     }
 
+    @Test func syncCopyOpensHereAndAdoptsElsewhere() throws {
+        let store = VaultStore(url: tempURL(), enclave: SoftwareWrapper())
+        var (session, recovery) = try store.create()
+        session.document.keys.append(Key(name: "SYNCED_KEY", value: "sk_test_EXAMPLE_sync"))
+        try store.save(session)
+        let copy = try store.syncCopy(for: session)
+        #expect(!String(decoding: copy, as: UTF8.self).contains("EXAMPLE_sync"))
+        #expect(try store.openSyncCopy(copy, session: session)?.keys.first?.name == "SYNCED_KEY")
+
+        // Another Mac with its own vault and its own item: adopting merges both, under the synced key.
+        let other = VaultStore(url: tempURL(), enclave: SoftwareWrapper())
+        var (otherSession, otherRecovery) = try other.create()
+        otherSession.document.keys.append(Key(name: "OTHER_MAC_KEY", value: "EXAMPLE_other"))
+        try other.save(otherSession)
+        #expect(try other.openSyncCopy(copy, session: otherSession) == nil)   // a different vault
+        #expect(throws: VaultError.wrongRecoveryKey) { try other.adopt(syncCopy: copy, recovery: otherRecovery, merging: otherSession.document) }
+        let adopted = try other.adopt(syncCopy: copy, recovery: recovery, merging: otherSession.document)
+        #expect(Set(adopted.document.keys.map(\.name)) == ["SYNCED_KEY", "OTHER_MAC_KEY"])
+        #expect(try other.unlock(context: nil).document == adopted.document)
+        #expect(try other.openSyncCopy(copy, session: adopted) != nil)
+        #expect(throws: VaultError.wrongRecoveryKey) { try other.unlock(recovery: otherRecovery) }
+
+        // A new Recovery Key made on the first Mac reaches the second through the copy.
+        let newKey = try store.replaceRecoveryKey(for: session)
+        #expect(try other.takeNewerRecoveryKey(from: try store.syncCopy(for: session)))
+        #expect(try other.unlock(recovery: newKey).document == adopted.document)
+    }
+
     @Test func wrongRecoveryKeyFails() throws {
         let store = VaultStore(url: tempURL(), enclave: SoftwareWrapper())
         _ = try store.create()
@@ -481,6 +509,111 @@ struct FolderChangesTests {
     @Test func emptySummary() {
         #expect(FolderChanges.Summary().text == "Nothing to change")
     }
+}
+
+@Suite("Sync merge")
+struct SyncMergeTests {
+    let t0 = Date(timeIntervalSince1970: 1_800_000_000)
+    func at(_ minutes: Double) -> Date { t0.addingTimeInterval(minutes * 60) }
+
+    private func base() -> VaultDocument {
+        var doc = VaultDocument()
+        doc.keys = [Key(name: "A_KEY", value: "EXAMPLE_a", now: t0), Key(name: "B_KEY", value: "EXAMPLE_b", now: t0)]
+        doc.codeSets = [CodeSet(account: "GitHub", codes: ["aaaa-EXMP", "bbbb-EXMP", "cccc-EXMP"], now: t0)]
+        doc.projects = [Project(name: "harbor", variables: [Variable(name: "API", values: [.local: "EXAMPLE"], now: t0)], now: t0)]
+        return doc
+    }
+
+    @Test func editsOnBothSidesBothSurvive() {
+        let start = base()
+        var mine = start, theirs = start
+        mine.keys[0].value = "EXAMPLE_mine"; mine.stampChanges(since: start, now: at(1))
+        theirs.keys[1].value = "EXAMPLE_theirs"; theirs.stampChanges(since: start, now: at(2))
+        theirs.keys.insert(Key(name: "NEW_KEY", value: "EXAMPLE_new", now: at(2)), at: 0)
+        let merged = VaultMerge.merge(mine, theirs)
+        #expect(merged.keys.first { $0.name == "A_KEY" }?.value == "EXAMPLE_mine")
+        #expect(merged.keys.first { $0.name == "B_KEY" }?.value == "EXAMPLE_theirs")
+        #expect(merged.keys.contains { $0.name == "NEW_KEY" })
+        #expect(VaultMerge.merge(merged, merged) == merged)
+    }
+
+    @Test func theNewerEditOfTheSameItemWins() {
+        let start = base()
+        var mine = start, theirs = start
+        mine.keys[0].value = "EXAMPLE_older"; mine.stampChanges(since: start, now: at(1))
+        theirs.keys[0].value = "EXAMPLE_newer"; theirs.stampChanges(since: start, now: at(5))
+        #expect(VaultMerge.merge(mine, theirs).keys[0].value == "EXAMPLE_newer")
+        #expect(VaultMerge.merge(theirs, mine).keys[0].value == "EXAMPLE_newer")
+    }
+
+    @Test func deleteVersusEdit() {
+        let start = base()
+        // Deleted after the other Mac's edit: stays deleted.
+        var mine = start, theirs = start
+        theirs.keys[0].value = "EXAMPLE_edit"; theirs.stampChanges(since: start, now: at(1))
+        let key = mine.keys.removeFirst(); mine.trashed = [TrashEntry(.key(key), deletedAt: at(2))]; mine.stampChanges(since: start, now: at(2))
+        var merged = VaultMerge.merge(mine, theirs)
+        #expect(!merged.keys.contains { $0.name == "A_KEY" })
+        #expect(merged.trashed.count == 1)
+        // Edited after the deletion: the edit wins and it leaves Recently Deleted.
+        var later = start
+        later.keys[0].value = "EXAMPLE_late"; later.stampChanges(since: start, now: at(3))
+        merged = VaultMerge.merge(mine, later)
+        #expect(merged.keys.first { $0.name == "A_KEY" }?.value == "EXAMPLE_late")
+        #expect(merged.trashed.isEmpty)
+    }
+
+    @Test func deletedForGoodNeverComesBack() {
+        let start = base()
+        var mine = start
+        mine.keys.removeAll { $0.name == "B_KEY" }
+        mine.stampChanges(since: start, now: at(1))
+        #expect(mine.removed?.count == 1)
+        let merged = VaultMerge.merge(mine, start)
+        #expect(!merged.keys.contains { $0.name == "B_KEY" })
+        #expect(VaultMerge.merge(start, mine).keys.contains { $0.name == "B_KEY" } == false)
+    }
+
+    @Test func restoringAfterADeleteWins() {
+        let start = base()
+        var deleted = start
+        let key = deleted.keys.removeFirst(); deleted.trashed = [TrashEntry(.key(key), deletedAt: at(1))]
+        deleted.stampChanges(since: start, now: at(1))
+        var restored = deleted
+        restored.keys.insert(restored.trashed.removeFirst().item.keyValue!, at: 0)
+        restored.stampChanges(since: deleted, now: at(2))
+        let merged = VaultMerge.merge(deleted, restored)
+        #expect(merged.keys.contains { $0.name == "A_KEY" })
+        #expect(merged.trashed.isEmpty)
+    }
+
+    @Test func usedCodesAndHistoryCombine() {
+        let start = base()
+        var mine = start, theirs = start
+        mine.codeSets[0].used.insert(0); mine.stampChanges(since: start, now: at(1))
+        theirs.codeSets[0].used.insert(2); theirs.stampChanges(since: start, now: at(2))
+        mine.log = [ActivityEntry(action: .copied, names: ["A_KEY"], date: at(1))]
+        theirs.log = [ActivityEntry(action: .copied, names: ["B_KEY"], date: at(2))]
+        let merged = VaultMerge.merge(mine, theirs)
+        #expect(merged.codeSets[0].used == [0, 2])
+        #expect(merged.log.map { $0.names[0] } == ["B_KEY", "A_KEY"])
+    }
+
+    @Test func variablesMergeInsideAProject() {
+        let start = base()
+        var mine = start, theirs = start
+        mine.projects[0].variables.append(Variable(name: "MINE", values: [.local: "EXAMPLE"], now: at(1)))
+        mine.stampChanges(since: start, now: at(1))
+        theirs.projects[0].variables[0].setValue("EXAMPLE_prod", in: .production)
+        theirs.stampChanges(since: start, now: at(2))
+        let merged = VaultMerge.merge(mine, theirs)
+        #expect(Set(merged.projects[0].variables.map(\.name)) == ["API", "MINE"])
+        #expect(merged.projects[0].variables.first { $0.name == "API" }?.value(in: .production) == "EXAMPLE_prod")
+    }
+}
+
+extension TrashedItem {
+    var keyValue: Key? { if case let .key(k) = self { k } else { nil } }
 }
 
 @Suite("Import")

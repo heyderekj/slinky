@@ -89,6 +89,8 @@ public struct Project: Codable, Identifiable, Hashable, Sendable {
     /// Names listed in the project's .env.example that Slinky doesn't hold yet are "missing".
     public var expected: [String]
     public var created: Date
+    /// When the project itself (name, folders, expected names) last changed, for sync. nil means never since 1.5.
+    public var modified: Date?
 
     public init(name: String, folders: [String] = [], variables: [Variable] = [], expected: [String] = [], now: Date = .now) {
         self.id = UUID()
@@ -156,6 +158,8 @@ public struct CodeSet: Codable, Identifiable, Hashable, Sendable {
     /// person, so it beats any guess. nil means Slinky works it out from the name and link.
     public var service: String?
     public var created: Date
+    /// When it last changed, for sync (added in 1.5).
+    public var modified: Date?
 
     public init(account: String, username: String? = nil, codes: [String], regenerated: Date? = .now,
                 note: String? = nil, link: String? = nil, now: Date = .now) {
@@ -203,6 +207,8 @@ public struct KeptItem: Codable, Identifiable, Hashable, Sendable {
     public var service: String?
     public var printedCopy: Bool
     public var created: Date
+    /// When it last changed, for sync (added in 1.5).
+    public var modified: Date?
 
     public init(label: String, kind: KeptKind = .other, from: String? = nil, value: String, note: String? = nil,
                 link: String? = nil, now: Date = .now) {
@@ -228,6 +234,18 @@ public enum TrashedItem: Codable, Hashable, Sendable {
     case project(Project)
     /// Added in 1.4.
     case file(SecretFile)
+
+    /// The id of what was removed.
+    public var itemID: UUID {
+        switch self {
+        case .key(let k): k.id
+        case .codes(let c): c.id
+        case .kept(let k): k.id
+        case .variable(let v, _, _): v.id
+        case .project(let p): p.id
+        case .file(let f): f.id
+        }
+    }
 
     public var title: String {
         switch self {
@@ -271,6 +289,9 @@ public struct VaultDocument: Codable, Sendable, Equatable {
     // Added in 1.4.
     /// Small secret files: App Store Connect .p8 keys, certificates, service-account JSON.
     public var files: [SecretFile]?
+    // Added in 1.5.
+    /// Ids of things deleted for good, and when, so syncing never brings them back. Ids only, nothing else.
+    public var removed: [UUID: Date]?
 
     public init() {}
 
