@@ -836,12 +836,12 @@ a.b-pill--gh:focus-visible { outline: 2px solid var(--brand); outline-offset: 2p
 .sync__device svg { width: 12px; height: 12px; color: var(--brand); }
 @media (max-width: 620px) { .sync__macs { grid-template-columns: 1fr; } .sync__mac:last-child { display: none; } }
 .keycap--lg { min-width: 38px; text-align: center; font-size: 12px; padding: 3px 7px; }
-.b-tile--full { grid-column: 1 / -1; }
 /* The keyboard tile: just ⌘ and 1–7, as Mac keys. */
-.b-kb { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
-.kkey { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 7px; font: 500 14px var(--app-font); color: var(--ink); background: var(--card); box-shadow: 0 0 0 0.5px var(--hair), 0 1.5px 0 color-mix(in oklch, var(--ink) 20%, transparent); }
-.kkey--wide { width: 46px; font-size: 16px; }
+.b-kb { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 6px; }
+.kkey { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; font: 500 14px var(--app-font); color: var(--ink); background: var(--card); box-shadow: 0 0 0 0.5px var(--hair), 0 1.5px 0 color-mix(in oklch, var(--ink) 20%, transparent); }
+.kkey--wide { width: 36px; font-size: 15px; }
 .kkey.is-down { background: var(--brand); color: #fff; box-shadow: 0 0 0 0.5px var(--brand); transform: translateY(1px); }
-@media (max-width: 760px) { .b-kb { justify-content: flex-start; } }
+/* Open source sits beside the keyboard tile, two columns wide (three-column grid only). */
+@media (min-width: 901px) { .b-tile--row2 { grid-column: span 2; align-content: center; } }
 /* Phone width: the panels' footers keep just the button. */
 @media (max-width: 560px) { .review .encnote, .sync .encnote { display: none; } }
