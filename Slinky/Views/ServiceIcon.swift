@@ -64,7 +64,7 @@ struct LogoTile: View {
         .frame(width: size, height: size)
         .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.35), .black.opacity(0.14)], startPoint: .top, endPoint: .bottom),
                                     lineWidth: max(0.5, size * 0.02)))
-        .shadow(color: .black.opacity(0.12), radius: size * 0.08, y: size * 0.04)
+        .shadow(color: .black.opacity(0.1), radius: size * 0.03, y: size * 0.02)
     }
 }
 

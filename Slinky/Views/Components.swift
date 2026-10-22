@@ -59,7 +59,8 @@ struct Monogram: View {
         .frame(width: size, height: size)
         .overlay(shape.strokeBorder(LinearGradient(colors: [.white.opacity(0.45), .black.opacity(0.12)], startPoint: .top, endPoint: .bottom),
                                     lineWidth: max(0.5, size * 0.02)))
-        .shadow(color: bottom.opacity(0.35), radius: size * 0.1, y: size * 0.05)
+        // A small neutral shadow, like the logo tiles: no colored glow.
+        .shadow(color: .black.opacity(0.1), radius: size * 0.03, y: size * 0.02)
         .accessibilityHidden(true)
     }
 }
@@ -241,7 +242,7 @@ struct KeyholeMark: View {
             .rotationEffect(.degrees(-8))
         }
         .frame(width: size, height: size)
-        .shadow(color: .black.opacity(0.12), radius: size * 0.08, y: size * 0.05)
+        .shadow(color: .black.opacity(0.1), radius: size * 0.03, y: size * 0.02)
         .accessibilityHidden(true)
     }
 }
