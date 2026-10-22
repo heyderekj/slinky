@@ -186,9 +186,17 @@ private struct ScreenTitle: ViewModifier {
     let title: String
     let subtitle: String
 
+    /// A long project name would widen the toolbar and squeeze the sidebar, so the title keeps its start and end
+    /// ("northwind-industries-…-monorepo"); the full name is in Edit Project.
+    static func short(_ title: String, max: Int = 32) -> String {
+        guard title.count > max else { return title }
+        let tail = max / 3
+        return String(title.prefix(max - tail - 1)) + "…" + String(title.suffix(tail))
+    }
+
     func body(content: Content) -> some View {
         content
-            .navigationTitle(model.lockedChrome ? "Slinky" : title)
+            .navigationTitle(model.lockedChrome ? "Slinky" : Self.short(title))
             .navigationSubtitle(model.lockedChrome ? "Locked" : subtitle)
     }
 }

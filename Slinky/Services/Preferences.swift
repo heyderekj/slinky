@@ -9,6 +9,11 @@ final class Preferences {
     static let autoLockChoices = [5, 10, 30, 60]
     static let clipboardChoices = [30, 60, 90, 120]
 
+    /// "30 seconds", "2 minutes": the same words in Settings and wherever Slinky says when the clipboard clears.
+    static func clipboardDuration(_ seconds: Int) -> String {
+        seconds >= 120 && seconds % 60 == 0 ? "\(seconds / 60) minutes" : "\(seconds) seconds"
+    }
+
     private let defaults = UserDefaults.standard
 
     /// Lock after this many minutes without using the Mac.

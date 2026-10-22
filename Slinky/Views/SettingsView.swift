@@ -192,7 +192,7 @@ private struct SecurityPane: View {
             Section {
                 Picker("Clear the clipboard after", selection: $prefs.clipboardSeconds) {
                     ForEach(Preferences.clipboardChoices, id: \.self) { s in
-                        Text(s == 120 ? "2 minutes" : "\(s) seconds").tag(s)
+                        Text(Preferences.clipboardDuration(s)).tag(s)
                     }
                 }
             } header: {

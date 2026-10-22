@@ -57,14 +57,18 @@ struct RecentlyDeletedView: View {
             ServiceIcon(subject: subject(entry.item), size: 28)
             VStack(alignment: .leading, spacing: 2) {
                 Text(entry.item.title).font(.system(size: 13, weight: .semibold))
-                Text("\(kind(entry.item)) · Deleted \(entry.deletedAt.formatted(.relative(presentation: .named)))")
+                    .lineLimit(2).truncationMode(.middle).help(entry.item.title)
+                Text("\(kind(entry.item)) · \(Self.goesIn(entry))")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(1)
             }
-            Spacer()
+            .layoutPriority(1)
+            Spacer(minLength: 8)
             Button("Restore") { model.restore(entry.id) }
                 .glassButton()
                 .controlSize(.small)
+                .fixedSize()
         }
         .padding(.vertical, 4)
         .contextMenu {
@@ -93,6 +97,19 @@ struct RecentlyDeletedView: View {
         case .file(let f): f.iconSubject
         case .variable(let v, _, _): v.iconSubject
         case .project(let p): IconSubject(name: p.name, choice: .monogram)
+        }
+    }
+}
+
+extension RecentlyDeletedView {
+    /// When it's deleted for good, which is the thing worth knowing: "Deleted for good in 3 days", "…tomorrow".
+    static func goesIn(_ entry: TrashEntry, now: Date = .now) -> String {
+        let end = entry.deletedAt.addingTimeInterval(Double(VaultDocument.trashDays) * 86_400)
+        let days = Int((end.timeIntervalSince(now) / 86_400).rounded(.up))
+        switch days {
+        case ...0: return "Deleted for good today"
+        case 1: return "Deleted for good tomorrow"
+        default: return "Deleted for good in \(days) days"
         }
     }
 }

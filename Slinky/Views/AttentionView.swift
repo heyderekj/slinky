@@ -38,7 +38,7 @@ extension AppModel {
                 detail: "If you lose this Mac and your Recovery Key, a printed copy is your way back in.",
                 target: .library(.recovery), recoveryKeyID: item.id))
         }
-        let soon = Date.now.addingTimeInterval(14 * 86_400)
+        let soon = Calendar.current.date(byAdding: .day, value: ExpiryChip.soonDays, to: .now) ?? .now
         for key in document.keys {
             guard let expires = key.expires, expires < soon else { continue }
             let days = Calendar.current.dateComponents([.day], from: .now, to: expires).day ?? 0
@@ -77,7 +77,12 @@ struct AttentionView: View {
                     if !model.leaks.isEmpty {
                         group("Found outside Slinky", id: HealthCheck.Section.leaks,
                               footer: "Only the names are shown. Slinky looked for exact copies of what you've saved.") {
-                            ForEach(model.leaks) { finding in leakRow(finding) }
+                            ForEach(leakEntries) { entry in
+                                switch entry {
+                                case let .one(finding): leakRow(finding)
+                                case let .many(findings, _): groupRow(findings)
+                                }
+                            }
                         }
                     }
                     if !items.isEmpty {
@@ -109,6 +114,57 @@ struct AttentionView: View {
             Button("Move into Slinky") { if let f = confirmMove { model.moveIntoSlinky(f) }; confirmMove = nil }
         } message: {
             Text("Its variables are saved to the project, a .env.example with names only is written if there isn't one, and the file goes to the Trash. Use slinky run to start your app with them.")
+        }
+    }
+
+    /// One row per place, except AI conversations (per tool) and commits (per project), which can number in the
+    /// hundreds when a key was pasted into many chats: those become one row each, "in 12 Claude Code conversations".
+    private enum LeakEntry: Identifiable {
+        case one(LeakFinding)
+        case many([LeakFinding], key: String)
+        var id: String {
+            switch self {
+            case let .one(f): "one-\(f.path)-\(f.names.joined(separator: ","))-\(f.title)"
+            case let .many(_, key): key
+            }
+        }
+    }
+
+    private var leakEntries: [LeakEntry] {
+        var singles: [LeakEntry] = []
+        var groups: [String: [LeakFinding]] = [:]
+        var order: [String] = []
+        for f in model.leaks {
+            let key: String? = switch f.place {
+            case let .transcript(tool, _): "conversations-\(tool)"
+            case let .commit(repo, _, _): "commits-\(repo)"
+            default: nil
+            }
+            guard let key else { singles.append(.one(f)); continue }
+            if groups[key] == nil { order.append(key) }
+            groups[key, default: []].append(f)
+        }
+        return singles + order.map { key in
+            let g = groups[key] ?? []
+            return g.count == 1 ? .one(g[0]) : .many(g, key: key)
+        }
+    }
+
+    private func groupRow(_ findings: [LeakFinding]) -> some View {
+        let names = Array(Set(findings.flatMap(\.names))).sorted()
+        let what = names.count == 1 ? names[0] : "\(names[0]) and \(names.count - 1) more"
+        let verb = names.count == 1 ? "is" : "are"
+        let title: String = switch findings[0].place {
+        case let .transcript(tool, _): "\(what) \(verb) in \(findings.count) \(tool) conversations"
+        case let .commit(_, _, project): "\(what) \(verb) in \(findings.count) \(project) commits"
+        default: findings[0].title
+        }
+        return HealthRow(symbol: symbol(findings[0]), tint: .orange, title: title, detail: findings[0].detail,
+                         path: findings[0].place.isCommit ? findings[0].shownPath : nil) {
+            Button("Show") {
+                let urls = Array(Set(findings.map(\.path))).sorted().map { URL(fileURLWithPath: $0) }
+                NSWorkspace.shared.activateFileViewerSelecting(urls)
+            }
         }
     }
 

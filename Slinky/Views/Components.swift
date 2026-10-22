@@ -104,16 +104,25 @@ struct RevealField: View {
     var value: String
     var mono = true
     @State private var revealed = false
+    @State private var showAll = false
 
     var body: some View {
         HStack(spacing: 8) {
+            // Always one line, so hovering never moves what's below it. The whole value is one click away.
             Text(revealed ? value : Peek.of(value))
                 .font(.system(size: 12.5, design: mono ? .monospaced : .default))
                 .textSelection(.enabled)
-                .lineLimit(revealed ? 4 : 1)
+                .lineLimit(1)
                 .truncationMode(.middle)
             Spacer(minLength: 0)
-            if !revealed {
+            if revealed {
+                Button { showAll = true } label: {
+                    Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: 10, weight: .semibold))
+                }
+                .buttonStyle(.borderless)
+                .help("Show the whole value")
+                .accessibilityLabel("Show the whole value")
+            } else {
                 Text("Hover to show").font(.caption2).foregroundStyle(.tertiary)
             }
         }
@@ -122,6 +131,17 @@ struct RevealField: View {
         .background(.background.secondary, in: .rect(cornerRadius: 9))
         .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.separator.opacity(0.6), lineWidth: 0.5))
         .onHover { revealed = $0 }
+        .popover(isPresented: $showAll, arrowEdge: .bottom) {
+            ScrollView {
+                Text(value)
+                    .font(.system(size: 12.5, design: mono ? .monospaced : .default))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(14)
+            }
+            .frame(width: 420)
+            .frame(maxHeight: 260)
+        }
         // The same peek sighted people get: never the end of a value too short to hide it.
         .accessibilityLabel(Peek.of(value).hasPrefix("••••••••") ? "Hidden value" : "Hidden value, ends in \(String(value.suffix(4)))")
     }
@@ -136,6 +156,8 @@ struct ToastView: View {
                 Image(systemName: symbol(toast.style))
                     .foregroundStyle(toast.style == .success ? Color.green : Color.secondary)
                 Text(toast.text).font(.callout)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 if toast.canUndo {
                     Button("Undo") { model.undo() }
                         .glassButton()
@@ -144,7 +166,10 @@ struct ToastView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .glass(in: .capsule)
+            .frame(maxWidth: 560)
+            // A pill for one line; when a long name makes it two, the ends stay round without ballooning.
+            .glass(in: .rect(cornerRadius: 19, style: .continuous))
+            .padding(.horizontal, 24)
             .padding(.bottom, 22)
             .transition(.move(edge: .bottom).combined(with: .opacity))
             .id(toast.id)
@@ -240,4 +265,21 @@ struct CopyButton: View {
 /// "1 variable", "1,284 variables". Plain English plurals for counts shown to people.
 func counted(_ n: Int, _ one: String, _ many: String? = nil) -> String {
     "\(n.formatted()) \(n == 1 ? one : many ?? one + "s")"
+}
+
+/// How long the things people type can be. Generous, but not unbounded: past these, rows, headers and menus stop
+/// being readable, and nothing real is longer. Values (the secrets themselves) aren't limited here.
+enum FieldLimit {
+    static let name = 200
+    static let note = 2_000
+    static let link = 2_048
+}
+
+extension View {
+    /// Keeps a text field to `max` characters as it's typed or pasted.
+    func limit(_ text: Binding<String>, to max: Int) -> some View {
+        onChange(of: text.wrappedValue) { _, new in
+            if new.count > max { text.wrappedValue = String(new.prefix(max)) }
+        }
+    }
 }

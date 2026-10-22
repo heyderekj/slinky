@@ -75,6 +75,13 @@ struct QuickItem: Identifiable, Hashable {
 
 extension AppModel {
     var quickItems: [QuickItem] {
+        if let cached = quickItemsCache { return cached }
+        let items = buildQuickItems()
+        quickItemsCache = items
+        return items
+    }
+
+    private func buildQuickItems() -> [QuickItem] {
         var items: [QuickItem] = []
         for key in document.keys {
             items.append(QuickItem(id: key.id.uuidString, kind: .key, title: key.name, subtitle: key.provider ?? "Key",
@@ -149,7 +156,7 @@ struct QuickAccessView: View {
         return VStack(spacing: 0) {
             HStack(spacing: 12) {
                 Image(systemName: "magnifyingglass").font(.title3).foregroundStyle(.secondary)
-                TextField("Search keys, codes and notes", text: $query)
+                TextField("Search keys, codes and variables", text: $query)
                     .textFieldStyle(.plain)
                     .font(.system(size: 20))
                     .focused($focused)
@@ -227,7 +234,8 @@ struct QuickAccessView: View {
                     ServiceIcon(subject: item.icon, size: 38)
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.title).font(.system(size: 15, weight: .semibold, design: item.mono ? .monospaced : .default))
-                        Text(item.subtitle).font(.callout).foregroundStyle(.secondary)
+                            .lineLimit(2).truncationMode(.middle)
+                        Text(item.subtitle).font(.callout).foregroundStyle(.secondary).lineLimit(1)
                     }
                 }
                 Text(Peek.of(item.value))

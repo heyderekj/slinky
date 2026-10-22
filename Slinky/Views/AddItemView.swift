@@ -251,6 +251,7 @@ struct AddItemPanel: View {
                 } else if !isSeed {
                     TextField("", text: nameBinding, prompt: Text(namePrompt))
                         .textFieldStyle(.plain)
+                        .limit($name, to: FieldLimit.name)
                         .font(.system(size: 17, weight: .semibold, design: nameIsCode ? .monospaced : .default))
                         .focused($focus, equals: .name)
                 }
@@ -454,6 +455,7 @@ struct AddItemPanel: View {
 
     private var noteField: some View {
         TextField("", text: $note, prompt: Text("Note, like what it's for or who gave it to you"), axis: .vertical)
+            .limit($note, to: FieldLimit.note)
             .textFieldStyle(.plain)
             .lineLimit(1...4)
             .focused($focus, equals: .note)
@@ -875,6 +877,7 @@ struct ChipField: View {
             TextField("", text: $text, prompt: Text(prompt))
                 .textFieldStyle(.plain)
                 .frame(width: 150)
+                .limit($text, to: FieldLimit.link)
         }
         .font(.callout)
         .padding(.horizontal, 11)

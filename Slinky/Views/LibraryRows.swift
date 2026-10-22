@@ -18,9 +18,11 @@ struct ItemRowLayout<Tags: View, Action: View>: View {
         HStack(spacing: 10) {
             ServiceIcon(subject: icon, size: 28)
             VStack(alignment: .leading, spacing: 1) {
+                // Cut in the middle: names that share a start (…_EU_WEST, …_US_EAST) stay tellable apart.
                 Text(title)
                     .font(.system(size: 13, weight: .medium, design: mono ? .monospaced : .default))
                     .lineLimit(1)
+                    .truncationMode(.middle)
                 Text(subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
             }
             .layoutPriority(1)
@@ -119,11 +121,19 @@ struct KeptRow: View {
 }
 
 enum ExpiryChip {
-    /// Only when it matters: expired, or due within 30 days.
+    /// "Expiring soon" everywhere (this chip, the library filter, Health): within 14 days.
+    static let soonDays = 14
+
+    static func isSoon(_ date: Date?, now: Date = .now) -> Bool {
+        guard let date else { return false }
+        return date < (Calendar.current.date(byAdding: .day, value: soonDays, to: now) ?? now)
+    }
+
+    /// Only when it matters: expired, or due within 14 days.
     static func text(_ date: Date?) -> String? {
         guard let date else { return nil }
         if date < .now { return "expired" }
-        guard date < Calendar.current.date(byAdding: .day, value: 30, to: .now) ?? .now else { return nil }
+        guard isSoon(date) else { return nil }
         return "expires \(date.formatted(.relative(presentation: .named)))"
     }
 }
@@ -220,20 +230,27 @@ struct ItemDetail: View {
         }
     }
 
+    @ViewBuilder
+    private func fileButtons(_ file: SecretFile) -> some View {
+        if let text = file.text {
+            CopyButton(title: "Copy Contents") { model.copy(text, label: file.name) }.glassProminentButton().fixedSize()
+        }
+        Button("Save a Copy…") { FileExport.save(file) }.glassButton().fixedSize()
+    }
+
     private func fileDetail(_ file: SecretFile) -> some View {
         DetailScaffold(icon: file.iconSubject, title: file.name, kind: file.kind.title, ref: ref) {
             Section {
-                LabeledContent("File", value: file.filename)
+                // File names differ at the end (version, extension), so they're cut in the middle.
+                LabeledContent("File") { Text(file.filename).lineLimit(1).truncationMode(.middle).help(file.filename) }
                 LabeledContent("Size", value: ByteCountFormatter.string(fromByteCount: Int64(file.data.count), countStyle: .file))
                 ForEach(file.fields.keys.sorted(), id: \.self) { key in
                     LabeledContent(key) { Text(file.fields[key] ?? "").textSelection(.enabled).font(.system(.body, design: .monospaced)) }
                 }
-                HStack(spacing: 8) {
-                    if let text = file.text {
-                        CopyButton(title: "Copy Contents") { model.copy(text, label: file.name) }.glassProminentButton()
-                    }
-                    Button("Save a Copy…") { FileExport.save(file) }.glassButton()
-                    Spacer(minLength: 0)
+                // Side by side when the panel has room, one above the other when it doesn't.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 8) { fileButtons(file); Spacer(minLength: 0) }
+                    VStack(alignment: .leading, spacing: 8) { fileButtons(file) }
                 }
             }
             if file.kind == .appStoreConnectKey {
@@ -511,8 +528,12 @@ struct CodeGrid: View {
                     model.useCode(index, in: set.id)
                 } label: {
                     HStack(spacing: 4) {
+                        // One line, so every tile is the same height: shrink a little first, then cut in the middle.
                         Text(code)
                             .font(.system(size: 12, design: .monospaced))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                            .truncationMode(.middle)
                             .strikethrough(used)
                             .foregroundStyle(used ? Color.secondary.opacity(0.6) : Color.primary)
                         if used {

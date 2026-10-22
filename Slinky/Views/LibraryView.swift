@@ -64,7 +64,7 @@ struct LibraryView: View {
 
     /// The items to list, filtered by `show` and in `sort` order.
     private var keys: [Key] {
-        let soon = Calendar.current.date(byAdding: .day, value: 30, to: .now) ?? .now
+        let soon = Calendar.current.date(byAdding: .day, value: ExpiryChip.soonDays, to: .now) ?? .now
         let shown = model.document.keys.filter { key in
             switch show {
             case .all: true
@@ -379,7 +379,7 @@ enum LibraryShow: String, CaseIterable {
         switch self {
         case .all: "here"
         case .live: "a live key."
-        case .expiring: "expiring in the next 30 days."
+        case .expiring: "expiring in the next \(ExpiryChip.soonDays) days."
         case .low: "running low."
         }
     }

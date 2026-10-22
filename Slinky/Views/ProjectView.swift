@@ -197,7 +197,7 @@ struct ProjectView: View {
                 .frame(width: numberWidth, alignment: .trailing).padding(.trailing, 0)
             Text(variable.name)
                 .font(.system(size: 12.5, weight: .semibold, design: .monospaced))
-                .lineLimit(1).truncationMode(.tail)
+                .lineLimit(1).truncationMode(.middle)
                 .padding(.leading, 14)
                 .frame(width: keyWidth, alignment: .leading)
             HStack(spacing: 0) {

@@ -89,6 +89,7 @@ struct NewProjectPanel: View {
                 TextField("", text: Binding(get: { name }, set: { name = $0; nameTouched = true }),
                           prompt: Text("Project name, like Slinky"))
                     .textFieldStyle(.plain)
+                    .limit($name, to: FieldLimit.name)
                     .font(.system(size: 20, weight: .semibold))
                     .focused($nameFocused)
             }

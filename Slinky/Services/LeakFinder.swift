@@ -14,6 +14,8 @@ struct LeakFinding: Identifiable, Hashable, Sendable {
         case transcript(tool: String, path: String)
         /// Shell history: one click removes those lines.
         case history(path: String)
+
+        var isCommit: Bool { if case .commit = self { true } else { false } }
     }
 
     let place: Place

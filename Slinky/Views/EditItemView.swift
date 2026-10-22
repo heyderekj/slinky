@@ -143,7 +143,7 @@ private struct EditPanel: View {
         switch target {
         case let .key(id):
             if let key = model.document.keys.first(where: { $0.id == id }) {
-                FieldRow("Name") { plainField($name, prompt: "GITHUB_TOKEN", mono: true) }
+                FieldRow("Name") { plainField($name, prompt: "GITHUB_TOKEN", mono: true, max: FieldLimit.name) }
                 valueRow(current: key.value)
                 FieldRow("Expires") {
                     HStack {
@@ -167,7 +167,7 @@ private struct EditPanel: View {
             }
         case let .kept(id):
             if let item = model.document.kept.first(where: { $0.id == id }) {
-                FieldRow("Name") { plainField($name, prompt: "Apple Account recovery key") }
+                FieldRow("Name") { plainField($name, prompt: "Apple Account recovery key", max: FieldLimit.name) }
                 FieldRow("Type") {
                     Picker("", selection: $keptKind) {
                         Text(KeptKind.recoveryKey.title).tag(KeptKind.recoveryKey)
@@ -178,7 +178,7 @@ private struct EditPanel: View {
                     .fixedSize()
                     Spacer(minLength: 0)
                 }
-                FieldRow("Website or app") { plainField($from, prompt: "Optional") }
+                FieldRow("Website or app") { plainField($from, prompt: "Optional", max: FieldLimit.name) }
                 valueRow(current: item.value)
                 serviceRow
                 FieldRow("Note") { plainField($note, prompt: "Optional, like where the printed copy is") }
@@ -186,8 +186,8 @@ private struct EditPanel: View {
             }
         case let .codes(id):
             if let set = model.document.codeSets.first(where: { $0.id == id }) {
-                FieldRow("Account") { plainField($name, prompt: "GitHub") }
-                FieldRow("Username") { plainField($from, prompt: "Optional") }
+                FieldRow("Account") { plainField($name, prompt: "GitHub", max: FieldLimit.name) }
+                FieldRow("Username") { plainField($from, prompt: "Optional", max: FieldLimit.name) }
                 serviceRow
                 FieldRow("Note") { plainField($note, prompt: "Optional, like which account they belong to") }
                 linkRow(last: false)
@@ -217,7 +217,7 @@ private struct EditPanel: View {
             }
         case let .file(id):
             if let file = model.document.secretFiles.first(where: { $0.id == id }) {
-                FieldRow("Name") { plainField($name, prompt: "App Store Connect API key") }
+                FieldRow("Name") { plainField($name, prompt: "App Store Connect API key", max: FieldLimit.name) }
                 FieldRow("File") { Text(file.filename).foregroundStyle(.secondary); Spacer(minLength: 0) }
                 if file.kind == .appStoreConnectKey {
                     FieldRow("Issuer ID") { plainField($issuerID, prompt: "From App Store Connect › Users and Access › Integrations", mono: true) }
@@ -228,7 +228,7 @@ private struct EditPanel: View {
                 linkRow
             }
         case .project:
-            FieldRow("Name") { plainField($name, prompt: "Slinky") }
+            FieldRow("Name") { plainField($name, prompt: "Slinky", max: FieldLimit.name) }
             FieldRow("Folders", last: true) {
                 VStack(alignment: .leading, spacing: 6) {
                     if folders.isEmpty {
@@ -264,7 +264,7 @@ private struct EditPanel: View {
 
     private func linkRow(last: Bool) -> some View {
         FieldRow("Link", last: last) {
-            plainField($link, prompt: "Optional, like the page where you manage it")
+            plainField($link, prompt: "Optional, like the page where you manage it", max: FieldLimit.link)
                 .onSubmit { link = Links.normalized(link) ?? link }
         }
     }
@@ -288,10 +288,11 @@ private struct EditPanel: View {
         }
     }
 
-    private func plainField(_ text: Binding<String>, prompt: String, mono: Bool = false) -> some View {
+    private func plainField(_ text: Binding<String>, prompt: String, mono: Bool = false, max: Int = FieldLimit.note) -> some View {
         TextField("", text: text, prompt: Text(prompt))
             .textFieldStyle(.plain)
             .font(mono ? .system(size: 13, weight: .medium, design: .monospaced) : .body)
+            .limit(text, to: max)
     }
 
     // MARK: Footer

@@ -102,8 +102,13 @@ final class AppModel {
     /// the first frame: the whole window is in place before the keyhole opens, and nothing loads in afterwards.
     var lockedChrome: Bool { curtain == .closing }
     var document = VaultDocument() {
-        didSet { IconResolver.shared.load(siteIcons: document.siteIcons) }
+        didSet {
+            IconResolver.shared.load(siteIcons: document.siteIcons)
+            quickItemsCache = nil   // rebuilt on the next search; also drops values from memory when locking
+        }
     }
+    /// Quick Access and search items, built once per change of the vault rather than on every keystroke.
+    @ObservationIgnored var quickItemsCache: [QuickItem]?
     var selection: SidebarItem? = .library(.all)
     var showTuck = false
     var showNewProject = false
@@ -925,7 +930,7 @@ final class AppModel {
     }
 
     /// "The clipboard clears in 60 seconds." with the current setting.
-    static var clipboardNote: String { "The clipboard clears in \(Preferences.shared.clipboardSeconds) seconds." }
+    static var clipboardNote: String { "The clipboard clears in \(Preferences.clipboardDuration(Preferences.shared.clipboardSeconds))." }
 
     func show(_ text: String, canUndo: Bool = false, style: Toast.Style? = nil) {
         // Undoable toasts are removals.
