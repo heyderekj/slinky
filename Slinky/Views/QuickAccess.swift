@@ -81,6 +81,17 @@ extension AppModel {
         return items
     }
 
+    /// The last three things copied, from Activity, so the list survives quitting and relaunching. Only items
+    /// still in Slinky; values come from the vault, never from the log (which holds names only).
+    var recentlyCopied: [RecentItem] {
+        let copied = Set(document.log.filter { $0.action == .copied }.prefix(50).flatMap(\.names))
+        guard !copied.isEmpty else { return recent }
+        let items = recentFirst(quickItems).filter { copied.contains($0.title) && !$0.value.isEmpty }
+        var seen = Set<String>()
+        let found = items.filter { seen.insert($0.title).inserted }.prefix(3).map { RecentItem(title: $0.title, provider: $0.provider, value: $0.value) }
+        return found.isEmpty ? recent : Array(found)
+    }
+
     /// Quick Access with nothing typed: what was copied most recently first, then everything else as it was.
     func recentFirst(_ items: [QuickItem]) -> [QuickItem] {
         var last: [String: Date] = [:]

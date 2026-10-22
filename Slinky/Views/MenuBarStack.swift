@@ -21,7 +21,16 @@ struct MenuBarStack: View {
                 }
             }
             .padding(6)
-            if model.isUnlocked, !model.recent.isEmpty {
+            // Health, when something there needs you.
+            if model.isUnlocked, model.healthCount > 0 {
+                Divider().padding(.horizontal, 12)
+                MenuRow(icon: "heart", title: model.healthCount == 1 ? "1 thing to look at in Health" : "\(model.healthCount) things to look at in Health") {
+                    open()
+                    model.selection = .attention
+                }
+                .padding(6)
+            }
+            if model.isUnlocked, !model.recentlyCopied.isEmpty {
                 Divider().padding(.horizontal, 12)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Recently Copied")
@@ -29,7 +38,7 @@ struct MenuBarStack: View {
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 10)
                         .padding(.top, 4)
-                    ForEach(model.recent) { item in
+                    ForEach(model.recentlyCopied) { item in
                         RecentRow(item: item) { model.copy(item.value, label: item.title, provider: item.provider) }
                     }
                 }
