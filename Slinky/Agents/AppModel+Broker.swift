@@ -19,7 +19,44 @@ extension AppModel {
         case .request: return requestSecret(request, peer: peer)
         case .guardDiff: return await guardDiff(request, peer: peer)
         case .notarize: return await notarizeProfile(request, peer: peer)
+        case .lock:
+            guard hasVault else { return .fail("Slinky has no vault yet.") }
+            guard isUnlocked else { return Broker.Response(ok: true, message: "Slinky is already locked.") }
+            lockAnimated()
+            return Broker.Response(ok: true, message: "Locked.")
+        case .open: return openFromCommandLine(request)
+        case .names: return projectNames(request)
         }
+    }
+
+    /// `slinky open [NAME]`: brings Slinky forward on the item called NAME, or the project for this folder.
+    private func openFromCommandLine(_ request: Broker.Request) -> Broker.Response {
+        NSApp.activate()
+        openMainWindow?()
+        guard isUnlocked else { return Broker.Response(ok: true, message: "Opened Slinky. It's locked.") }
+        if let name = request.name, !name.isEmpty {
+            guard reveal(ActivityEntry(action: .other, names: [name])) else { return .fail("Nothing called \(name) in Slinky.") }
+            return Broker.Response(ok: true, message: "Showing \(name).")
+        }
+        if let p = project(for: request.cwd) {
+            selection = .project(p.id)
+            return Broker.Response(ok: true, message: "Showing \(p.name).")
+        }
+        return Broker.Response(ok: true, message: "Opened Slinky.")
+    }
+
+    /// `slinky example`: a project's variable names, never values, to write a .env.example.
+    private func projectNames(_ request: Broker.Request) -> Broker.Response {
+        guard isUnlocked else { return .fail("Slinky is locked. Unlock it to see names.") }
+        let proj = request.project.flatMap { name in document.projects.first { $0.name.caseInsensitiveCompare(name) == .orderedSame } }
+            ?? project(for: request.cwd)
+        guard let proj else {
+            return .fail(request.project.map { "No Slinky project called \($0)." } ?? "This folder isn't linked to a Slinky project.")
+        }
+        var r = Broker.Response(ok: true)
+        r.project = proj.name
+        r.names = (proj.variables.map(\.name) + proj.expected).uniqued()
+        return r
     }
 
     // MARK: Names

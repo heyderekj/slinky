@@ -20,6 +20,9 @@ nonisolated enum Command {
         case "status": return statusCommand()
         case "guard": return guardCommand(args)
         case "hook": return hookCommand(args)
+        case "lock": return simple(Broker.Request(op: .lock), launch: false)
+        case "open": return simple(Broker.Request(op: .open, name: args.first))
+        case "example": return exampleCommand(args)
         case "project-for-dir": return projectForDirCommand()
         case "notarize-profile": return notarizeCommand(args)
         case "request": return requestCommand(args)
@@ -47,7 +50,9 @@ nonisolated enum Command {
       slinky check [FOLDER]        Which variables a project still needs.
       slinky request NAME [REASON] Ask Slinky to open Add Item for NAME, so you paste it there.
       slinky guard                 Check staged changes for saved secrets.  slinky guard install  adds a git hook.
-      slinky hook zsh|bash         Shell code that loads a linked project's variables when you cd into it.
+      slinky hook zsh|bash|fish    Shell code that loads a linked project's variables when you cd into it.
+      slinky example [--project NAME] [--out FILE] [--force]   Write a .env.example with the names only.
+      slinky open [NAME]           Show Slinky, on NAME or this folder's project.   slinky lock   Lock it.
       slinky notarize-profile NAME [--item KEY]   Save a notarytool profile from an App Store Connect key.
       slinky mcp                   The MCP server for AI agents (names only; they run commands with slinky run).
       slinky status | detect VALUE | version
@@ -234,6 +239,29 @@ nonisolated enum Command {
         return 1
     }
 
+    private static func simple(_ request: Broker.Request, launch: Bool = true) -> Int32 {
+        let r = send(request, launch: launch)
+        guard r.ok else { return fail(r.message?.isEmpty == false ? r.message : "Slinky isn't running.") }
+        if let message = r.message { print(message) }
+        return 0
+    }
+
+    /// A .env.example with the project's names and no values: safe to commit. Never overwrites without --force.
+    private static func exampleCommand(_ args: [String]) -> Int32 {
+        guard let o = parse(args) else { return fail("usage: slinky example [--project NAME] [--out FILE] [--force]", code: 64) }
+        let out = o.out ?? ".env.example"
+        if FileManager.default.fileExists(atPath: out), !o.rest.contains("--force") {
+            return fail("\(out) already exists. Add --force to replace it.")
+        }
+        let r = send(Broker.Request(op: .names, project: o.project))
+        guard r.ok, let names = r.names else { return fail(r.message) }
+        let text = "# Names for \(r.project ?? "this project"), from Slinky. No values: they stay in Slinky.\n"
+            + names.map { "\($0)=" }.joined(separator: "\n") + "\n"
+        guard FileManager.default.createFile(atPath: out, contents: Data(text.utf8)) else { return fail("Couldn't write \(out).") }
+        print("Wrote \(out) with \(names.count) \(names.count == 1 ? "name" : "names") and no values.")
+        return 0
+    }
+
     private static func requestCommand(_ args: [String]) -> Int32 {
         guard let name = args.first else { return fail("usage: slinky request NAME [REASON]", code: 64) }
         let r = send(Broker.Request(op: .request, name: name, reason: args.dropFirst().joined(separator: " ")))
@@ -336,8 +364,23 @@ nonisolated enum Command {
             }
             PROMPT_COMMAND="_slinky_load${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
             """)
+        case "fish":
+            print("""
+            # Slinky: load a linked project's variables when you cd into it, unload them when you leave.
+            function _slinky_load --on-variable PWD
+              set -l p (slinky project-for-dir 2>/dev/null)
+              test "$p" = "$_SLINKY_PROJECT"; and return
+              if set -q _SLINKY_NAMES
+                for n in (string split ' ' -- $_SLINKY_NAMES); set -e $n; end
+                set -e _SLINKY_NAMES
+              end
+              set -g _SLINKY_PROJECT $p
+              test -n "$p"; and slinky env --export | source
+            end
+            _slinky_load
+            """)
         default:
-            return fail("usage: slinky hook zsh|bash  (then add  eval \"$(slinky hook zsh)\"  to ~/.zshrc)", code: 64)
+            return fail("usage: slinky hook zsh|bash|fish  (then add  eval \"$(slinky hook zsh)\"  to ~/.zshrc, or  slinky hook fish | source  to config.fish)", code: 64)
         }
         return 0
     }

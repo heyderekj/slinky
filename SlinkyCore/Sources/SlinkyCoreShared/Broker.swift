@@ -12,6 +12,8 @@ public enum Broker {
     public struct Request: Codable, Sendable {
         public enum Op: String, Codable, Sendable {
             case status, list, projectForDir, env, check, request, guardDiff, notarize
+            /// Added in 1.5: lock the vault, show Slinky (and an item by name), a project's variable names.
+            case lock, open, names
         }
         public enum Purpose: String, Codable, Sendable { case run, export, xcconfig }
 
