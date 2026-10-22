@@ -73,7 +73,8 @@ extension AppModel {
 
     /// Keys added over 60 days ago that Activity has never seen copied or used.
     var unusedKeys: [Key] {
-        let used = Set(document.log.flatMap(\.names))
+        // Importing a key isn't using it.
+        let used = Set(document.log.filter { $0.action != .imported }.flatMap(\.names))
         let cutoff = Date.now.addingTimeInterval(-60 * 86_400)
         return document.keys.filter { $0.created < cutoff && !used.contains($0.name) }
     }

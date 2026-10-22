@@ -17,12 +17,17 @@ public struct DotEnvLine: Equatable, Hashable, Sendable {
 }
 
 public enum DotEnv {
-    /// Parses .env text. Handles `export`, single and double quotes, inline `# comments`, and blank lines.
+    /// Parses .env text. Handles `export`, single, double and backtick quotes (a quoted value can run over several
+    /// lines, like a PEM key), `\"` inside double quotes, inline `# comments`, and blank lines. When a name appears
+    /// twice, both lines come back; callers that build one value per name keep the last.
     public static func parse(_ text: String) -> [DotEnvLine] {
         var out: [DotEnvLine] = []
         var group: String?
-        for rawLine in text.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline) {
-            var line = cleaned(String(rawLine))
+        let lines = text.split(omittingEmptySubsequences: false, whereSeparator: \.isNewline).map(String.init)
+        var i = 0
+        while i < lines.count {
+            defer { i += 1 }
+            var line = cleaned(lines[i])
             if line.isEmpty { continue }
             if line.hasPrefix("#") {
                 let heading = line.drop(while: { $0 == "#" }).trimmingCharacters(in: .whitespaces)
@@ -33,7 +38,28 @@ public enum DotEnv {
             guard let eq = line.firstIndex(of: "=") else { continue }
             let name = line[..<eq].trimmingCharacters(in: .whitespaces)
             guard name.range(of: #"^[A-Za-z_][A-Za-z0-9_]*$"#, options: .regularExpression) != nil else { continue }
-            out.append(DotEnvLine(name: name, value: unquote(String(line[line.index(after: eq)...])), group: group))
+            let raw = String(line[line.index(after: eq)...]).trimmingCharacters(in: .whitespaces)
+            var value = unquote(raw)
+            // A quote that doesn't close on this line: the value goes on, line by line and as written, until it does.
+            // If the file ends first, or the next variable starts, it was a stray quote: keep the one-line reading.
+            if let quote = raw.first, quote == "\"" || quote == "'" || quote == "`",
+               closingQuote(in: raw.dropFirst(), quote) == nil {
+                var body = String(raw.dropFirst())
+                var j = i + 1
+                while j < lines.count {
+                    if let close = closingQuote(in: Substring(lines[j]), quote) {
+                        body += "\n" + lines[j][..<close]
+                        value = quote == "\"" ? unescaped(body) : body
+                        i = j
+                        break
+                    }
+                    // The next variable starts before the quote closed: a stray quote, not a long value.
+                    if lines[j].range(of: #"^\s*(export\s+)?[A-Za-z_][A-Za-z0-9_]*\s*="#, options: .regularExpression) != nil { break }
+                    body += "\n" + lines[j]
+                    j += 1
+                }
+            }
+            out.append(DotEnvLine(name: name, value: value, group: group))
         }
         return out
     }
@@ -72,26 +98,44 @@ public enum DotEnv {
     }
 
     /// Renders lines back to .env text (used for "Copy as .env" on purpose, never written to disk by Slinky).
+    /// A value with a newline is quoted and written with `\n`, so it stays one line and reads back the same.
     public static func render(_ lines: [(String, String)]) -> String {
         lines.map { name, value in
-            let needsQuotes = value.contains { $0 == " " || $0 == "#" || $0 == "\"" || $0 == "'" }
-            let escaped = value.replacingOccurrences(of: "\"", with: "\\\"")
+            let needsQuotes = value.contains { $0 == " " || $0 == "#" || $0 == "\"" || $0 == "'" || $0.isNewline }
+            let escaped = value.replacingOccurrences(of: "\"", with: "\\\"").replacingOccurrences(of: "\n", with: "\\n")
             return "\(name)=" + (needsQuotes ? "\"\(escaped)\"" : value)
         }.joined(separator: "\n")
     }
 
     private static func unquote(_ raw: String) -> String {
         let v = raw.trimmingCharacters(in: .whitespaces)
-        if let first = v.first, first == "\"" || first == "'" {
+        if let first = v.first, first == "\"" || first == "'" || first == "`" {
             let body = v.dropFirst()
-            if let close = body.firstIndex(of: first) {
+            if let close = closingQuote(in: body, first) {
                 let inner = String(body[..<close])
-                return first == "\"" ? inner.replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\\"", with: "\"") : inner
+                return first == "\"" ? unescaped(inner) : inner
             }
             return String(body)
         }
         // Unquoted: an inline comment starts at " #".
         if let hash = v.range(of: " #") { return String(v[..<hash.lowerBound]).trimmingCharacters(in: .whitespaces) }
         return v
+    }
+
+    /// Where a quoted value ends: the first matching quote, skipping `\"` inside double quotes.
+    private static func closingQuote(in text: Substring, _ quote: Character) -> Substring.Index? {
+        var escaped = false
+        for i in text.indices {
+            let c = text[i]
+            if quote == "\"", c == "\\", !escaped { escaped = true; continue }
+            if c == quote, !escaped { return i }
+            escaped = false
+        }
+        return nil
+    }
+
+    /// Double-quoted values: `\n` is a newline and `\"` a quote, as dotenv reads them.
+    private static func unescaped(_ text: String) -> String {
+        text.replacingOccurrences(of: "\\n", with: "\n").replacingOccurrences(of: "\\\"", with: "\"")
     }
 }

@@ -64,8 +64,7 @@ struct LeakFinding: Identifiable, Hashable, Sendable {
 nonisolated enum LeakFinder {
     struct ProjectRef: Sendable { let id: UUID; let name: String; let folders: [String] }
 
-    private static let skipDirs: Set<String> = [".git", "node_modules", ".build", "build", "dist", ".next", ".nuxt", ".svelte-kit",
-                                                "Pods", "DerivedData", "vendor", ".venv", "venv", "__pycache__", ".turbo", ".cache", "target", "coverage"]
+    private static var skipDirs: Set<String> { ProjectScan.skippedFolders }
     private static let skipExtensions: Set<String> = ["png", "jpg", "jpeg", "gif", "webp", "heic", "mp4", "mov", "zip", "dmg", "pdf",
                                                       "woff", "woff2", "ttf", "otf", "ico", "a", "o", "dylib", "car"]
     private static let maxFileBytes = 4 * 1024 * 1024

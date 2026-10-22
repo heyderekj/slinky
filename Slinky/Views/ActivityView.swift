@@ -118,6 +118,8 @@ struct ActivityView: View {
         case .pushed: return Text("\(who) sent ") + n + Text(" to a host")
         case .notarized: return Text("\(who) saved a notarytool profile from ") + n
         case .rotated: return Text("\(who) replaced ") + n + Text(" with a new one")
+        case .imported: return Text("\(who) imported ") + n
+        case .other: return n
         }
     }
 
@@ -134,6 +136,8 @@ struct ActivityView: View {
         case .pushed: "icloud.and.arrow.up"
         case .notarized: "checkmark.seal"
         case .rotated: "arrow.triangle.2.circlepath"
+        case .imported: "square.and.arrow.down"
+        case .other: "clock"
         }
     }
 }

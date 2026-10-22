@@ -533,14 +533,10 @@ private struct EditPanel: View {
             guard var p = model.document.projects.first(where: { $0.id == id }) else { return }
             p.name = trimmedName
             p.folders = folders
-            // Re-read .env.example from the first linked folder, if there is one.
-            if let first = folders.first,
-               let example = ProjectScan.scan(URL(fileURLWithPath: first)).exampleFile.map({ URL(fileURLWithPath: first).appendingPathComponent($0) }),
-               let text = try? String(contentsOf: example, encoding: .utf8) {
-                p.expected = DotEnv.names(text)
-            } else if folders.isEmpty {
-                p.expected = []
-            }
+            // What the project expects: every example file in every linked folder. Keep the current list if the
+            // folders have none (they may be offline); clear it when no folder is linked.
+            let names = ProjectScan.expectedNames(inFolders: folders.map { URL(fileURLWithPath: $0) })
+            if !names.isEmpty { p.expected = names } else if folders.isEmpty { p.expected = [] }
             model.update(p)
         }
         close()

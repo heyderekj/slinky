@@ -499,9 +499,7 @@ final class AppModel {
     @discardableResult
     func createProject(name: String, folder: URL? = nil) -> UUID {
         var project = Project(name: name, folders: folder.map { [$0.path] } ?? [])
-        if let folder, let example = try? String(contentsOf: folder.appendingPathComponent(".env.example"), encoding: .utf8) {
-            project.expected = DotEnv.names(example)
-        }
+        if let folder { project.expected = ProjectScan.expectedNames(inFolders: [folder]) }
         change { $0.projects.append(project) }
         selection = .project(project.id)
         return project.id
@@ -557,10 +555,16 @@ final class AppModel {
             errorMessage = "Couldn't read \(url.lastPathComponent)."
             return
         }
-        if url.lastPathComponent.hasSuffix(".example") {
+        if ProjectScan.isSkipped(url.lastPathComponent) {
+            show("\(url.lastPathComponent) holds keys for another tool, not variables. Slinky leaves it alone.", style: .info)
+            return
+        }
+        // .env.example, .sample, .template, .dist: names only, added to what the project expects.
+        if ProjectScan.isExample(url.lastPathComponent) {
             change("Read \(url.lastPathComponent). Missing variables are marked.") { doc in
                 guard let p = doc.projects.firstIndex(where: { $0.id == projectID }) else { return }
-                doc.projects[p].expected = DotEnv.names(text)
+                var seen = Set(doc.projects[p].expected)
+                doc.projects[p].expected += DotEnv.names(text).filter { seen.insert($0).inserted }
             }
             return
         }
@@ -576,9 +580,9 @@ final class AppModel {
         change("Linked \(url.lastPathComponent).") { doc in
             guard let p = doc.projects.firstIndex(where: { $0.id == projectID }) else { return }
             if !doc.projects[p].folders.contains(url.path) { doc.projects[p].folders.append(url.path) }
-            if let example = try? String(contentsOf: url.appendingPathComponent(".env.example"), encoding: .utf8) {
-                doc.projects[p].expected = DotEnv.names(example)
-            }
+            // Every example file in every linked folder, not just this one's .env.example.
+            let names = ProjectScan.expectedNames(inFolders: doc.projects[p].folders.map { URL(fileURLWithPath: $0) })
+            if !names.isEmpty { doc.projects[p].expected = names }
         }
     }
 

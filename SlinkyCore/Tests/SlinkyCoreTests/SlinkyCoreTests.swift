@@ -118,6 +118,47 @@ struct DotEnvTests {
         #expect(lines[3].value == "")
     }
 
+    @Test func multiLineQuotedValues() {
+        let text = """
+        FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----
+        MIIEXAMPLEEXAMPLE
+        # not a comment, part of the key
+        -----END PRIVATE KEY-----"
+        NEXT=EXAMPLE
+        SINGLE='line one
+        line two'
+        """
+        let lines = DotEnv.parse(text)
+        #expect(lines.map(\.name) == ["FIREBASE_PRIVATE_KEY", "NEXT", "SINGLE"])
+        #expect(lines[0].value == "-----BEGIN PRIVATE KEY-----\nMIIEXAMPLEEXAMPLE\n# not a comment, part of the key\n-----END PRIVATE KEY-----")
+        #expect(lines[1].value == "EXAMPLE")
+        #expect(lines[1].group == nil)
+        #expect(lines[2].value == "line one\nline two")
+    }
+
+    @Test func strayQuoteDoesNotSwallowTheRest() {
+        let lines = DotEnv.parse("BROKEN=\"EXAMPLE\nNEXT=EXAMPLE2\nLAST='x'")
+        #expect(lines.map(\.name) == ["BROKEN", "NEXT", "LAST"])
+        #expect(lines[0].value == "EXAMPLE")
+        #expect(lines[1].value == "EXAMPLE2")
+    }
+
+    @Test func escapesAndLineEndings() {
+        let lines = DotEnv.parse("A=\"say \\\"EXAMPLE\\\" now\"\r\nB=EXAMPLE\r\nC=`back EXAMPLE`")
+        #expect(lines.map(\.name) == ["A", "B", "C"])
+        #expect(lines[0].value == "say \"EXAMPLE\" now")
+        #expect(lines[1].value == "EXAMPLE")
+        #expect(lines[2].value == "back EXAMPLE")
+    }
+
+    @Test func renderRoundTrips() {
+        let pairs = [("PEM", "-----BEGIN EXAMPLE-----\nabc\n-----END EXAMPLE-----"), ("Q", "a \"quoted\" EXAMPLE"), ("P", "plainEXAMPLE")]
+        let back = DotEnv.parse(DotEnv.render(pairs))
+        #expect(back.map(\.name) == pairs.map(\.0))
+        #expect(back.map(\.value) == pairs.map(\.1))
+        #expect(!DotEnv.render(pairs).components(separatedBy: "\n").contains { $0.hasPrefix("abc") })
+    }
+
     @Test func missingFromExample() {
         var project = Project(name: "harvous", expected: DotEnv.names("RESEND_API_KEY=\nSTRIPE_SECRET_KEY="))
         project.variables = [Variable(name: "STRIPE_SECRET_KEY", values: [.local: "sk_test_EXAMPLE"])]
@@ -216,7 +257,9 @@ struct ProjectScanTests {
             if name.hasSuffix("/") {
                 try FileManager.default.createDirectory(at: dir.appendingPathComponent(name), withIntermediateDirectories: true)
             } else {
-                try text.write(to: dir.appendingPathComponent(name), atomically: true, encoding: .utf8)
+                let url = dir.appendingPathComponent(name)
+                try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+                try text.write(to: url, atomically: true, encoding: .utf8)
             }
         }
         return dir
@@ -251,6 +294,89 @@ struct ProjectScanTests {
         #expect(scan.isGitRepo)
         #expect(scan.envFiles.first { $0.fileName == ".env.local" }?.ignoredByGit == true)
         #expect(scan.envFiles.first { $0.fileName == ".env.production" }?.ignoredByGit == false)
+    }
+
+    @Test func skipsToolFilesAndReadsEveryExampleSuffix() throws {
+        let dir = try folder([
+            ".env": "A=EXAMPLE",
+            ".env.vault": "DOTENV_VAULT_EXAMPLE=x",
+            ".env.keys": "DOTENV_PRIVATE_KEY=EXAMPLE",
+            ".env.sample": "A=\nB=",
+            ".env.local.template": "C=",
+        ])
+        let scan = ProjectScan.scan(dir)
+        #expect(scan.envFiles.map(\.fileName) == [".env"])
+        #expect(Set(scan.skippedFiles) == [".env.vault", ".env.keys"])
+        #expect(Set(scan.examples.map(\.id)) == [".env.sample", ".env.local.template"])
+        #expect(Set(scan.expected) == ["A", "B", "C"])
+    }
+
+    @Test func monorepo() throws {
+        let dir = try folder([
+            "apps/web/": "", "packages/db/": "", "node_modules/x/": "", "apps/web/deep/er/still/": "", ".env/": "",
+            ".env.local": "ROOT=EXAMPLE",
+            "apps/web/.env.local": "WEB=EXAMPLE",
+            "apps/web/.env.example": "WEB=\nWEB_EXTRA=",
+            "packages/db/.env": "DB=EXAMPLE",
+            "node_modules/x/.env": "NOPE=EXAMPLE",
+            "apps/web/deep/er/still/.env": "TOO_DEEP=EXAMPLE",
+        ])
+        #expect(ProjectScan.scan(dir).envFiles.map(\.id) == [".env.local"])
+        let scan = ProjectScan.scan(dir, depth: 3)
+        #expect(scan.envFiles.map(\.id) == [".env.local", "apps/web/.env.local", "packages/db/.env"])
+        #expect(scan.envFiles[1].folder == "apps/web")
+        #expect(scan.groups == ["", "apps/web", "packages/db"])
+        #expect(scan.expected == ["WEB", "WEB_EXTRA"])
+        #expect(ProjectScan.expectedNames(inFolders: [dir]) == ["WEB", "WEB_EXTRA"])
+    }
+
+    @Test func nestedGitignore() throws {
+        let dir = try folder([
+            ".git/": "", "apps/web/": "", "apps/api/": "",
+            ".gitignore": "/apps/api/.env\n",
+            "apps/web/.gitignore": ".env*.local\n",
+            "apps/web/.env.local": "A=EXAMPLE",
+            "apps/web/.env.production": "A=EXAMPLE",
+            "apps/api/.env": "A=EXAMPLE",
+        ])
+        let scan = ProjectScan.scan(dir, depth: 2)
+        func ignored(_ id: String) -> Bool? { scan.envFiles.first { $0.id == id }?.ignoredByGit }
+        #expect(ignored("apps/web/.env.local") == true)
+        #expect(ignored("apps/web/.env.production") == false)
+        #expect(ignored("apps/api/.env") == true)
+    }
+
+    @Test func findsKeyFiles() throws {
+        let big = String(repeating: "x", count: SecretFile.maxBytes + 10)
+        let dir = try folder([
+            "keys/": "", "test/fixtures/": "",
+            "keys/AuthKey_EXAMPLE123.p8": "-----BEGIN PRIVATE KEY-----\nEXAMPLE\n-----END PRIVATE KEY-----",
+            "keys/server.pem": "-----BEGIN RSA PRIVATE KEY-----\nEXAMPLE\n-----END RSA PRIVATE KEY-----",
+            "keys/public.pem": "-----BEGIN CERTIFICATE-----\nEXAMPLE\n-----END CERTIFICATE-----",
+            "service-account.json": #"{"type": "service_account", "private_key": "-----BEGIN PRIVATE KEY-----EXAMPLE"}"#,
+            "package.json": #"{"name": "example"}"#,
+            "huge.pem": "-----BEGIN PRIVATE KEY-----" + big,
+            "test/fixtures/sample.pem": "-----BEGIN PRIVATE KEY-----\nEXAMPLE",
+        ])
+        let scan = ProjectScan.scan(dir, depth: 3, secretFiles: true)
+        #expect(Set(scan.secretFiles.map(\.id)) == ["keys/AuthKey_EXAMPLE123.p8", "keys/server.pem", "service-account.json",
+                                                    "test/fixtures/sample.pem"])
+        #expect(scan.secretFiles.first { $0.id == "test/fixtures/sample.pem" }?.likelyFixture == true)
+        #expect(scan.secretFiles.first { $0.id == "keys/server.pem" }?.likelyFixture == false)
+        #expect(ProjectScan.scan(dir, depth: 3).secretFiles.isEmpty)
+    }
+
+    @Test func hintsAndPrecedence() throws {
+        #expect(ProjectScan.environmentHint(for: ".env") == nil)
+        #expect(ProjectScan.environmentHint(for: ".env.production.local") == .production)
+        #expect(ProjectScan.environmentHint(for: ".env.staging") == .preview)
+        #expect(ProjectScan.environmentHint(for: ".env.development") == .local)
+        #expect(ProjectScan.precedence(of: ".env") < ProjectScan.precedence(of: ".env.production"))
+        #expect(ProjectScan.precedence(of: ".env.production") < ProjectScan.precedence(of: ".env.local"))
+        #expect(ProjectScan.precedence(of: ".env.local") < ProjectScan.precedence(of: ".env.production.local"))
+        let dir = try folder([".env.staging": "A=EXAMPLE"])
+        let one = ProjectScan.scan(file: dir.appendingPathComponent(".env.staging"))
+        #expect(one.envFiles.map(\.environment) == [.preview])
     }
 
     @Test func gitignoreNegationAndAnchors() {
@@ -343,6 +469,19 @@ struct DocumentFormatTests {
      "kept":[{"created":800000000,"id":"7B1B3C2E-0000-4000-8000-000000000003","kind":"recoveryKey","label":"Apple Account","printedCopy":true,"value":"EXAMPLE-KEY"}],
      "projects":[{"created":800000000,"expected":[],"folders":[],"id":"7B1B3C2E-0000-4000-8000-000000000004","name":"harbor","variables":[{"agentPolicy":"agentsCanUse","created":800000000,"id":"7B1B3C2E-0000-4000-8000-000000000005","isPlain":false,"name":"API_KEY","updated":800000000,"values":{"local":"EXAMPLE"}}]}]}
     """
+
+    @Test("Imports and unknown actions from a newer Slinky round-trip without breaking the vault")
+    func activityActionsAreTolerant() throws {
+        var doc = VaultDocument()
+        let id = UUID()
+        doc.log = [ActivityEntry(action: .imported, names: ["API_KEY"], detail: "harbor, from ~/EXAMPLE", itemIDs: [id])]
+        let back = try JSONDecoder().decode(VaultDocument.self, from: JSONEncoder().encode(doc))
+        #expect(back.log.first?.action == .imported)
+        #expect(back.log.first?.itemIDs == [id])
+        let future = #"{"activity":[{"id":"7B1B3C2E-0000-4000-8000-000000000009","date":800000000,"action":"teleported","names":["X"],"actor":"You","detail":""}],"formatVersion":2,"projects":[],"keys":[],"codeSets":[],"kept":[]}"#
+        let opened = try JSONDecoder().decode(VaultDocument.self, from: Data(future.utf8))
+        #expect(opened.log.first?.action == .other)
+    }
 
     @Test("A 1.0 vault opens in 1.1")
     func opensAVersionOneDocument() throws {

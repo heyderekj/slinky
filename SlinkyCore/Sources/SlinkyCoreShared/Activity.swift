@@ -3,7 +3,14 @@ import Foundation
 /// One line of the Activity log. Names only: never a value or anything derived from one.
 public struct ActivityEntry: Codable, Identifiable, Hashable, Sendable {
     public enum Action: String, Codable, Sendable {
-        case copied, codeUsed, ran, exported, xcconfig, requested, guarded, leakFound, pushed, notarized, rotated
+        case copied, codeUsed, ran, exported, xcconfig, requested, guarded, leakFound, pushed, notarized, rotated, imported
+        /// Something a newer Slinky wrote that this one doesn't know: shown plainly instead of failing to open the vault.
+        case other
+
+        public init(from decoder: Decoder) throws {
+            let raw = try decoder.singleValueContainer().decode(String.self)
+            self = Action(rawValue: raw) ?? .other
+        }
     }
 
     public var id: UUID
@@ -15,16 +22,20 @@ public struct ActivityEntry: Codable, Identifiable, Hashable, Sendable {
     public var actor: String
     /// A short plain description: the command's name and project, or where a leak was found.
     public var detail: String
+    /// The items involved, so an item's history survives a rename (added in 1.5; nil in older entries).
+    public var itemIDs: [UUID]?
 
     public static let limit = 1000
 
-    public init(action: Action, names: [String], actor: String = "You", detail: String = "", date: Date = .now) {
+    public init(action: Action, names: [String], actor: String = "You", detail: String = "", itemIDs: [UUID]? = nil,
+                date: Date = .now) {
         self.id = UUID()
         self.date = date
         self.action = action
         self.names = names
         self.actor = actor
         self.detail = detail
+        self.itemIDs = itemIDs
     }
 }
 
@@ -83,6 +94,25 @@ public struct SecretFile: Codable, Identifiable, Hashable, Sendable {
         if lower.hasSuffix(".json"), head.contains("\"type\""), String(decoding: data, as: UTF8.self).contains("\"private_key\"") { return .serviceAccount }
         if [".p12", ".pem", ".key", ".cer", ".crt"].contains(where: lower.hasSuffix) || head.contains("-----BEGIN") { return .certificate }
         return .other
+    }
+
+    /// File names worth opening to check (cheap, before reading anything).
+    public static func mightBeSecret(filename: String) -> Bool {
+        let lower = filename.lowercased()
+        return [".p8", ".p12", ".pfx", ".pem", ".key", ".json"].contains(where: lower.hasSuffix)
+    }
+
+    /// Whether a file found in a project folder is a key worth keeping: App Store Connect keys and PKCS#12 bundles,
+    /// PEM and .key files that hold a private key (not certificates or Keynote files), and service-account JSON.
+    /// Public certificates (.cer, .crt) never are.
+    public static func looksSecret(filename: String, data: Data) -> Bool {
+        let lower = filename.lowercased()
+        if [".p8", ".p12", ".pfx"].contains(where: lower.hasSuffix) { return !data.isEmpty }
+        if lower.hasSuffix(".pem") || lower.hasSuffix(".key") {
+            return String(decoding: data.prefix(64 * 1024), as: UTF8.self).contains("PRIVATE KEY")
+        }
+        if lower.hasSuffix(".json") { return guessKind(filename: filename, data: data) == .serviceAccount }
+        return false
     }
 
     /// App Store Connect names its keys AuthKey_<KEYID>.p8.
