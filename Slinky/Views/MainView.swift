@@ -70,10 +70,12 @@ struct MainView: View {
         .background {
             Button("Find") { searchFocused = true }
                 .keyboardShortcut("f")
+                .disabled(model.panelOpen)
                 .opacity(0)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
         }
+        .background(ToolbarFader(hidden: model.panelOpen))
         .background(PasteToAdd { text in
             guard canAdd else { return false }
             addHere(prefill: text)

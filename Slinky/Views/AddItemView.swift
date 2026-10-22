@@ -1,3 +1,4 @@
+import AppKit
 import SlinkyCoreShared
 import SwiftUI
 
@@ -46,6 +47,38 @@ struct PanelBackdrop: View {
         .contentShape(Rectangle())
         .onTapGesture { close() }
         .accessibilityHidden(true)
+    }
+}
+
+/// While a panel is open the toolbar steps away: its buttons, search and the lock switch fade out (the window's
+/// own buttons stay), so the panel is the only thing to act on. Faded, not removed: removing the toolbar would
+/// change the title bar's height and make everything under it jump.
+struct ToolbarFader: NSViewRepresentable {
+    var hidden: Bool
+
+    func makeNSView(context: Context) -> NSView { NSView() }
+
+    func updateNSView(_ view: NSView, context: Context) {
+        let hidden = hidden
+        DispatchQueue.main.async {
+            guard let window = view.window, let frame = window.contentView?.superview else { return }
+            var targets = window.titlebarAccessoryViewControllers.map(\.view)
+            func find(_ v: NSView) {
+                if String(describing: type(of: v)) == "NSToolbarView" { targets.append(v); return }
+                v.subviews.forEach(find)
+            }
+            find(frame)
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = 0.2
+                for t in targets {
+                    if !hidden { t.isHidden = false }
+                    t.animator().alphaValue = hidden ? 0 : 1
+                }
+            } completionHandler: {
+                // Hidden once faded, so nothing in it takes a click.
+                if hidden { targets.forEach { $0.isHidden = true } }
+            }
+        }
     }
 }
 
