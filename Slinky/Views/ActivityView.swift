@@ -21,16 +21,13 @@ struct ActivityView: View {
                 List {
                     ForEach(days, id: \.0) { day, entries in
                         Section {
+                            dayTitle(day)
                             ForEach(entries) { row($0) }
-                        } header: {
-                            Text(Self.dayTitle(day))
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
-                                .padding(.top, 10)
-                                .padding(.bottom, 2)
                         }
                     }
                 }
+                // Day titles are plain rows, like the library's group titles. As section headers they stuck to
+                // the top while scrolling, and macOS drew its own edge line there on top of the header's.
                 .listStyle(.inset)
             }
         }
@@ -47,6 +44,16 @@ struct ActivityView: View {
         } message: {
             Text("Items stay. Only the history of copies and uses goes.")
         }
+    }
+
+    private func dayTitle(_ day: Date) -> some View {
+        Text(Self.dayTitle(day))
+            .font(.headline)
+            .foregroundStyle(.secondary)
+            .padding(.top, 10)
+            .padding(.bottom, 2)
+            .listRowSeparator(.hidden)
+            .accessibilityAddTraits(.isHeader)
     }
 
     /// One thing that happened: what kind (a tinted tile), a sentence with the names in code type, any detail

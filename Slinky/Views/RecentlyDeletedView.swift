@@ -15,13 +15,14 @@ struct RecentlyDeletedView: View {
                                        description: Text("Things you delete wait here for 30 days, so you can put them back."))
             } else {
                 List {
-                    Section {
-                        ForEach(entries) { entry in row(entry) }
-                    } footer: {
-                        Text("Items here are deleted for good after 30 days.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    ForEach(entries) { entry in row(entry) }
+                    // A plain row, not a section footer: footers stick to the edge and get a second line from macOS.
+                    Text("Items here are deleted for good after 30 days.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 4)
+                        .listRowSeparator(.hidden)
+                        .selectionDisabled()
                 }
                 .listStyle(.inset)
                 .scrollContentBackground(.hidden)
