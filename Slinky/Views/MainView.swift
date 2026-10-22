@@ -3,6 +3,8 @@ import SwiftUI
 
 struct MainView: View {
     @Environment(AppModel.self) private var model
+    /// The window's undo manager: Slinky's one undo step goes on it, so Edit › Undo and ⌘Z work.
+    @Environment(\.undoManager) private var undoManager
     // Never animated around locking: the split view's column animation stuttered over the keyhole. Unlocking
     // reveals the window with its sidebar already in place; locking leaves it until the curtain has covered it.
     @State private var columns: NavigationSplitViewVisibility = .all
@@ -76,6 +78,8 @@ struct MainView: View {
                 .accessibilityHidden(true)
         }
         .background(ToolbarFader(hidden: model.panelOpen))
+        .onAppear { model.windowUndoManager = undoManager }
+        .onChange(of: undoManager) { _, manager in model.windowUndoManager = manager }
         .background(PasteToAdd { text in
             guard canAdd else { return false }
             addHere(prefill: text)

@@ -55,6 +55,18 @@ enum LibraryRef: Hashable {
     }
 }
 
+extension VaultDocument {
+    /// Whether the item a library row points at is still here.
+    func contains(_ ref: LibraryRef) -> Bool {
+        switch ref {
+        case let .key(id): keys.contains { $0.id == id }
+        case let .codes(id): codeSets.contains { $0.id == id }
+        case let .kept(id): kept.contains { $0.id == id }
+        case let .file(id): secretFiles.contains { $0.id == id }
+        }
+    }
+}
+
 enum LockReason {
     case manual, screenLocked, sleep, idle, timeLimit
 
@@ -167,7 +179,10 @@ final class AppModel {
     @ObservationIgnored private var unlockedAt: Date?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var idleTimer: Timer?
-    @ObservationIgnored private var undoSnapshot: VaultDocument?
+    /// The one change that can be taken back (a delete, an import), until anything else changes. Memory only.
+    @ObservationIgnored private var undoStep: UndoStep?
+    /// The main window's undo manager, so Edit › Undo names the step and ⌘Z takes it back.
+    @ObservationIgnored weak var windowUndoManager: UndoManager?
 
     /// The sidebar search field. Cleared on lock.
     var searchText = ""
@@ -390,7 +405,7 @@ final class AppModel {
             let restored = try store.restoreBackup(from: url, recovery: key)
             hasVault = true
             // Nothing from the vault it replaced carries over: no Undo into it, no recent copies.
-            undoSnapshot = nil
+            setUndo(nil)
             recent = []
             didUnlock(restored)
             selection = .library(.all)
@@ -427,7 +442,9 @@ final class AppModel {
         document = VaultDocument()
         recent = []
         searchText = ""
-        undoSnapshot = nil
+        setUndo(nil)
+        // A message from while it was open would otherwise sit on the lock screen and hold up Touch ID.
+        errorMessage = nil
         showTuck = false
         showNewProject = false
         editing = nil
@@ -455,20 +472,76 @@ final class AppModel {
 
     // MARK: Changes
 
-    private func change(_ toastText: String? = nil, undoable: Bool = false, _ edit: (inout VaultDocument) -> Void) {
-        if undoable { undoSnapshot = document }
-        edit(&document)
-        persist()
-        if let toastText { show(toastText, canUndo: undoable) }
+    /// What a change does to Undo. Most changes clear it, so Undo never reaches back past them.
+    enum UndoRule {
+        case clears
+        /// Doesn't touch what Undo would restore (a website icon arriving).
+        case keeps
+        /// Can be taken back: `name` is what Edit › Undo says ("Undo Delete"), `undone` the toast afterwards.
+        case records(name: String, undone: String = "Restored.")
     }
 
+    private struct UndoStep {
+        let name: String
+        let undone: String
+        let before: VaultDocument
+        let activityID: UUID?
+    }
+
+    /// Every edit to the vault goes through here: the edit, an optional Activity entry, Undo, the save and a toast.
+    /// Returns false if the save failed (already said in a toast).
+    @discardableResult
+    func change(_ toastText: String? = nil, undo rule: UndoRule = .clears, activity: ActivityEntry? = nil,
+                toastStyle: Toast.Style? = nil, _ edit: (inout VaultDocument) -> Void) -> Bool {
+        let before = document
+        edit(&document)
+        if let activity { document.log.insert(activity, at: 0) }
+        var undoable = false
+        switch rule {
+        case .clears: setUndo(nil)
+        case .keeps: break
+        case let .records(name, undone):
+            setUndo(UndoStep(name: name, undone: undone, before: before, activityID: activity?.id))
+            undoable = true
+        }
+        let saved = persist()
+        if let toastText, saved { show(toastText, canUndo: undoable, style: toastStyle) }
+        return saved
+    }
+
+    private func setUndo(_ step: UndoStep?) {
+        undoStep = step
+        guard let manager = windowUndoManager, !manager.isUndoing else { return }
+        manager.removeAllActions(withTarget: self)
+        guard let step else { return }
+        manager.registerUndo(withTarget: self) { model in
+            MainActor.assumeIsolated { model.undo() }
+        }
+        manager.setActionName(step.name)
+    }
+
+    var canUndo: Bool { undoStep != nil }
+
     func undo() {
-        guard var snapshot = undoSnapshot else { return }
-        snapshot.activity = document.activity   // Undo restores items, not history.
-        document = snapshot
-        undoSnapshot = nil
+        guard let step = undoStep else { return }
+        guard !panelOpen else {
+            show("Finish or cancel what's open first.", style: .info)
+            // ⌘Z used up the menu's step; put it back once this undo has finished.
+            DispatchQueue.main.async { self.setUndo(step) }
+            return
+        }
+        var restored = step.before
+        // Undo restores items, not history, and keeps website icons that arrived since.
+        restored.siteIcons = document.siteIcons
+        restored.log = document.log.filter { $0.id != step.activityID }
+        document = restored
+        undoStep = nil
+        if let manager = windowUndoManager, !manager.isUndoing { manager.removeAllActions(withTarget: self) }
+        // Don't leave the window on something that's gone again.
+        if case let .project(id)? = selection, !document.projects.contains(where: { $0.id == id }) { selection = .library(.all) }
+        if let ref = librarySelection, !document.contains(ref) { librarySelection = nil }
         persist()
-        show("Restored.")
+        show(step.undone)
     }
 
     /// A change people should see happen: a new item sliding into the list, a fixed leak leaving Health.
@@ -552,7 +625,7 @@ final class AppModel {
 
     func importEnvFile(_ url: URL, into projectID: UUID, env: AppEnvironment) {
         guard let text = try? String(contentsOf: url, encoding: .utf8) else {
-            errorMessage = "Couldn't read \(url.lastPathComponent)."
+            show("Couldn't read \(url.lastPathComponent).", style: .info)
             return
         }
         if ProjectScan.isSkipped(url.lastPathComponent) {
@@ -570,7 +643,7 @@ final class AppModel {
         }
         let lines = DotEnv.parse(text)
         guard !lines.isEmpty else {
-            errorMessage = "No KEY=value lines in \(url.lastPathComponent)."
+            show("No KEY=value lines in \(url.lastPathComponent).", style: .info)
             return
         }
         addVariables(lines, to: projectID, env: env)
@@ -645,7 +718,7 @@ final class AppModel {
     }
 
     func deleteVariable(_ variable: UUID, in projectID: UUID) {
-        change(Self.trashToast, undoable: true) { doc in
+        change(Self.trashToast, undo: .records(name: "Delete")) { doc in
             guard let p = doc.projects.firstIndex(where: { $0.id == projectID }),
                   let v = doc.projects[p].variables.first(where: { $0.id == variable }) else { return }
             doc.projects[p].variables.removeAll { $0.id == variable }
@@ -654,7 +727,7 @@ final class AppModel {
     }
 
     func deleteProject(_ projectID: UUID) {
-        change(Self.trashToast, undoable: true) { doc in
+        change(Self.trashToast, undo: .records(name: "Delete")) { doc in
             guard let project = doc.projects.first(where: { $0.id == projectID }) else { return }
             doc.projects.removeAll { $0.id == projectID }
             doc.trashed.insert(TrashEntry(.project(project)), at: 0)
@@ -691,7 +764,7 @@ final class AppModel {
     /// A website's icon, fetched by WebsiteIcons, kept inside the vault.
     func setSiteIcon(_ domain: String, png: Data) {
         guard isUnlocked else { return }
-        change { doc in
+        change(undo: .keeps) { doc in
             var icons = doc.siteIcons ?? [:]
             icons[domain] = png
             doc.siteIcons = icons
@@ -776,7 +849,7 @@ final class AppModel {
     }
 
     func deleteFile(_ id: UUID) {
-        change(Self.trashToast, undoable: true) { doc in
+        change(Self.trashToast, undo: .records(name: "Delete")) { doc in
             guard let file = doc.secretFiles.first(where: { $0.id == id }) else { return }
             doc.secretFiles.removeAll { $0.id == id }
             doc.trashed.insert(TrashEntry(.file(file)), at: 0)
@@ -812,7 +885,7 @@ final class AppModel {
     }
 
     func deleteKept(_ id: UUID) {
-        change(Self.trashToast, undoable: true) { doc in
+        change(Self.trashToast, undo: .records(name: "Delete")) { doc in
             guard let item = doc.kept.first(where: { $0.id == id }) else { return }
             doc.kept.removeAll { $0.id == id }
             doc.trashed.insert(TrashEntry(.kept(item)), at: 0)
@@ -820,7 +893,7 @@ final class AppModel {
     }
 
     func deleteKey(_ id: UUID) {
-        change(Self.trashToast, undoable: true) { doc in
+        change(Self.trashToast, undo: .records(name: "Delete")) { doc in
             guard let key = doc.keys.first(where: { $0.id == id }) else { return }
             doc.keys.removeAll { $0.id == id }
             doc.trashed.insert(TrashEntry(.key(key)), at: 0)
@@ -828,7 +901,7 @@ final class AppModel {
     }
 
     func deleteCodeSet(_ id: UUID) {
-        change(Self.trashToast, undoable: true) { doc in
+        change(Self.trashToast, undo: .records(name: "Delete")) { doc in
             guard let set = doc.codeSets.first(where: { $0.id == id }) else { return }
             doc.codeSets.removeAll { $0.id == id }
             doc.trashed.insert(TrashEntry(.codes(set)), at: 0)
@@ -882,7 +955,7 @@ final class AppModel {
         Clipboard.copy(document.codeSets[s].codes[index], clearAfter: Double(Preferences.shared.clipboardSeconds))
         Preferences.shared.copyCount += 1
         record(ActivityEntry(action: .codeUsed, names: ["\(document.codeSets[s].account) recovery code"]))
-        change(undoable: true) { $0.codeSets[s].used.insert(index) }
+        change(undo: .records(name: "Mark as Used")) { $0.codeSets[s].used.insert(index) }
         let left = document.codeSets[s].remaining
         if left <= 3 { Reminders.codesLow(account: document.codeSets[s].account, left: left) }
         show("Copied and marked as used. \(left) left." + (left <= 3 ? " Consider generating new codes." : ""), canUndo: true, style: .success)
@@ -966,18 +1039,28 @@ final class AppModel {
         }
     }
 
-    func persist() {
+    /// Writes the vault. A failure is said in a toast while unlocked (the lock screen's message would go unseen
+    /// and later block Touch ID). Returns whether it saved.
+    @discardableResult
+    func persist() -> Bool {
         #if DEBUG
-        if isDemo { return }   // a fake vault is never written anywhere
+        if isDemo { return true }   // a fake vault is never written anywhere
         #endif
         guard var current = session else {
             if !hasVault { createVaultWithCurrentDocument() }
-            return
+            return true
         }
         current.document = document
         session = current
-        do { try store.save(current) } catch { errorMessage = "Couldn't save: \(Self.friendly(error))" }
+        do {
+            try store.save(current)
+        } catch {
+            let message = "Couldn't save: \(Self.friendly(error))"
+            if isUnlocked { show(message, style: .info) } else { errorMessage = message }
+            return false
+        }
         Reminders.schedule(document)
+        return true
     }
 
     // MARK: Locking
