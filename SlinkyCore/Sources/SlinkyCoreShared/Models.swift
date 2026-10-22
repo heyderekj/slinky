@@ -99,9 +99,10 @@ public struct Project: Codable, Identifiable, Hashable, Sendable {
         self.created = now
     }
 
+    /// Each name once, even if .env.example lists it twice.
     public var missing: [String] {
-        let have = Set(variables.map(\.name))
-        return expected.filter { !have.contains($0) }
+        var seen = Set(variables.map(\.name))
+        return expected.filter { seen.insert($0).inserted }
     }
 }
 

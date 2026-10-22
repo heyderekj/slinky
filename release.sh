@@ -55,6 +55,10 @@ xcodebuild -project Slinky.xcodeproj -scheme Slinky -configuration Release -dest
 codesign --verify --deep --strict "$APP"
 [ "$(lipo -archs "$APP/Contents/MacOS/Slinky")" = "arm64" ] || { echo "✘ Expected an Apple silicon-only build"; exit 1; }
 echo "→ Signed: $(codesign -dvv "$APP" 2>&1 | grep -E '^Authority=Apple Development' | head -1)"
+# Debug-only tools (fake vaults, snapshots) must never ship.
+if strings "$APP/Contents/MacOS/Slinky" | grep -q -e "--demo-data" -e "--render-snapshots" -e "DemoFixture"; then
+  echo "✘ The Release build contains Debug-only demo code"; exit 1
+fi
 
 # 4. Package
 scripts/make-dmg.sh "$VERSION" "$APP"

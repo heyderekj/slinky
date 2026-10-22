@@ -271,15 +271,16 @@ struct LibraryView: View {
     /// (the empty states say what each view is for).
     private var subtitle: String {
         let doc = model.document
-        func count(_ n: Int, _ one: String, _ many: String) -> String { "\(n) \(n == 1 ? one : many)" }
+        func count(_ n: Int, _ one: String, _ many: String) -> String { counted(n, one, many) }
         if show != .all {
-            return "\(keys.count + codeSets.count + kept.count) \(show.title.lowercased())"
+            let n = keys.count + codeSets.count + kept.count + (showFiles ? files.count : 0)
+            return show == .live ? counted(n, "live key") : "\(n.formatted()) \(show.title.lowercased())"
         }
         switch filter {
         case .all:
-            return count(doc.keys.count + doc.codeSets.count + doc.kept.count, "item", "items")
+            return count(doc.keys.count + doc.codeSets.count + doc.kept.count + doc.secretFiles.count, "item", "items")
         case .keys:
-            return count(doc.keys.count, "item", "items")
+            return count(doc.keys.count + doc.secretFiles.count, "item", "items")
         case .recovery:
             let low = doc.codeSets.filter(\.isLow).count
             return count(doc.codeSets.count + doc.kept.count, "item", "items") + (low > 0 ? " · \(low) running low" : "")

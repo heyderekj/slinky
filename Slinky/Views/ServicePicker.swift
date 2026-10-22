@@ -56,19 +56,22 @@ struct ServicePicker: View {
                             }
                             .id(s.id)
                         }
-                        if list.isEmpty {
-                            Text("No service called “\(query)”. Add a link instead, and Slinky shows that website.")
-                                .font(.callout)
-                                .foregroundStyle(.secondary)
-                                .frame(height: 74)
-                                .padding(.horizontal, 6)
-                        }
                     }
                     .padding(.vertical, 2)
                 }
                 .scrollIndicators(.never)
                 .frame(height: 78)
                 .onAppear { if let selection { proxy.scrollTo(selection, anchor: .center) } }
+                // Outside the scroller, so it wraps instead of running off the edge.
+                .overlay(alignment: .leading) {
+                    if list.isEmpty {
+                        Text("No service called “\(query)”. Add a link instead, and Slinky shows that website.")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, 6)
+                    }
+                }
             }
         }
         .onAppear {
@@ -144,6 +147,8 @@ struct ServiceChip: View {
                 Button { open.toggle() } label: {
                     HStack(spacing: 3) {
                         Text(service?.name ?? "Where it lives?")
+                            .lineLimit(1)
+                            .frame(maxWidth: 130)
                         Image(systemName: "chevron.down").font(.system(size: 8, weight: .bold))
                     }
                     .foregroundStyle(service == nil ? Color.accentColor : .secondary)
@@ -160,6 +165,8 @@ struct ServiceChip: View {
                             Image(systemName: "building.2")
                         }
                         Text(service?.name ?? "Where it lives")
+                            .lineLimit(1)
+                            .frame(maxWidth: 160)
                     }
                 }
                 .buttonStyle(ChipButtonStyle(selected: selection != nil))

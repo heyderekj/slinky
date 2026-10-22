@@ -3,6 +3,9 @@ import SwiftUI
 /// The toolbar lock: a small switch with both states visible. The knob sits on the current one.
 struct LockSwitch: View {
     @Environment(AppModel.self) private var model
+    /// Inside AppKit's own glass (macOS 26, see LockSwitchAccessory), which samples the window like the toolbar's
+    /// controls do. A SwiftUI glass effect in a separate title bar view had nothing to sample, so it didn't match.
+    var inGlass = false
 
     private var locked: Bool { !model.isUnlocked || model.curtain == .closing }
 
@@ -33,7 +36,8 @@ struct LockSwitch: View {
             .contentShape(Capsule())
         }
         .buttonStyle(.plain)
-        .glass(in: .capsule, interactive: true)
+        // macOS 15: a quiet capsule like the system's grouped toolbar controls, not a frosted pill.
+        .background { if !inGlass { Capsule().fill(.quaternary) } }
         .animation(.spring(response: 0.38, dampingFraction: 0.72), value: locked)
         .help(!model.hasVault ? "Slinky can lock once you've saved your first item" : locked ? "Unlock Slinky" : "Lock Slinky (⌃⌘L)")
         .accessibilityLabel("Lock")
@@ -67,16 +71,30 @@ struct LockSwitchAccessory: NSViewRepresentable {
 
     private static func install(in window: NSWindow?, model: AppModel) {
         guard let window, !window.titlebarAccessoryViewControllers.contains(where: { $0.identifier == id }) else { return }
-        let host = NSHostingView(rootView:
-            LockSwitch()
-                .symbolVariant(.fill)
-                .environment(model)
-                .frame(maxHeight: .infinity)
-                .padding(.trailing, 14))
-        host.frame = NSRect(x: 0, y: 0, width: 94, height: 52)
+        let size = NSSize(width: 66, height: 34)
+        let container = NSView(frame: NSRect(x: 0, y: 0, width: 94, height: 52))
+        let content: NSView
+        if #available(macOS 26, *) {
+            // AppKit's Liquid Glass, so the switch is the same material as the toolbar's buttons.
+            let host = NSHostingView(rootView: LockSwitch(inGlass: true).symbolVariant(.fill).environment(model))
+            let glass = NSGlassEffectView(frame: NSRect(origin: .zero, size: size))
+            glass.cornerRadius = size.height / 2
+            glass.contentView = host
+            content = glass
+        } else {
+            content = NSHostingView(rootView: LockSwitch().symbolVariant(.fill).environment(model))
+        }
+        content.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(content)
+        NSLayoutConstraint.activate([
+            content.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -14),
+            content.centerYAnchor.constraint(equalTo: container.centerYAnchor),
+            content.widthAnchor.constraint(equalToConstant: size.width),
+            content.heightAnchor.constraint(equalToConstant: size.height),
+        ])
         let accessory = NSTitlebarAccessoryViewController()
         accessory.identifier = id
-        accessory.view = host
+        accessory.view = container
         accessory.layoutAttribute = .trailing
         window.addTitlebarAccessoryViewController(accessory)
     }

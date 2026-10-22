@@ -128,7 +128,7 @@ struct HostPushSheet: View {
         working = true
         let host = host, envName = env.rawValue, target = target.trimmingCharacters(in: .whitespaces)
         Task {
-            guard await model.approve(reason: "send \(values.count) variables from \(project.name) (\(env.title)) to \(host.title)") else {
+            guard await model.approve(reason: "send \(counted(values.count, "variable")) from \(project.name) (\(env.title)) to \(host.title)") else {
                 working = false
                 return
             }
@@ -139,7 +139,7 @@ struct HostPushSheet: View {
             }
             if result.failed.isEmpty {
                 message = "Sent \(result.sent.count) to \(host.title)."
-                model.show("Sent \(result.sent.count) variables to \(host.title).")
+                model.show("Sent \(counted(result.sent.count, "variable")) to \(host.title).")
             } else {
                 message = "Sent \(result.sent.count). Didn't send: " + result.failed.map { k, v in k == "*" ? v : "\(k) (\(v.split(separator: "\n").last ?? ""))" }.joined(separator: "; ")
             }

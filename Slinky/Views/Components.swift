@@ -74,6 +74,8 @@ struct Chip: View {
         Text(text.uppercased())
             .font(.system(size: 9.5, weight: .bold))
             .tracking(0.4)
+            .lineLimit(1)
+            .fixedSize()   // a status never wraps; the name beside it gives way instead
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .foregroundStyle(foreground)
@@ -232,4 +234,9 @@ struct CopyButton: View {
             }
         }
     }
+}
+
+/// "1 variable", "1,284 variables". Plain English plurals for counts shown to people.
+func counted(_ n: Int, _ one: String, _ many: String? = nil) -> String {
+    "\(n.formatted()) \(n == 1 ? one : many ?? one + "s")"
 }

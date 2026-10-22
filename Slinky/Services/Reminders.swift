@@ -23,7 +23,7 @@ enum Reminders {
 
     static func codesLow(account: String, left: Int) {
         guard enabled else { return }
-        post("codes.\(account)", title: left == 0 ? "No \(account) codes left" : "\(left) \(account) codes left",
+        post("codes.\(account)", title: left == 0 ? "No \(account) codes left" : "\(left) \(account) \(left == 1 ? "code" : "codes") left",
              body: "Make new recovery codes on \(account), then add them to Slinky.")
     }
 

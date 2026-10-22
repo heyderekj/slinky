@@ -11,6 +11,8 @@ struct ProjectView: View {
     @State private var selectedMissing: String?
     @State private var showInspector = true
     @State private var dropTargeted = false
+    /// The list's width, so the KEY and environment columns give the VALUE column room in a narrow window.
+    @State private var listWidth: CGFloat = 800
     @State private var pushing = false
 
     private var project: Project? { model.document.projects.first { $0.id == projectID } }
@@ -122,7 +124,7 @@ struct ProjectView: View {
     private func subtitle(_ p: Project) -> String {
         let secrets = p.variables.filter { !$0.isPlain }.count
         // Short: a long subtitle widens the content column and squeezes the sidebar. The folder is in Edit Project.
-        return "\(p.variables.count) \(p.variables.count == 1 ? "variable" : "variables") · \(secrets) secret"
+        return counted(p.variables.count, "variable") + " · " + counted(secrets, "secret")
     }
 
     @ViewBuilder
@@ -153,13 +155,21 @@ struct ProjectView: View {
                 }
                 .padding(.vertical, 10)
             }
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { listWidth = $0 }
         }
     }
 
+    /// About two fifths of the list for names, between 140 and 260. In a narrow list the environment dots go (the
+    /// picker above says which environment you're looking at) and the row numbers get slimmer, so values keep room.
+    private var narrow: Bool { listWidth < 520 }
+    private var keyWidth: CGFloat { min(260, max(140, listWidth * 0.38)) }
+    private var dotsWidth: CGFloat { narrow ? 0 : 130 }
+    private var numberWidth: CGFloat { narrow ? 28 : 40 }
+
     private var header: some View {
         HStack(spacing: 0) {
-            Text("").frame(width: 40)
-            Text("KEY").frame(width: 260, alignment: .leading)
+            Text("").frame(width: numberWidth)
+            Text("KEY").frame(width: keyWidth, alignment: .leading)
             HStack(spacing: 0) {
                 ForEach(AppEnvironment.allCases) { e in
                     Text(e == .preview ? "PREV" : e == .production ? "PROD" : "LOCAL")
@@ -167,7 +177,8 @@ struct ProjectView: View {
                         .frame(maxWidth: .infinity)
                 }
             }
-            .frame(width: 130)
+            .frame(width: dotsWidth)
+            .opacity(narrow ? 0 : 1)
             Text("VALUE").padding(.leading, 12)
             Spacer()
         }
@@ -183,12 +194,12 @@ struct ProjectView: View {
         let detection = value.flatMap { Detector.detect($0) }
         return HStack(spacing: 0) {
             Text("\(number)").font(.system(size: 11, design: .monospaced)).foregroundStyle(.tertiary)
-                .frame(width: 40, alignment: .trailing).padding(.trailing, 0)
+                .frame(width: numberWidth, alignment: .trailing).padding(.trailing, 0)
             Text(variable.name)
                 .font(.system(size: 12.5, weight: .semibold, design: .monospaced))
                 .lineLimit(1).truncationMode(.tail)
                 .padding(.leading, 14)
-                .frame(width: 260, alignment: .leading)
+                .frame(width: keyWidth, alignment: .leading)
             HStack(spacing: 0) {
                 ForEach(AppEnvironment.allCases) { e in
                     Circle()
@@ -198,7 +209,8 @@ struct ProjectView: View {
                         .frame(maxWidth: .infinity)
                 }
             }
-            .frame(width: 130)
+            .frame(width: dotsWidth)
+            .opacity(narrow ? 0 : 1)
             HStack(spacing: 8) {
                 if let value {
                     Text(variable.isPlain ? value : Peek.of(value))
@@ -230,15 +242,17 @@ struct ProjectView: View {
     private func missingRow(number: Int, name: String) -> some View {
         HStack(spacing: 0) {
             Text("\(number)").font(.system(size: 11, design: .monospaced)).foregroundStyle(.tertiary)
-                .frame(width: 40, alignment: .trailing)
+                .frame(width: numberWidth, alignment: .trailing)
             Text(name).font(.system(size: 12.5, weight: .semibold, design: .monospaced)).foregroundStyle(.secondary)
-                .padding(.leading, 14).frame(width: 260, alignment: .leading)
+                .lineLimit(1).truncationMode(.middle)
+                .padding(.leading, 14).frame(width: keyWidth, alignment: .leading)
             HStack(spacing: 0) {
                 ForEach(AppEnvironment.allCases) { _ in
                     Circle().strokeBorder(Color.secondary.opacity(0.5), lineWidth: 1.2).frame(width: 9, height: 9).frame(maxWidth: .infinity)
                 }
             }
-            .frame(width: 130)
+            .frame(width: dotsWidth)
+            .opacity(narrow ? 0 : 1)
             HStack(spacing: 8) {
                 Text("missing").foregroundStyle(.orange)
                 Button("Add") { tuckMissing(name) }
@@ -282,7 +296,7 @@ struct ProjectView: View {
     /// For pasting into a host's dashboard. Slinky doesn't write values into files.
     private func copyAsEnv(_ p: Project) {
         let lines = p.variables.compactMap { v in v.value(in: env).map { (v.name, $0) } }
-        model.copy(DotEnv.render(lines), label: "\(lines.count) \(env.title) variables from \(p.name)", remember: false)
+        model.copy(DotEnv.render(lines), label: "\(counted(lines.count, "\(env.title) variable")) from \(p.name)", remember: false)
     }
 
     /// Names only, empty values: safe to commit, and it tells the next person (or agent) what the project needs.
@@ -297,7 +311,7 @@ struct ProjectView: View {
         let text = "# Variables this project needs. Values live in Slinky, not here.\n" + names.map { "\($0)=" }.joined(separator: "\n") + "\n"
         do {
             try text.write(to: url, atomically: true, encoding: .utf8)
-            model.show("Saved \(url.lastPathComponent) with \(names.count) names and no values.")
+            model.show("Saved \(url.lastPathComponent) with \(counted(names.count, "name")) and no values.")
         } catch {
             model.show("Couldn't save \(url.lastPathComponent).", style: .info)
         }

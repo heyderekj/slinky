@@ -80,7 +80,7 @@ public enum Detector {
     ]
 
     public static func detect(_ raw: String) -> Detection? {
-        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = DotEnv.withoutInvisibles(raw).trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { return nil }
 
         // Multi-line pastes first: a .env block, or a block of recovery codes.
@@ -168,16 +168,21 @@ public enum RecoveryCodes {
 }
 
 public enum Peek {
-    /// "sk_live_EXAMPLE…4f2a" → "sk_live_…4f2a". Enough to tell keys apart without exposing them.
+    /// "sk_live_EXAMPLE…4f2a" → "sk_live_…4f2a". Enough to tell keys apart without exposing them. At least 8
+    /// characters, and at least half the value, always stay hidden; a value too short for that shows as dots.
     public static func of(_ value: String) -> String {
         let v = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard v.count > 10 else { return String(repeating: "•", count: 8) }
+        let dots = String(repeating: "•", count: 8)
+        guard v.count > 10 else { return dots }
         let tail = v.suffix(4)
+        let minHidden = max(8, v.count / 2)
         // Keep a recognisable prefix up to the last "_" or "-" within the first 12 characters.
         let head = v.prefix(12)
         if let cut = head.lastIndex(where: { $0 == "_" || $0 == "-" }), head.distance(from: head.startIndex, to: cut) >= 1 {
-            return String(v[...cut]) + "…" + tail
+            let shown = v.distance(from: v.startIndex, to: cut) + 1
+            if v.count - shown - tail.count >= minHidden { return String(v[...cut]) + "…" + tail }
         }
-        return "••••…" + tail
+        if v.count - tail.count >= minHidden { return "••••…" + tail }
+        return dots
     }
 }

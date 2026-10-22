@@ -211,7 +211,7 @@ struct SidebarView: View {
         .badge(missing > 0 ? Text("\(missing) missing").foregroundStyle(.orange) : Text("\(project.variables.count)"))
         .tag(SidebarItem.project(project.id))
         .listRowBackground(dropTarget == project.id ? RoundedRectangle(cornerRadius: 6).fill(Color.accentColor.opacity(0.18)) : nil)
-        .help(missing > 0 ? "\(project.name) is missing \(missing) variables" : "Drop a .env file here to import it")
+        .help(missing > 0 ? "\(project.name) is missing \(counted(missing, "variable"))" : "Drop a .env file here to import it")
         .onDrop(of: [.fileURL], isTargeted: Binding(get: { dropTarget == project.id },
                                                     set: { dropTarget = $0 ? project.id : (dropTarget == project.id ? nil : dropTarget) })) { providers in
             drop(providers, on: project.id)
@@ -280,8 +280,8 @@ struct SidebarView: View {
 
     private func count(_ filter: LibraryFilter) -> Int {
         switch filter {
-        case .all: model.document.keys.count + model.document.codeSets.count + model.document.kept.count
-        case .keys: model.document.keys.count
+        case .all: model.document.keys.count + model.document.codeSets.count + model.document.kept.count + model.document.secretFiles.count
+        case .keys: model.document.keys.count + model.document.secretFiles.count
         case .recovery: model.document.codeSets.count + model.document.kept.count
         }
     }

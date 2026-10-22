@@ -118,7 +118,8 @@ struct AddItemPanel: View {
     @FocusState private var focus: Field?
 
     private var detection: Detection? { Detector.detect(text) }
-    private var trimmed: String { text.trimmingCharacters(in: .whitespacesAndNewlines) }
+    /// What's saved: never the invisible characters a copy from a chat or doc can carry.
+    private var trimmed: String { DotEnv.withoutInvisibles(text).trimmingCharacters(in: .whitespacesAndNewlines) }
     private var isSeed: Bool { detection?.kind == .walletSeed }
 
     var body: some View {
@@ -353,8 +354,9 @@ struct AddItemPanel: View {
 
     // MARK: Chips
 
+    /// The details for this item, as chips that wrap onto a second line when they don't fit.
     private var chips: some View {
-        HStack(spacing: 8) {
+        FlowLayout(spacing: 8, lineSpacing: 8) {
             Menu {
                 ForEach(Detection.Destination.allCases, id: \.self) { d in
                     Button { destination = d; destinationTouched = true } label: { Label(d.title, systemImage: d.symbol) }
@@ -394,7 +396,7 @@ struct AddItemPanel: View {
                     if !model.document.projects.isEmpty { Divider() }
                     Button("New Project…") { project = .new; focus = .projectName }
                 } label: {
-                    ChipLabel(symbol: "folder", text: projectTitle, menu: true)
+                    ChipLabel(symbol: "folder", text: projectTitle, menu: true, maxTextWidth: 220)
                 }
                 .menuStyle(.button)
                 .buttonStyle(ChipButtonStyle(selected: true))
@@ -430,7 +432,10 @@ struct AddItemPanel: View {
             }
             // Extras for any one item: where it lives, a note, and a link to where it came from.
             if !isMultiLine || destination == .codes {
-                ServiceChip(selection: $service, subject: iconSubject, automatic: IconResolver.shared.matched(iconSubject))
+                // Project variables don't get one: where a variable lives is its project.
+                if destination != .project {
+                    ServiceChip(selection: $service, subject: iconSubject, automatic: IconResolver.shared.matched(iconSubject))
+                }
                 if showLink || !link.isEmpty {
                     ChipField(symbol: "link", prompt: "Link, like dash.cloudflare.com", text: $link)
                         .focused($focus, equals: .link)
@@ -443,8 +448,8 @@ struct AddItemPanel: View {
                         .buttonStyle(ChipButtonStyle(selected: false))
                 }
             }
-            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var noteField: some View {
@@ -799,10 +804,15 @@ struct ChipLabel: View {
     let symbol: String
     let text: String
     var menu = false
+    /// A long name (a project, a service) is cut in the middle rather than stretching the row.
+    var maxTextWidth: CGFloat? = nil
     var body: some View {
         HStack(spacing: 6) {
             Image(systemName: symbol).font(.system(size: 11, weight: .semibold))
             Text(text)
+                .lineLimit(1)
+                .truncationMode(.middle)
+                .frame(maxWidth: maxTextWidth)
             if menu { Image(systemName: "chevron.down").font(.system(size: 8.5, weight: .bold)).opacity(0.6) }
         }
     }

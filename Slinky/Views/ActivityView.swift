@@ -23,14 +23,14 @@ struct ActivityView: View {
                         Section {
                             ForEach(entries) { row($0) }
                         } header: {
-                            Text(day.formatted(.relative(presentation: .named, unitsStyle: .wide)).capitalized(with: .current))
+                            Text(Self.dayTitle(day))
                         }
                     }
                 }
                 .listStyle(.inset)
             }
         }
-        .screenTitle("Activity", subtitle: model.document.log.isEmpty ? "" : "\(model.document.log.count) events")
+        .screenTitle("Activity", subtitle: model.document.log.isEmpty ? "" : counted(model.document.log.count, "event"))
         .toolbar {
             if !model.document.log.isEmpty, !model.lockedChrome {
                 ToolbarItem {
@@ -102,5 +102,20 @@ struct ActivityView: View {
         case .notarized: "checkmark.seal"
         case .rotated: "arrow.triangle.2.circlepath"
         }
+    }
+}
+
+extension ActivityView {
+    /// Today, Yesterday, then the weekday for this week, then the date: one heading per day, and it never changes
+    /// while you look at it ("14 hours ago" did, and older days ran together as "Last week").
+    static func dayTitle(_ day: Date, now: Date = .now) -> String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(day) { return "Today" }
+        if calendar.isDateInYesterday(day) { return "Yesterday" }
+        let days = calendar.dateComponents([.day], from: calendar.startOfDay(for: day), to: calendar.startOfDay(for: now)).day ?? 0
+        if days < 7 { return day.formatted(.dateTime.weekday(.wide)) }
+        let sameYear = calendar.isDate(day, equalTo: now, toGranularity: .year)
+        return sameYear ? day.formatted(.dateTime.weekday(.wide).month(.wide).day())
+                        : day.formatted(.dateTime.month(.wide).day().year())
     }
 }

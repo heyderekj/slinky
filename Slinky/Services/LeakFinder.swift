@@ -22,23 +22,30 @@ struct LeakFinding: Identifiable, Hashable, Sendable {
 
     var title: String {
         let what = names.count == 1 ? names[0] : "\(names[0]) and \(names.count - 1) more"
+        let verb = names.count == 1 ? "is" : "are"
         switch place {
-        case let .envFile(path, _): return "\(what) is in \((path as NSString).lastPathComponent)"
-        case let .projectFile(path, _): return "\(what) is written in \((path as NSString).lastPathComponent)"
-        case let .commit(_, hash, project): return "\(what) is in a \(project) commit (\(hash))"
-        case let .transcript(tool, _): return "\(what) is in a \(tool) conversation"
-        case let .history(path): return "\(what) is in your shell history (\((path as NSString).lastPathComponent))"
+        case let .envFile(path, _): return "\(what) \(verb) in \((path as NSString).lastPathComponent)"
+        case let .projectFile(path, _): return "\(what) \(verb) written in \((path as NSString).lastPathComponent)"
+        case let .commit(_, hash, project): return "\(what) \(verb) in a \(project) commit (\(hash))"
+        case let .transcript(tool, _): return "\(what) \(verb) in a \(tool) conversation"
+        case let .history(path): return "\(what) \(verb) in your shell history (\((path as NSString).lastPathComponent))"
         }
     }
 
     var detail: String {
         switch place {
-        case let .envFile(path, _): return "A plain-text file in your project. Move it into Slinky and leave a .env.example with names only. " + short(path)
-        case let .projectFile(path, project): return "In \(project): " + short(path) + ". Take it out, and if it was ever shared, make a new key."
-        case let .commit(repo, _, _): return "Git keeps it even after it's deleted. If this repository was ever pushed, make a new key. " + short(repo)
-        case let .transcript(_, path): return "Saved conversations can be read by anything on this Mac. Consider making a new key. " + short(path)
+        case .envFile: return "A plain-text file in your project. Move it into Slinky and leave a .env.example with names only."
+        case let .projectFile(_, project): return "In \(project). Take it out, and if it was ever shared, make a new key."
+        case .commit: return "Git keeps it even after it's deleted. If this repository was ever pushed, make a new key."
+        case .transcript: return "Saved conversations can be read by anything on this Mac. Consider making a new key."
         case .history: return "Commands you typed with the value in them. Removing those lines keeps the rest of your history."
         }
+    }
+
+    /// Where it is, for its own line under the detail ("~/…/file"). Shell history needs none.
+    var shownPath: String? {
+        if case .history = place { return nil }
+        return short(path)
     }
 
     var path: String {

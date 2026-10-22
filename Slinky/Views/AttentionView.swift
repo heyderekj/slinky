@@ -19,7 +19,7 @@ extension AppModel {
         for set in document.codeSets where set.isLow {
             items.append(AttentionItem(
                 id: "codes-\(set.id)", symbol: "number.square",
-                title: set.remaining == 0 ? "No \(set.account) codes left" : "Only \(set.remaining) \(set.account) codes left",
+                title: set.remaining == 0 ? "No \(set.account) codes left" : "Only \(set.remaining) \(set.account) \(set.remaining == 1 ? "code" : "codes") left",
                 detail: "Make new recovery codes on \(set.account), then add them here.",
                 target: .library(.recovery)))
         }
@@ -113,7 +113,7 @@ struct AttentionView: View {
     }
 
     private func leakRow(_ finding: LeakFinding) -> some View {
-        HealthRow(symbol: symbol(finding), tint: .orange, title: finding.title, detail: finding.detail) {
+        HealthRow(symbol: symbol(finding), tint: .orange, title: finding.title, detail: finding.detail, path: finding.shownPath) {
             switch finding.place {
             case .envFile:
                 Button("Move into Slinky") { confirmMove = finding }.glassProminentButton()
@@ -148,8 +148,9 @@ struct AttentionView: View {
                     }
                 }
                 ForEach(dupes, id: \.self) { names in
-                    HealthRow(symbol: "square.on.square", tint: .secondary, title: "Saved twice: \(names.joined(separator: " and "))",
-                              detail: "Same value in two places. Keeping one makes replacing it later simpler.") {
+                    HealthRow(symbol: "square.on.square", tint: .secondary,
+                              title: (names.count == 2 ? "Saved twice: " : "Saved \(names.count) times: ") + names.formatted(.list(type: .and)),
+                              detail: "Same value in \(names.count == 2 ? "two" : "\(names.count)") places. Keeping one makes replacing it later simpler.") {
                         Button("Show") { model.selection = .library(.all) }
                     }
                 }
@@ -233,7 +234,8 @@ private struct HealthSummary: View {
     let checks: [HealthCheck]
 
     var body: some View {
-        let issues = checks.reduce(0) { n, c in if case let .found(k) = c.status { n + k } else { n } }
+        // Tidy-ups are suggestions, not problems: left out here and from the sidebar badge (healthCount), so they agree.
+        let issues = checks.filter { $0.section != .tidy }.reduce(0) { n, c in if case let .found(k) = c.status { n + k } else { n } }
         let unchecked = checks.contains { $0.status == .notChecked }
         HStack(spacing: 22) {
             HealthRing(checks: checks, spinning: model.checkingLeaks)
@@ -395,6 +397,8 @@ private struct HealthRow<Actions: View>: View {
     let tint: Color
     let title: String
     let detail: String
+    /// A file's place, on its own line, cut in the middle so the file name always shows.
+    var path: String? = nil
     @ViewBuilder var actions: Actions
 
     var body: some View {
@@ -404,6 +408,10 @@ private struct HealthRow<Actions: View>: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(title).font(.headline).lineLimit(2)
                 Text(detail).font(.callout).foregroundStyle(.secondary).lineLimit(3)
+                if let path {
+                    Text(path).font(.caption.monospaced()).foregroundStyle(.tertiary)
+                        .lineLimit(1).truncationMode(.middle).help(path)
+                }
             }
             Spacer(minLength: 8)
             actions

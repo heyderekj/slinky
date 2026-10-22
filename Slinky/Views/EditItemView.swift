@@ -49,15 +49,23 @@ private struct EditPanel: View {
     @State private var original: Snapshot?
     @State private var confirmingDiscard = false
     @State private var appeared = false
+    /// The fields' natural height, so they scroll only when the window is too short for them.
+    @State private var fieldsHeight: CGFloat = 0
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
                 .padding(.bottom, 18)
 
-            FieldCard {
-                fields
+            // In a short window the fields scroll and the name and Save stay put.
+            ScrollView {
+                FieldCard {
+                    fields
+                }
+                .onGeometryChange(for: CGFloat.self) { $0.size.height } action: { fieldsHeight = $0 }
             }
+            .scrollBounceBehavior(.basedOnSize)
+            .frame(maxHeight: fieldsHeight > 0 ? fieldsHeight : nil)
 
             footer.padding(.top, 18)
         }
@@ -65,6 +73,7 @@ private struct EditPanel: View {
         .frame(width: 620)
         .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)
+        .padding(.vertical, 20)   // room from the window's edges when it's short
         .scaleEffect(appeared ? 1 : 0.95)
         .offset(y: appeared ? 0 : 14)
         .opacity(appeared ? 1 : 0)

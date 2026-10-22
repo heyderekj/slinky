@@ -73,6 +73,8 @@ struct CodeSetRow: View {
                       subtitle: set.username ?? "Recovery codes", peek: nil) {
             Text("\(set.remaining) of \(set.codes.count) left")
                 .font(.caption.monospacedDigit())
+                .lineLimit(1)
+                .fixedSize()
                 .foregroundStyle(set.isLow ? Color.orange : Color.secondary)
         } action: {
             CopyButton(title: "Copy Next") {
@@ -284,7 +286,7 @@ struct ItemDetail: View {
         DetailScaffold(icon: set.iconSubject, title: set.account, kind: ["Recovery codes", set.username].compactMap { $0 }.joined(separator: " · "), ref: ref) {
             Section {
                 if set.isLow {
-                    Label("Only \(set.remaining) left. Consider making new ones.", systemImage: "exclamationmark.triangle.fill")
+                    Label(set.remaining == 0 ? "No codes left. Make new ones." : "Only \(set.remaining) left. Consider making new ones.", systemImage: "exclamationmark.triangle.fill")
                         .font(.callout).foregroundStyle(.orange)
                 }
                 CodeGrid(set: set)
@@ -335,6 +337,11 @@ private struct DetailScaffold<Content: View>: View {
     var ref: LibraryRef
     @ViewBuilder var content: Content
 
+    private var serviceChip: some View {
+        ServiceChip(selection: Binding(get: { icon.service }, set: { model.setService($0, for: ref) }),
+                    subject: icon, automatic: IconResolver.shared.matched(icon), inline: true)
+    }
+
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 14) {
@@ -346,11 +353,17 @@ private struct DetailScaffold<Content: View>: View {
                         .font(.system(size: 17, weight: .semibold, design: mono ? .monospaced : .default))
                         .lineLimit(2)
                         .textSelection(.enabled)
-                    HStack(spacing: 4) {
-                        Text(kind).foregroundStyle(.secondary).lineLimit(1)
-                        Text("·").foregroundStyle(.tertiary)
-                        ServiceChip(selection: Binding(get: { icon.service }, set: { model.setService($0, for: ref) }),
-                                    subject: icon, automatic: IconResolver.shared.matched(icon), inline: true)
+                    // What it is and where it lives, on one line when they fit; the panel is narrow, so otherwise two.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: 4) {
+                            Text(kind).foregroundStyle(.secondary).lineLimit(1)
+                            Text("·").foregroundStyle(.tertiary)
+                            serviceChip
+                        }
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(kind).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                            serviceChip
+                        }
                     }
                     .font(.callout)
                 }

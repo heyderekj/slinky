@@ -240,7 +240,7 @@ struct QuickAccessView: View {
                 }
                 Spacer()
                 Label {
-                    Text("**Return copies this item.** ") + Text(isCodes(item) ? "The next unused code is copied and marked as used." : "The clipboard clears in 60 seconds.")
+                    Text("**Return copies this item.** ") + Text(isCodes(item) ? "The next unused code is copied and marked as used." : AppModel.clipboardNote)
                 } icon: { Image(systemName: "checkmark.circle") }
                 .font(.callout)
                 .foregroundStyle(.secondary)

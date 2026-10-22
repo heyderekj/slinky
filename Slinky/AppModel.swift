@@ -145,6 +145,10 @@ final class AppModel {
     @ObservationIgnored var openMainWindow: (() -> Void)?
 
     @ObservationIgnored private var session: VaultSession?
+    #if DEBUG
+    /// Debug builds: showing a fake vault (Debug/DemoData.swift). Nothing is saved while it's on.
+    @ObservationIgnored var isDemo = false
+    #endif
     @ObservationIgnored private let enclave = EnclaveWrapper()
     /// The `slinky` command's line in (Agents/BrokerServer.swift).
     @ObservationIgnored private var broker: BrokerServer?
@@ -163,6 +167,9 @@ final class AppModel {
 
     func start() {
         guard phase == .loading else { return }
+        #if DEBUG
+        if let fixture = DemoFixture.fromArguments { startDemo(fixture); return }
+        #endif
         hasVault = store.exists
         ClipboardWatcher.shared.start()
         if broker == nil {
@@ -931,6 +938,9 @@ final class AppModel {
     }
 
     func persist() {
+        #if DEBUG
+        if isDemo { return }   // a fake vault is never written anywhere
+        #endif
         guard var current = session else {
             if !hasVault { createVaultWithCurrentDocument() }
             return
@@ -984,4 +994,31 @@ final class AppModel {
         if ns.domain == "CryptoTokenKit" || ns.code == -2 { return "Unlock was cancelled." }
         return error.localizedDescription
     }
+}
+
+extension AppModel {
+    /// Demo mode skips Quick Access's hotkey and the update check, so it can run beside the real app.
+    var isDemoMode: Bool {
+        #if DEBUG
+        isDemo
+        #else
+        false
+        #endif
+    }
+
+    #if DEBUG
+    /// Shows a fake vault, unlocked, without touching the real vault, Touch ID, the socket or the clipboard.
+    func startDemo(_ fixture: DemoFixture) {
+        isDemo = true
+        hasVault = false
+        document = fixture.document()
+        leaks = fixture.leaks()
+        leaksChecked = .now
+        selection = .library(.all)
+        librarySelection = nil
+        editing = nil
+        showTuck = false
+        phase = .unlocked
+    }
+    #endif
 }

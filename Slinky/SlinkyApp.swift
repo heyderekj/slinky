@@ -10,6 +10,14 @@ enum Entry {
         if args.count > 1, args[1] == Command.marker {
             exit(Command.run(Array(args.dropFirst(2))))
         }
+        #if DEBUG
+        // Debug builds: draw the main screens with demo data to PNGs and quit (Debug/SnapshotRunner.swift).
+        if let i = args.firstIndex(of: "--render-snapshots"), i + 1 < args.count {
+            let only = args.firstIndex(of: "--only").flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil }
+            SnapshotRunner.run(folder: args[i + 1], only: only)
+            exit(0)
+        }
+        #endif
         SlinkyApp.main()
     }
 }
@@ -26,6 +34,7 @@ struct SlinkyApp: App {
                 .task {
                     model.start()
                     IconResolver.shared.warmUp()
+                    guard !model.isDemoMode else { return }
                     QuickAccess.shared.configure(model)
                     Updater.shared.checkOnLaunch()
                 }
@@ -79,6 +88,16 @@ struct SlinkyApp: App {
                     .keyboardShortcut("l", modifiers: [.command, .control])
                     .disabled(!model.isUnlocked)
             }
+            #if DEBUG
+            // Debug builds started with --demo-data: switch between fake vaults while looking at a screen.
+            // Only in demo mode, so it can never replace a real vault's contents in memory.
+            CommandMenu("Demo") {
+                ForEach(DemoFixture.allCases) { fixture in
+                    Button(fixture.title) { model.startDemo(fixture) }
+                        .disabled(!model.isDemoMode)
+                }
+            }
+            #endif
         }
         Window("Slinky Settings", id: "settings") {
             SettingsView()

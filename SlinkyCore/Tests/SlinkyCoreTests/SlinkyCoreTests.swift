@@ -64,6 +64,37 @@ struct DetectionTests {
         #expect(Peek.of("sk_live_EXAMPLE9Zx7Lm2Qp4f2a") == "sk_live_…4f2a")
         #expect(Peek.of("short") == "••••••••")
     }
+
+    /// Short values never show most of themselves: at least 8 characters and half the value stay hidden.
+    @Test func peekHidesShortValues() {
+        for value in ["sk_live_xyz", "sk_live_EXAMPL", "ab-EXAMPLE12", "EXAMPLE12345", "rk_EXAMPLE_1234", "sk_live_EXAMPLE9Zx"] {
+            let peek = Peek.of(value)
+            let shown = peek.filter { $0 != "•" && $0 != "…" }.count
+            #expect(value.count - shown >= max(8, value.count / 2), "\(value) → \(peek)")
+        }
+        #expect(Peek.of("sk_live_xyz") == "••••••••")
+        #expect(Peek.of("EXAMPLE12345") == "••••…2345")
+    }
+
+    /// What people actually paste: invisible characters, backticks or quotes around a line, a shell prompt.
+    @Test func envLineWithWrapping() throws {
+        for paste in ["VERUM_SETUP_TEST=EXAMPLE", "\u{200B}VERUM_SETUP_TEST=EXAMPLE", "`VERUM_SETUP_TEST=EXAMPLE`",
+                      "\"VERUM_SETUP_TEST=EXAMPLE\"", "“VERUM_SETUP_TEST=EXAMPLE”", "$ export VERUM_SETUP_TEST=EXAMPLE", "\u{FEFF}VERUM_SETUP_TEST=EXAMPLE\u{200D}"] {
+            let d = try #require(Detector.detect(paste), "\(paste)")
+            guard case let .envLines(lines) = d.kind else { Issue.record("not env: \(paste)"); continue }
+            #expect(lines.map(\.name) == ["VERUM_SETUP_TEST"])
+            #expect(lines.first?.value == "EXAMPLE")
+            #expect(d.suggestedName == "VERUM_SETUP_TEST")
+        }
+        // A quoted value keeps working as before.
+        #expect(DotEnv.parse("NAME=\"EXAMPLE value\"").first?.value == "EXAMPLE value")
+    }
+
+    @Test func duplicateExpectedNames() {
+        #expect(DotEnv.names("A=\nB=\nA=\n") == ["A", "B"])
+        let project = Project(name: "EXAMPLE", variables: [Variable(name: "B", values: [.local: "EXAMPLE"])], expected: ["A", "A", "B", "C"])
+        #expect(project.missing == ["A", "C"])
+    }
 }
 
 @Suite("DotEnv")
