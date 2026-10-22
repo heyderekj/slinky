@@ -47,6 +47,9 @@
   --app-amber: oklch(0.65 0.125 72);
   --app-green: oklch(0.58 0.1 162);
   --red: #ff3b30;
+  /* The content's solid ground (the app's Color.surface) and Health's pink (Color.health). */
+  --app-surface: #ffffff;
+  --app-health: #cc387a;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -75,6 +78,8 @@
     --orange: #ff9f0a;
     --app-amber: oklch(0.78 0.105 75);
     --app-green: oklch(0.74 0.1 162);
+    --app-surface: #1e1e20;
+    --app-health: #f575a8;
   }
 }
 

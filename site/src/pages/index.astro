@@ -89,28 +89,50 @@ const mark = (v: string) => {
       ]}>
         <Fragment slot="s0"><Demos which="additem" /></Fragment>
         <div slot="s1" class="additem is-ready" data-glass="panel">
-          <div class="additem__top">Add Item <span class="keycap">esc</span></div>
+          <div class="additem__top">Add Item <span class="xclose" aria-hidden="true">✕</span></div>
           <div class="slab"><div style="display:flex;gap:13px;align-items:flex-start"><Monogram text="Stripe" size={38} /><div><div class="slab__name">STRIPE_SECRET_KEY</div><div class="slab__value">sk_live_••••••••••••4f2a</div></div></div></div>
           <div class="detect"><Icon name="sparkle" style="width:14px;height:14px" /> Looks like a Stripe secret key, live mode.</div>
-          <div class="chips"><span class="pchip"><Icon name="key" /> Key or Token</span><span class="pchip pchip--add"><Icon name="calendar" /> Add expiry date</span></div>
-          <div class="additem__foot"><Icon name="shield" style="width:14px;height:14px" /> Encrypted on this Mac <span class="save">Save to Keys &amp; Tokens ↵</span></div>
+          <div class="chips"><span class="pchip"><Icon name="key" /> Key or Token <i class="caret">⌄</i></span><span class="chips__extras"><span><Icon name="calendar" /> Expiry</span><span>Link</span><span>Note</span></span></div>
+          <div class="additem__foot"><span class="encnote"><Icon name="lock" /> Encrypted on this Mac</span> <span class="save">Save to Keys &amp; Tokens ↵</span></div>
         </div>
         <div slot="s2" class="additem is-ready" data-glass="panel">
-          <div class="additem__top">Add Item <span class="keycap">esc</span></div>
+          <div class="additem__top">Add Item <span class="xclose" aria-hidden="true">✕</span></div>
           <div class="slab"><div style="display:flex;gap:13px;align-items:flex-start"><Monogram text="GitHub" size={38} /><div><div class="slab__name">GITHUB_TOKEN</div><div class="slab__value">ghp_••••••••••••8c1d</div></div></div></div>
           <div class="detect" style="color:var(--app-amber)"><Icon name="attention" style="width:14px;height:14px" /> Already saved in Keys &amp; Tokens, as GITHUB_TOKEN.</div>
-          <div class="chips"><span class="pchip"><Icon name="key" /> Key or Token</span></div>
-          <div class="additem__foot"><Icon name="shield" style="width:14px;height:14px" /> Encrypted on this Mac <span class="save">Save to Keys &amp; Tokens ↵</span></div>
+          <div class="chips"><span class="pchip"><Icon name="key" /> Key or Token <i class="caret">⌄</i></span></div>
+          <div class="additem__foot"><span class="encnote"><Icon name="lock" /> Encrypted on this Mac</span> <span class="save">Save to Keys &amp; Tokens ↵</span></div>
         </div>
       </Guided>
 
-      <Editorial eyebrow="Projects" title="Every project’s .env,<br />in one place." flip features={[
-        { icon: 'folder', title: 'Drop a project folder', text: 'Slinky reads its .env files and sorts them into Local, Preview and Production. It never changes them.' },
-        { icon: 'attention', title: 'Checks .gitignore', text: 'Files git could commit get a warning, before they end up in your repo.' },
-        { icon: 'check', title: 'Shows what’s missing', text: '.env.example tells Slinky what the project needs. Copy an environment as .env lines when your host asks.' },
+      <Guided id="projects" eyebrow="Projects" title="Every project’s .env,<br />in one place." flip features={[
+        { icon: 'folder', title: 'Drop the project folder', text: 'Slinky reads its .env files, apps inside it too, and shows what’s new, changed or the same in each environment. Only what you check is saved, and Undo takes it back.' },
+        { icon: 'check', title: 'Every environment at a glance', text: 'Local, Preview and Production side by side, with what .env.example needs and Slinky doesn’t have yet. Copy an environment as .env lines when your host asks.' },
+        { icon: 'attention', title: 'Checks .gitignore', text: 'Files git could commit get a warning before they end up in your repo. Slinky never changes your files unless you ask.' },
       ]}>
-        <Demos which="env" />
-      </Editorial>
+        <div slot="s0" class="additem review is-ready" data-glass="panel">
+          <div class="additem__top">Update from Folder <span class="xclose" aria-hidden="true">✕</span></div>
+          <div class="slab rv__head"><Monogram text="harbor-app" size={38} /><div><div class="rv__title">harbor-app</div><div class="rv__path">~/Developer/harbor-app <span class="chip chip--plain">git</span></div></div></div>
+          <div class="rv__sec"><b>Local</b> · from .env, .env.local · 3 new, 1 changed</div>
+          <div class="rv__rows">
+            <div class="rv__row"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">RESEND_API_KEY</span><span class="chip chip--new">New</span><span class="rv__peek">re_••••7d0e</span></div>
+            <div class="rv__row"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">STRIPE_SECRET_KEY</span><span class="chip chip--warn">Changed</span><span class="rv__peek">sk_test_••••4f2a → ••••9b1c</span></div>
+            <div class="rv__row"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">POSTHOG_KEY</span><span class="chip chip--new">New</span><span class="rv__peek">phc_••••0aa1</span></div>
+            <div class="rv__row is-off"><span class="rv__box"></span><span class="rv__name">UPSTASH_TOKEN</span><span class="rv__note">Empty in .env.local</span></div>
+          </div>
+          <div class="rv__quiet">5 unchanged · 2 only in Slinky. They stay as they are.</div>
+          <div class="additem__foot"><span class="encnote"><Icon name="lock" /> Encrypted on this Mac</span> <span class="save">Update 3 Variables ↵</span></div>
+        </div>
+        <Fragment slot="s1"><Demos which="env" /></Fragment>
+        <div slot="s2" class="additem review is-ready" data-glass="panel">
+          <div class="additem__top">Files</div>
+          <div class="rv__rows">
+            <div class="rv__row rv__row--file"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">.env</span><span class="rv__note">4 new, 1 changed</span><span class="pchip pchip--sm">Local <i class="caret">⌄</i></span></div>
+            <div class="rv__row rv__row--file"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">.env.production <span class="chip chip--warn">Not in .gitignore</span></span><span class="rv__note">2 new</span><span class="pchip pchip--sm">Production <i class="caret">⌄</i></span></div>
+            <div class="rv__row rv__row--file"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">apps/web/.env.local</span><span class="rv__note">2 new</span><span class="pchip pchip--sm">Local <i class="caret">⌄</i></span></div>
+          </div>
+          <div class="detect" style="color:var(--app-amber)"><Icon name="attention" style="width:14px;height:14px" /> Git could commit .env.production. Slinky won’t change your files; add it to .gitignore.</div>
+        </div>
+      </Guided>
 
       <Guided id="recovery" eyebrow="Recovery" title="Backup codes<br />that keep count." features={[
         { icon: 'hash', title: 'Codes that cross themselves off', text: 'Copy a backup code and it’s marked used, so you never try one twice.' },
@@ -122,7 +144,7 @@ const mark = (v: string) => {
             <div class="card" data-codeset>
               <div class="card__head">
                 <Monogram text="Vercel" size={30} />
-                <div><div class="card__kind">RECOVERY CODES</div><div class="card__name">Vercel</div><div class="card__sub">harbor@example.com</div></div>
+                <div><div class="card__kind">Recovery codes</div><div class="card__name">Vercel</div><div class="card__sub">harbor@example.com</div></div>
                 <div class="left is-low"><b data-left>4</b><small>left</small></div>
               </div>
               <div class="codes">
@@ -160,7 +182,7 @@ const mark = (v: string) => {
         </div>
         <div slot="s2" class="additem" data-glass="panel" style="max-width:400px">
           <div class="card">
-            <div class="card__head"><Monogram text="Apple Account" /><div><div class="card__kind">RECOVERY KEY</div><div class="card__name">Apple Account recovery key</div><div class="card__sub">From Apple</div></div></div>
+            <div class="card__head"><Monogram text="Apple Account" /><div><div class="card__kind">Recovery key</div><div class="card__name">Apple Account recovery key</div><div class="card__sub">From Apple</div></div></div>
             <div class="card__value"><span>R7KQ-••••-••••-••••</span></div>
             <div class="card__foot"><span class="chip">Printed</span><span style="margin-left:auto;display:flex;gap:6px"><span class="copy">Print</span><span class="copy"><Icon name="copy" /> Copy</span></span></div>
           </div>
@@ -195,6 +217,37 @@ const mark = (v: string) => {
         </div>
       </Guided>
 
+      <Guided id="sync" eyebrow="Sync" title="Your vault,<br />on each of your Macs." flip features={[
+        { icon: 'folder', title: 'A folder you choose', text: 'Pick one your sync service keeps everywhere, like iCloud Drive or Dropbox. Slinky puts an encrypted copy of your vault there, and sends nothing itself.' },
+        { icon: 'shield', title: 'Your Recovery Key, once', text: 'On your other Mac, choose the same folder and enter your Recovery Key. The copy opens only with that key or on a Mac you’ve set up.' },
+        { icon: 'update', title: 'Changes come together', text: 'Edit on either Mac. The newer change to each item wins, and something deleted stays deleted.' },
+      ]}>
+        <div slot="s0" class="additem sync is-ready" data-glass="panel">
+          <div class="additem__top">Sync</div>
+          <div class="pane__rows">
+            <div class="pane__row"><span>Folder</span><b class="mono-path">iCloud Drive › Slinky</b></div>
+            <div class="pane__row"><span>Status</span><b>Synced 2 min ago · iCloud Drive</b></div>
+          </div>
+          <div class="sync__buttons"><span class="copy">Sync Now</span><span class="copy" style="color:var(--red)">Stop Syncing</span></div>
+          <p class="sync__note">An encrypted copy of your vault, moved by your sync service. It opens only with your Recovery Key or on a Mac you’ve set up. It’s also a backup.</p>
+        </div>
+        <div slot="s1" class="additem sync is-ready" data-glass="panel">
+          <div class="additem__top">Use the vault in this folder</div>
+          <p class="sync__note" style="margin-top:0">This folder already has a Slinky vault, from your other Mac. Enter its Recovery Key to use it here. This Mac’s items are added to it.</p>
+          <div class="card__value" style="height:34px"><span>••••-••••-••••-••••-••••</span></div>
+          <div class="additem__foot"><span class="encnote"><Icon name="lock" /> Encrypted on this Mac</span> <span class="save">Use This Vault ↵</span></div>
+        </div>
+        <div slot="s2" class="sync__macs">
+          {[['MacBook Air', 'Just now'], ['Mac Studio', 'Just now']].map(([mac, when]) => (
+            <div class="additem sync sync__mac" data-glass="panel">
+              <div class="sync__device"><Icon name="update" /> {mac}</div>
+              <div class="lib__row is-on"><Monogram text="Stripe" size={32} /><div class="lib__text"><div class="lib__name mono">STRIPE_SECRET_KEY</div><div class="lib__sub">Changed {when.toLowerCase()}</div></div><span class="chip chip--live">Live</span></div>
+              <div class="lib__row"><Monogram text="GitHub" size={32} /><div class="lib__text"><div class="lib__name mono">GITHUB_TOKEN</div><div class="lib__sub">GitHub</div></div></div>
+            </div>
+          ))}
+        </div>
+      </Guided>
+
       <Editorial eyebrow="AI agents" title="Agents use your keys.<br />They never see them." features={[
         { icon: 'terminal', title: 'slinky run', text: 'Claude Code, Cursor and Codex start your app through slinky run. You approve each command with Touch ID, and the keys never reach the chat.' },
         { icon: 'sparkle', title: 'Names, never values', text: 'Connected agents can list names and ask for what’s missing. Live keys stay out, and so do shells and tools that send things off your Mac.' },
@@ -219,9 +272,9 @@ const mark = (v: string) => {
       <div class="section-head"><p class="eyebrow">Features</p><h2 class="section-title" id="also-heading">Also in Slinky</h2></div>
       <div class="b-grid">
         <div class="b-tile b-tile--wide card-plain">
-          <div><Icon name="import" class="feature-icon" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden or a CSV. Passwords stay behind.</p></div>
+          <div><Icon name="import" class="feature-icon" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden, LastPass, KeePass or a CSV, even ones in notes. Rename them first, and Undo takes it all back. Passwords stay behind.</p></div>
           <div class="b-art b-import" aria-hidden="true">
-            {[['1Password', '24 keys'], ['Apple Passwords', '9 keys'], ['Bitwarden', '12 keys'], ['keys.csv', '6 keys']].map(([n, c], i) => (
+            {[['1Password', '24 keys'], ['Apple Passwords', '9 keys'], ['Bitwarden', '12 keys'], ['LastPass', '7 keys'], ['KeePass', '5 keys']].map(([n, c], i) => (
               <div class="b-src"><Monogram text={n} size={24} /><b>{n}</b><small>{c}</small></div>
             ))}
             <p class="b-note">31 passwords left behind</p>
@@ -232,10 +285,12 @@ const mark = (v: string) => {
           <div class="b-art b-update" aria-hidden="true"><span>Slinky {release.version}</span><span class="b-pill">Up to date</span></div></div>
         <div class="b-tile card-plain"><Icon name="heart" class="feature-icon" /><h3>Health</h3><p>Finds your saved keys where they shouldn’t be, with one-click fixes and a check before each commit.</p>
           <div class="b-art b-settings" aria-hidden="true"><div><span>.env in acme-web</span><b>Move into Slinky</b></div><div><span>A Claude Code conversation</span><b>Make a new key</b></div></div></div>
-        <div class="b-tile b-tile--dark card-plain"><Icon name="key" class="feature-icon" /><h3>The slinky command</h3><p>Run your app with a project’s variables after Touch ID, with no .env on disk. For you and your agents.</p>
+        <div class="b-tile b-tile--dark card-plain"><Icon name="key" class="feature-icon" /><h3>The slinky command</h3><p>Run your app with a project’s variables after Touch ID, with no .env on disk. Write a names-only .env.example, open an item, or lock Slinky from the terminal.</p>
           <pre class="b-art b-term" aria-hidden="true">$ slinky run -- npm start
-STRIPE_SECRET_KEY=••••••••
-✓ started with 4 keys</pre></div>
+✓ started with 4 keys
+$ slinky example
+Wrote .env.example with 12 names and no values.
+$ slinky lock</pre></div>
         <div class="b-tile b-tile--pair-last card-plain"><Icon name="file" class="feature-icon" /><h3>Apple developer files</h3><p>App Store Connect .p8 keys, certificates and service accounts, in the vault. Save a notarytool profile without the .p8 lying around.</p></div>
         <div class="b-tile b-tile--wide card-plain">
           <div><Icon name="cloudup" class="feature-icon" /><h3>Make a new key, send it where it runs</h3><p>“Make New Key on GitHub…” opens the right page and replaces it everywhere it’s used. Send a project’s variables to Vercel, Netlify, Cloudflare or Fly through their own tools.</p></div>
@@ -244,6 +299,14 @@ STRIPE_SECRET_KEY=••••••••
               <div class="b-src"><Monogram text={n} size={24} /><b>{n}</b><small>{c}</small></div>
             ))}
             <p class="b-note">Values go on stdin, never in the command line</p>
+          </div>
+        </div>
+        <div class="b-tile b-tile--wide b-tile--full card-plain">
+          <div><Icon name="grid" class="feature-icon" /><h3>Made for the keyboard</h3><p>⌘1 to ⌘7 for each place, ⌘E to edit, ⇧⌘C to copy as NAME=value. Select several things to change or delete them together, and Undo puts them back.</p></div>
+          <div class="b-art b-keys" aria-hidden="true">
+            {[['⌘1', 'All Items'], ['⌘2', 'Keys & Tokens'], ['⌘E', 'Edit'], ['⇧⌘C', 'Copy as NAME=value'], ['⌘Z', 'Undo']].map(([k, label]) => (
+              <div class="b-key"><span class="keycap keycap--lg">{k}</span><span>{label}</span></div>
+            ))}
           </div>
         </div>
         <div class="b-tile b-tile--wide b-tile--row card-plain"><Icon name="github" class="feature-icon" /><div><h3>Free and open source</h3><p>MIT licensed, made by Testament Made. Read every line on GitHub.</p></div><a class="b-pill b-pill--gh" href="https://github.com/heyderekj/slinky"><Icon name="github" /> heyderekj/slinky</a></div>

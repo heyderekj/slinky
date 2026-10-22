@@ -5,18 +5,20 @@
 ## What it does
 
 - **Add Item (⌘N):** paste anything secret; the value turns into dots, Slinky recognizes the service (Stripe, OpenAI, Anthropic, GitHub, Supabase, Resend, AWS and more) and suggests where it goes. Warns about duplicates. Refuses crypto wallet phrases.
-- **Projects:** drop a project folder; Slinky reads its .env files (read-only), sorts them into Local, Preview and Production, checks .gitignore, and uses .env.example to show what's missing. Copy an environment as .env lines, or save a names-only .env.example.
+- **Projects:** drop a project folder (apps inside it too); Slinky reads its .env files (read-only) and shows, per environment (Local, Preview, Production), what's new, changed, the same, or only in Slinky, saving only what's checked (Update from Folder, undoable). Checks .gitignore, finds key files like .p8, and uses .env.example to show what's missing. Copy an environment as .env lines, or save a names-only .env.example.
 - **Recovery:** backup codes that cross themselves off when copied, low-code warnings, and recovery keys with a printed-copy reminder.
 - **Quick Access (⌥⌘K):** find and copy from any app. Copies are marked private (concealed/transient), skipped by clipboard history apps, and cleared after 60 seconds.
 - **Locking:** Touch ID to open; locks with the screen, on sleep, when idle, and after 12 hours.
-- **Import:** 1Password .1pux or CSV (Apple Passwords, Bitwarden, a sheet of keys). Passwords are skipped.
+- **Import:** 1Password .1pux, or CSV from Apple Passwords, Bitwarden (custom fields too), LastPass, KeePass or a sheet of keys, or a text file; keys found in notes come in too. Rename before importing; Undo takes it back. Passwords are skipped.
+- **Sync (optional):** an encrypted copy of the vault in a folder the person chooses (iCloud Drive, Dropbox), moved by their sync service; a second Mac adopts it once with the Recovery Key; changes merge item by item.
+- **Keyboard and selection:** ⌘1–⌘7 for each place, ⌘E edit, ⇧⌘C copy as NAME=value, ⌥⌘C copy a name; select several to delete or change together; Edit › Undo.
 - **Shortcuts:** Add to Slinky, Copy from Slinky (Touch ID every time; never returns the value), Open Quick Access, Lock Slinky.
-- **The `slinky` command:** `slinky run -- npm run dev` injects a project's variables after Touch ID (no .env on disk); `slinky env --export`, `slinky xcconfig`, `slinky run --file NAME` (secret file as a 0600 temp file), `slinky check`, `slinky guard` (pre-commit check), an optional zsh hook that loads variables on cd. The command is the app's own signed binary; the app checks the caller's signature.
+- **The `slinky` command:** `slinky run -- npm run dev` injects a project's variables after Touch ID (no .env on disk); `slinky env --export`, `slinky xcconfig`, `slinky run --file NAME` (secret file as a 0600 temp file), `slinky check`, `slinky guard` (pre-commit check), `slinky example` (a names-only .env.example), `slinky open [NAME]`, `slinky lock`, and an optional zsh, bash or fish hook that loads variables on cd. The command is the app's own signed binary; the app checks the caller's signature.
 - **AI agents:** an MCP server (`slinky mcp`) for Claude Code, Cursor, Codex and Claude: list_secrets, check_env, request_secret, describe_policy. Names only, never values. Agents run commands through `slinky run`, approved with Touch ID showing the command; live keys, never-for-agents items, shells, inline code, env/printenv, curl/ssh, git push and publishing are refused. Connect in Settings › Command Line & Agents.
 - **Health:** exact-match search for saved values in linked projects and their git history, Claude Code/Codex/Cursor conversations and shell history, on the Mac, names and places only; one-click fixes; keys unused for 60 days and values saved twice.
 - **Apple developer files:** App Store Connect .p8 keys, certificates, service-account JSON (up to 256 KB) in the vault; save a notarytool keychain profile; app-specific passwords recognised.
 - **Rotation and hosts:** "Make New Key on <service>" opens the service's key page and replaces the key wherever it's used; Send to Host pushes a project's variables to Vercel, Netlify, Cloudflare Workers/Pages or Fly.io via their CLIs (values on stdin).
-- **Activity:** what was copied or used, when and by whom; names only, inside the vault.
+- **Activity:** what was copied, used or imported, when and by whom; names only, inside the vault. Item details show when each was last used.
 
 ## What leaves the Mac
 

@@ -3,7 +3,7 @@
 import Icon from './Icon.astro';
 import Monogram from './Monogram.astro';
 import MacWindow from './MacWindow.astro';
-interface Props { which: 'additem' | 'env' | 'quick' | 'lock' | 'kinds' }
+interface Props { which: 'additem' | 'env' | 'quick' | 'lock' }
 const { which } = Astro.props;
 const envRows = [
   { k: 'DATABASE_URL', on: [1, 1, 1] },
@@ -26,7 +26,7 @@ const quick = [
 {which === 'additem' && (
   <div class="demo-col">
     <div class="additem" data-glass="panel" data-additem>
-      <div class="additem__top">Add Item <span class="keycap">esc</span></div>
+      <div class="additem__top">Add Item <span class="xclose" aria-hidden="true">✕</span></div>
       <div class="slab is-empty" data-slab>
         <span data-placeholder>Paste a key, recovery codes or .env lines</span>
         <div data-filled hidden style="display:flex;gap:13px;align-items:flex-start">
@@ -36,10 +36,10 @@ const quick = [
       </div>
       <div class="detect fade-step" data-step="1"><Icon name="sparkle" style="width:14px;height:14px" /> Looks like an OpenAI key.</div>
       <div class="chips fade-step" data-step="2">
-        <span class="pchip"><Icon name="key" /> Key or Token</span>
-        <span class="pchip pchip--add"><Icon name="calendar" /> Add expiry date</span>
+        <span class="pchip"><Icon name="key" /> Key or Token <i class="caret">⌄</i></span>
+        <span class="chips__extras"><span><Icon name="calendar" /> Expiry</span><span>OpenAI</span><span>Link</span><span>Note</span></span>
       </div>
-      <div class="additem__foot"><Icon name="shield" style="width:14px;height:14px" /> Encrypted on this Mac <span class="save">Save to Keys &amp; Tokens ↵</span></div>
+      <div class="additem__foot"><span class="encnote"><Icon name="lock" /> Encrypted on this Mac</span> <span class="save">Save to Keys &amp; Tokens ↵</span></div>
     </div>
     <button class="replay float-glass" data-replay type="button"><Icon name="update" /> Play again</button>
   </div>
@@ -47,15 +47,16 @@ const quick = [
 
 {which === 'env' && (
   <MacWindow title="harbor-app" subtitle="12 variables · 2 missing" selected="harbor-app" class="mac--env" sidebar={false}>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <div class="envpick"><span class="on">Local</span><span>Preview</span><span>Production</span></div>
+    <div class="envbar">
+      <div class="envtabs" data-glass="capsule"><span class="on">Local <i>5</i></span><span>Preview <i>4</i></span><span>Production <i>4</i><b class="envdot"></b></span></div>
+      <span class="envfolder" data-glass="capsule"><Icon name="folder" /> harbor-app <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 4 5 6.5 7.5 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
     </div>
     <div class="env__banner"><Icon name="attention" style="width:14px;height:14px;color:var(--app-amber)" /> <span><b>.env.example</b> lists 2 variables that aren't saved in Slinky yet.</span></div>
     <div class="env">
       {envRows.map((r, i) => (
         <div class={`env__row ${r.missing ? 'is-missing' : ''}`}>
           <span class="n">{i + 1}</span>
-          <span class="k"><b>{r.k}</b><span class="v">{r.missing ? '  missing' : r.plain ? '=pk_live_…9a2c' : '=••••••••'}</span>{r.plain && <span class="chip chip--plain" style="margin-left:8px">public</span>}</span>
+          <span class="k"><b>{r.k}</b><span class="v">{r.missing ? '  missing' : r.plain ? '=pk_live_…9a2c' : '=••••••••'}</span>{r.plain && <span class="chip chip--plain" style="margin-left:8px">Public</span>}</span>
           {r.missing ? <span class="copy" style="height:22px">Add</span> : <span class="dots">{r.on!.map((o) => <i class={o ? 'on' : ''}></i>)}</span>}
         </div>
       ))}
@@ -90,11 +91,11 @@ const quick = [
 {which === 'lock' && (
   <div class="lockdemo" data-lockdemo>
     <MacWindow title="All Items" subtitle="6 items" sidebar={false}>
-      <div class="cards" style="grid-template-columns:1fr 1fr">
-        <div class="card"><div class="card__head"><Monogram text="Resend" /><div><div class="card__kind">KEY OR TOKEN</div><div class="card__name mono">RESEND_API_KEY</div></div></div><div class="card__value"><span>re_••••••••7d0e</span></div></div>
-        <div class="card"><div class="card__head"><Monogram text="Anthropic" /><div><div class="card__kind">KEY OR TOKEN</div><div class="card__name mono">ANTHROPIC_API_KEY</div></div></div><div class="card__value"><span>sk-ant-••••••••3b9f</span></div></div>
-        <div class="card"><div class="card__head"><Monogram text="Vercel" /><div><div class="card__kind">RECOVERY CODES</div><div class="card__name">Vercel</div></div><div class="left is-low"><b>3</b><small>left</small></div></div></div>
-        <div class="card"><div class="card__head"><Monogram text="FileVault" /><div><div class="card__kind">RECOVERY KEY</div><div class="card__name">FileVault recovery key</div></div></div></div>
+      <div class="lib__list">
+        <div class="lib__row"><Monogram text="Resend" size={32} /><div class="lib__text"><div class="lib__name mono">RESEND_API_KEY</div><div class="lib__sub">Resend</div></div><span class="lib__peek">re_••••7d0e</span></div>
+        <div class="lib__row"><Monogram text="Anthropic" size={32} /><div class="lib__text"><div class="lib__name mono">ANTHROPIC_API_KEY</div><div class="lib__sub">Anthropic</div></div><span class="lib__peek">sk-ant-••••3b9f</span></div>
+        <div class="lib__row"><Monogram text="Vercel" size={32} /><div class="lib__text"><div class="lib__name">Vercel</div><div class="lib__sub">Recovery codes</div></div><span class="chip chip--warn">3 left</span></div>
+        <div class="lib__row"><Monogram text="FileVault" size={32} /><div class="lib__text"><div class="lib__name">FileVault recovery key</div><div class="lib__sub">Recovery key · Apple</div></div><span class="chip chip--plain">Printed</span></div>
       </div>
       <div slot="over" class="curtain" aria-hidden="true">
         <div class="curtain__inner">
@@ -105,18 +106,6 @@ const quick = [
       </div>
     </MacWindow>
     <p class="replay float-glass"><Icon name="lock" /> Try the lock switch at the top right</p>
-  </div>
-)}
-
-{which === 'kinds' && (
-  <div class="kinds" data-kinds aria-hidden="true">
-    <div style="display:grid;justify-items:center">
-      <picture class="kinds__icon">
-        <source srcset="/icons/slinky-320-dark.webp" media="(prefers-color-scheme: dark)" />
-        <img src="/icons/slinky-320.webp" alt="" width="96" height="96" />
-      </picture>
-    </div>
-    <div class="pill" data-glass="capsule" data-pill style="opacity:0"><Icon name="key" /><span><small>API key</small><b data-pill-value>sk_live_EXAMPLE4f2a</b></span></div>
   </div>
 )}
 

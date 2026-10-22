@@ -1,13 +1,18 @@
 ---
-// Slinky's main window, rebuilt in HTML: glass window, glass sidebar, the lock switch.
+// Slinky's main window, rebuilt in HTML: a solid window with a glass sidebar of tiles, search in the
+// toolbar, the lock switch. Matches the app since 1.1.
 import Icon from './Icon.astro';
 import Monogram from './Monogram.astro';
 interface Props { title: string; subtitle?: string; selected?: string; class?: string; sidebar?: boolean; id?: string }
 const { title, subtitle, selected = 'all', class: cls = '', sidebar = true, id } = Astro.props;
-const rows = [
-  { id: 'all', icon: 'grid', label: 'All Items', count: 7 },
-  { id: 'keys', icon: 'key', label: 'Keys & Tokens', count: 4 },
-  { id: 'recovery', icon: 'life', label: 'Recovery', count: 2 },
+// The places, as tiles (like Apple Passwords and the app since 1.1). Circles in Slinky's own palette.
+const tiles = [
+  { id: 'all', icon: 'grid', label: 'All', count: 7, c: 'glacier' },
+  { id: 'keys', icon: 'key', label: 'Keys', count: 4, c: 'sky' },
+  { id: 'codes', icon: 'number', label: 'Codes', count: 1, c: 'mint' },
+  { id: 'recovery', icon: 'life', label: 'Recovery', count: 1, c: 'violet' },
+  { id: 'health', icon: 'heart', label: 'Health', count: 1, c: 'pink', needs: true },
+  { id: 'deleted', icon: 'trash', label: 'Deleted', count: 2, c: 'slate' },
 ];
 const projects = [
   { name: 'Slinky', count: '12' },
@@ -20,17 +25,20 @@ const projects = [
     <aside class="mac__sidebar" data-glass="panel">
       {/* Like Binky and the real window: traffic lights, and the sidebar toggle at the sidebar's top right. */}
       <div class="mac__bar"><div class="mac__lights"><i></i><i></i><i></i></div><span class="mac__sbtoggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" aria-hidden="true"><rect x="2.8" y="4.6" width="18.4" height="14.8" rx="3.4"/><path d="M9.3 4.8v14.4M5.3 8.4h1.6M5.3 10.9h1.6M5.3 13.4h1.6"/></svg></span></div>
-      <div class="mac__search"><Icon name="search" /> Search</div>
-      {rows.map((r) => (
-        <div class={`mac__row ${selected === r.id ? 'is-on' : ''}`}><Icon name={r.icon} />{r.label}<span class="count">{r.count}</span></div>
-      ))}
-      <div class={`mac__row ${selected === 'health' ? 'is-on' : ''}`}><Icon name="attention" class="warn-icon" />Health<span class="count">1</span></div>
-      <div class="mac__row"><Icon name="update" />Activity</div>
+      <div class="mac__tiles">
+        {tiles.map((t) => (
+          <div class={`tile tile--${t.c} ${selected === t.id ? 'is-on' : ''}`} data-tile={t.id}>
+            <span class="tile__circle"><Icon name={t.icon} /></span>
+            <span class={`tile__count ${t.needs ? 'is-needs' : ''}`}>{t.count}</span>
+            <span class="tile__label">{t.label}</span>
+          </div>
+        ))}
+      </div>
       <div class="mac__heading">Projects</div>
       {projects.map((p) => (
         <div class={`mac__row ${selected === p.name ? 'is-on' : ''}`}><Monogram text={p.name} size={18} />{p.name}{p.warn ? <span class="warn">{p.warn}</span> : <span class="count">{p.count}</span>}</div>
       ))}
-      <div class="mac__foot"><Icon name="plusc" /> New Project</div>
+      <div class="mac__foot"><Icon name="plusc" /> New Project<span class="mac__activity" title="Activity"><Icon name="clock" /></span></div>
     </aside>
   )}
   <div class="mac__main">
@@ -42,6 +50,13 @@ const projects = [
         <span class="sb" data-glass="capsule"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" aria-hidden="true"><rect x="2.8" y="4.6" width="18.4" height="14.8" rx="3.4"/><path d="M9.3 4.8v14.4M5.3 8.4h1.6M5.3 10.9h1.6M5.3 13.4h1.6"/></svg></span>
       )}
       <div class="mac__title"><b>{title}</b>{subtitle && <span>{subtitle}</span>}</div>
+      {sidebar && (
+        <span class="mac__tools">
+          <span class="tbgroup" data-glass="capsule"><Icon name="sort" /><Icon name="plus" /></span>
+          <span class="tbgroup tbgroup--one" data-glass="capsule"><Icon name="sidebar" /></span>
+          <span class="mac__search" data-glass="capsule"><Icon name="search" /><span>Search</span></span>
+        </span>
+      )}
       <button class="lock-switch" data-glass="capsule" data-lock-switch aria-label="Lock Slinky (demo)" type="button">
         <i class="knob"></i>
         <span class="is-on"><Icon name="lockopen" /></span>
@@ -53,6 +68,4 @@ const projects = [
   <slot name="over" />
 </div>
 
-<style>
-  .mac :global(.warn-icon) { color: var(--app-amber) !important; }
-</style>
+

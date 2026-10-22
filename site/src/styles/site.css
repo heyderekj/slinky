@@ -34,12 +34,13 @@ p { margin: 0; text-wrap: pretty; }
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
 }
-.mac[data-glass] { background: rgb(250 251 253 / 0.62); }
+/* The window is solid, like the app since 1.1: only the sidebar, toolbar controls and details pane are glass. */
+.mac[data-glass] { background: var(--app-surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
 [data-glass='capsule'] { background: rgb(255 255 255 / 0.3); -webkit-backdrop-filter: blur(6px) saturate(1.6); backdrop-filter: blur(6px) saturate(1.6); }
 @media (prefers-color-scheme: dark) {
   [data-glass] { background: rgb(36 38 44 / 0.48); box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.5), 0 22px 50px -22px rgb(0 0 0 / 0.7); }
   [data-glass]::after { background: linear-gradient(140deg, rgb(255 255 255 / 0.32), rgb(255 255 255 / 0.08) 32%, rgb(255 255 255 / 0.02) 62%, rgb(255 255 255 / 0.16)); }
-  .mac[data-glass] { background: rgb(28 30 34 / 0.62); }
+  .mac[data-glass] { background: var(--app-surface); }
   [data-glass='capsule'] { background: rgb(255 255 255 / 0.08); }
 }
 
@@ -243,15 +244,15 @@ body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
   .g-row.is-flip .g-copy { order: 0; }
   .g-row .desktop__stage { min-height: 400px; }
 }
-/* Small scene parts: Needs Attention rows, a printed Recovery Key, the Touch ID prompt. */
+/* Small scene parts: Health, a printed Recovery Key, the Touch ID prompt. */
 /* Health, small: the ring of checks, a tile per check, then what was found. Calm by default: neutral tiles and a
-   soft ring, with orange only where something needs a person (the same rule as the app). */
+   soft ring, with Health's own pink only where something was found (the same rule as the app since 1.1). */
 .health { display: grid; gap: 16px; }
 .health__sum { display: flex; align-items: center; gap: 16px; }
 .health__ring { width: 72px; height: 72px; flex: none; }
 .health__ring path { fill: none; stroke: color-mix(in oklch, var(--app-text) 14%, transparent); stroke-width: 8; stroke-linecap: round; }
 .health__ring path.is-ok { stroke: color-mix(in oklch, var(--brand) 62%, transparent); }
-.health__ring path.is-found { stroke: var(--app-amber); }
+.health__ring path.is-found { stroke: var(--app-health); }
 .health__ring text { font: 600 28px ui-rounded, var(--app-font); fill: var(--app-text); }
 .health__sum b { display: block; font-size: 17px; font-weight: 650; }
 .health__sum small { display: block; font-size: 12px; color: var(--app-secondary); margin-top: 2px; }
@@ -260,13 +261,13 @@ body { padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px)); }
 .health__tile .icon { width: 24px; height: 24px; padding: 5px; border-radius: 7px; color: var(--app-secondary); background: var(--app-fill); }
 .health__tile b { font-weight: 600; line-height: 1.2; align-self: start; }
 .health__tile .ok { color: var(--app-secondary); font-weight: 500; font-size: 10.5px; }
-.health__tile .found { justify-self: start; color: var(--app-amber); background: color-mix(in oklch, var(--app-amber) 14%, transparent); font-weight: 650; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; }
-.health__tile.is-found { box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--app-amber) 38%, transparent); }
-.health__tile.is-found .icon { color: var(--app-amber); background: color-mix(in oklch, var(--app-amber) 14%, transparent); }
+.health__tile .found { justify-self: start; color: var(--app-health); background: color-mix(in oklch, var(--app-health) 14%, transparent); font-weight: 650; font-size: 10.5px; padding: 1px 7px; border-radius: 999px; }
+.health__tile.is-found { box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--app-health) 38%, transparent); }
+.health__tile.is-found .icon { color: var(--app-health); background: color-mix(in oklch, var(--app-health) 14%, transparent); }
 @media (max-width: 480px) { .health__tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .att { display: grid; gap: 8px; margin-top: 4px; }
 .att__row { display: grid; grid-template-columns: 32px 1fr auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--app-paper); box-shadow: inset 0 0 0 1px var(--app-sep); }
-.att__row .icon { width: 32px; height: 32px; padding: 8px; border-radius: 9px; color: var(--app-amber); background: color-mix(in oklch, var(--app-amber) 14%, transparent); }
+.att__row .icon { width: 32px; height: 32px; padding: 8px; border-radius: 9px; color: var(--app-health); background: color-mix(in oklch, var(--app-health) 14%, transparent); }
 .att__row b { display: block; font-size: 13px; font-weight: 600; }
 .att__row small { display: block; font-size: 11.5px; color: var(--app-secondary); margin-top: 1px; }
 .att__row .copy { height: 24px; }
@@ -324,8 +325,9 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 [data-mb-window] { width: min(980px, 100%); }
 /* The sidebar is a second layer of glass inside the window. Backdrop filters can't see through another
    glass layer, so it carries its own light frosted fill and the same crisp edge. */
-.mac__sidebar { background: rgb(255 255 255 / 0.5) !important; }
-@media (prefers-color-scheme: dark) { .mac__sidebar { background: rgb(255 255 255 / 0.07) !important; } }
+/* On the solid window, the sidebar is a floating panel of light glass, as in the app. */
+.mac__sidebar { background: rgb(242 244 247 / 0.94) !important; }
+@media (prefers-color-scheme: dark) { .mac__sidebar { background: rgb(46 47 52 / 0.92) !important; } }
 .mac__sidebar { border-radius: 12px; padding: 0 10px 10px; display: flex; flex-direction: column; gap: 2px; }
 /* The sidebar's top row and the toolbar are both 38px from the same 8px inset, so lights, toggle and title share a middle. */
 .mac__bar { display: flex; align-items: center; justify-content: space-between; height: 38px; padding: 0 0 0 6px; flex: none; }
@@ -336,8 +338,24 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mac__lights i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.12); }
 .mac__lights i:nth-child(2) { background: #febc2e; }
 .mac__lights i:nth-child(3) { background: #28c840; }
-.mac__search { display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; margin: 0 2px 10px; border-radius: 999px; background: var(--app-fill); color: var(--app-secondary); }
-.mac__search svg { width: 12px; height: 12px; }
+/* The sidebar's tiles: a 2×3 grid, a colored circle, the count and the name. The selected one fills with its color. */
+.mac__tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 2px 0 4px; }
+.tile { --tc: #0b7f8f; --tt: #80e3f2; display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: 6px 4px; padding: 8px; border-radius: 10px; background: color-mix(in oklch, var(--app-text) 5.5%, transparent); cursor: default; transition: background var(--t-ui); }
+.tile:hover { background: color-mix(in oklch, var(--app-text) 9%, transparent); }
+.tile__circle { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; color: #fff; background: linear-gradient(var(--tt), var(--tc)); }
+.tile__circle svg { width: 12px; height: 12px; }
+.tile__count { justify-self: end; font-size: 11px; font-weight: 600; color: var(--app-secondary); font-variant-numeric: tabular-nums; }
+.tile__count.is-needs { color: var(--app-health); }
+.tile__label { grid-column: 1 / -1; font-size: 13.5px; font-weight: 650; letter-spacing: -0.01em; white-space: nowrap; }
+.tile.is-on { background: var(--tc); color: #fff; }
+.tile.is-on .tile__circle { background: #fff; color: var(--tc); }
+.tile.is-on .tile__count { color: rgb(255 255 255 / 0.85); }
+.tile--glacier { --tt: #80e3f2; --tc: #0b7f8f; }
+.tile--sky { --tt: #8cc2fa; --tc: #296bd6; }
+.tile--mint { --tt: #8feba8; --tc: #148057; }
+.tile--violet { --tt: #cca3ff; --tc: #7a42d6; }
+.tile--pink { --tt: #ffa3cc; --tc: #cc387a; }
+.tile--slate { --tt: #b8c7d4; --tc: #61707f; }
 .mac__row { display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 8px; border-radius: 8px; font-size: 13.5px; }
 .mac__row svg { width: 16px; height: 16px; color: var(--brand); flex: none; }
 .mac__row .count { margin-left: auto; color: var(--app-secondary); font-size: 12px; font-variant-numeric: tabular-nums; }
@@ -345,6 +363,7 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mac__row .warn { margin-left: auto; color: var(--app-amber); font-size: 11.5px; font-weight: 500; }
 .mac__heading { padding: 14px 8px 4px; font-size: 11px; font-weight: 600; color: var(--app-tertiary); }
 .mac__foot { margin-top: auto; display: flex; align-items: center; gap: 6px; padding: 8px; color: var(--app-secondary); }
+.mac__activity { margin-left: auto; display: grid; place-items: center; }
 .mac__foot svg { width: 16px; height: 16px; }
 .mac__main { display: flex; flex-direction: column; min-width: 0; padding: 0 6px 0 14px; }
 .mac__toolbar { display: flex; align-items: center; gap: 12px; height: 38px; flex: none; }
@@ -355,6 +374,17 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .mac__title { display: grid; gap: 1px; line-height: 1.12; }
 .mac__title b { display: block; font-size: 15px; font-weight: 650; letter-spacing: -0.012em; }
 .mac__title span { display: block; font-size: 11.5px; font-weight: 500; color: var(--app-secondary); }
+/* The toolbar's buttons in shared glass capsules, like Passwords' sort and +, then search on the right. */
+.mac__tools { margin-left: auto; display: flex; align-items: center; gap: 8px; min-width: 0; }
+.tbgroup { display: flex; align-items: center; gap: 14px; height: 34px; padding: 0 12px; border-radius: 999px; color: var(--app-text); }
+.tbgroup svg { width: 15px; height: 15px; }
+.mac__search { display: flex; align-items: center; gap: 6px; height: 34px; width: 210px; padding: 0 12px; border-radius: 999px; color: var(--app-secondary); }
+.mac__search svg { width: 13px; height: 13px; }
+.mac__tools + .lock-switch { margin-left: 4px; }
+/* Narrow windows: search folds into a button, the way macOS does. */
+@media (max-width: 1240px) { .mac__search { width: 34px; padding: 0; justify-content: center; } .mac__search span { display: none; } }
+@media (max-width: 860px) { .tbgroup--one { display: none; } }
+@media (max-width: 560px) { .mac__tools { display: none; } }
 .mac__detail { flex: 1; min-height: 0; overflow: hidden; padding: 6px 4px 14px; position: relative; }
 
 /* The lock switch, top right */
@@ -366,25 +396,25 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .lock-switch span.is-on { color: #fff; }
 
 /* All Items: the compact list, and the floating details panel for the selected row (like the app). */
-.lib { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 12px; padding: 4px 2px 8px 0; }
+.lib { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 12px; padding: 4px 2px 8px 0; }
 .lib__list { min-width: 0; overflow: hidden; padding-right: 2px; }
 .lib__group { font-size: 12px; font-weight: 600; color: var(--app-secondary); padding: 12px 10px 4px; }
 .lib__group:first-child { padding-top: 2px; }
-.lib__row { display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 10px; border-radius: 10px; cursor: default; outline: none; }
+.lib__row { display: flex; align-items: center; gap: 12px; height: 50px; padding: 0 10px; border-radius: 10px; cursor: default; outline: none; }
 .lib__row:hover { background: color-mix(in oklch, var(--app-text) 4%, transparent); }
 .lib__row.is-on { background: color-mix(in oklch, var(--brand) 16%, transparent); }
 .lib__row:focus-visible { box-shadow: 0 0 0 2px var(--brand); }
 .lib__text { min-width: 0; flex: 1; }
-.lib__name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lib__name.mono { font-family: var(--mono); font-size: 12px; }
-.lib__sub { font-size: 11.5px; color: var(--app-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib__name { font-size: 13.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib__name.mono { font-family: var(--mono); font-size: 12.5px; }
+.lib__sub { font-size: 12px; color: var(--app-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .lib__copy { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: var(--app-secondary); background: var(--app-fill); opacity: 0; transition: opacity var(--t-ui); flex: none; }
 .lib__copy svg { width: 12px; height: 12px; }
 .lib__row:hover .lib__copy, .lib__row.is-on .lib__copy { opacity: 1; }
 .lib__copy.is-done svg { color: var(--app-green); }
 /* The panel floats over the content, its own frosted layer (backdrop filters can't see through the window's glass). */
-.pane { border-radius: 16px; background: rgb(255 255 255 / 0.72); box-shadow: 0 0 0 0.5px var(--app-sep), 0 18px 40px -20px rgb(20 40 60 / 0.35); overflow: hidden; }
-@media (prefers-color-scheme: dark) { .pane { background: rgb(255 255 255 / 0.07); } }
+.pane { border-radius: 16px; background: rgb(242 244 247 / 0.94); box-shadow: 0 0 0 0.5px var(--app-sep), 0 18px 40px -20px rgb(20 40 60 / 0.35); overflow: hidden; }
+@media (prefers-color-scheme: dark) { .pane { background: rgb(46 47 52 / 0.92); } }
 .pane__body { display: flex; flex-direction: column; gap: 14px; padding: 16px; height: 100%; }
 .pane__body[hidden] { display: none; }
 .pane__head { display: flex; gap: 12px; align-items: center; }
@@ -414,7 +444,7 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .lib-section { font-size: 13px; font-weight: 600; color: var(--app-secondary); margin: 2px 2px 8px; }
 .card { background: var(--app-paper); border-radius: 16px; padding: 13px; box-shadow: 0 0 0 0.5px var(--app-sep), 0 6px 18px -10px rgb(0 0 0 / 0.25); display: grid; gap: 10px; align-content: start; }
 .card__head { display: flex; gap: 10px; align-items: flex-start; }
-.card__kind { font-size: 9.5px; font-weight: 700; letter-spacing: 0.05em; color: var(--app-tertiary); }
+.card__kind { font-size: 11px; font-weight: 600; color: var(--app-tertiary); }
 .card__name { font-size: 13px; font-weight: 600; }
 .card__name.mono { font-family: var(--mono); font-size: 12.5px; }
 .card__sub { font-size: 11.5px; color: var(--app-secondary); }
@@ -424,7 +454,8 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .card__value:hover .hidden, .card__value.is-shown .hidden { display: none; }
 .card__value small { font-family: var(--app-font); font-size: 10.5px; color: var(--app-tertiary); }
 .card__foot { display: flex; align-items: center; gap: 6px; }
-.chip { display: inline-flex; align-items: center; height: 18px; padding: 0 6px; border-radius: 5px; font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+/* Status chips: sentence case in a capsule, the way Tahoe marks status (the app since 1.1). */
+.chip { display: inline-flex; align-items: center; height: 19px; padding: 0 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
 .chip--live { color: var(--red); background: color-mix(in oklch, var(--red) 13%, transparent); }
 .chip--plain { color: var(--app-secondary); background: var(--app-fill); }
 .chip--warn { color: var(--app-amber); background: color-mix(in oklch, var(--app-amber) 14%, transparent); }
@@ -442,7 +473,7 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .left.is-low b { color: var(--app-amber); }
 
 /* Monograms: little app-icon tiles, same palette as the app */
-.mono-tile { --s: 30px; width: var(--s); height: var(--s); flex: none; border-radius: calc(var(--s) * 0.26); display: grid; place-items: center; color: #fff; font-family: ui-rounded, var(--app-font); font-weight: 700; font-size: calc(var(--s) * 0.42); position: relative; overflow: hidden; box-shadow: 0 calc(var(--s) * 0.06) calc(var(--s) * 0.18) -2px var(--mono-shadow, rgb(0 0 0 / 0.3)); text-shadow: 0 1px 1px rgb(0 0 0 / 0.15); }
+.mono-tile { --s: 30px; width: var(--s); height: var(--s); flex: none; border-radius: calc(var(--s) * 0.26); display: grid; place-items: center; color: #fff; font-family: ui-rounded, var(--app-font); font-weight: 700; font-size: calc(var(--s) * 0.42); position: relative; overflow: hidden; box-shadow: 0 calc(var(--s) * 0.02) calc(var(--s) * 0.06) rgb(0 0 0 / 0.12); text-shadow: 0 1px 1px rgb(0 0 0 / 0.15); }
 .mono-tile::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(to bottom, rgb(255 255 255 / 0.32), transparent 50%); box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.45); }
 
 /* Toast, like the app's */
@@ -460,8 +491,15 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 .slab__value { font-family: var(--mono); font-size: 13px; color: var(--app-secondary); margin-top: 4px; white-space: nowrap; }
 .detect { display: flex; align-items: center; gap: 7px; margin-top: 12px; font-size: 13px; color: var(--app-secondary); min-height: 20px; }
 .chips { display: flex; gap: 7px; margin-top: 12px; flex-wrap: wrap; min-height: 30px; }
-.pchip { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; font-size: 13px; background: color-mix(in oklch, var(--brand) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--brand) 35%, transparent); }
-.pchip--add { background: none; color: var(--app-secondary); box-shadow: none; outline: 1px dashed var(--app-sep); outline-offset: -1px; }
+/* Add Item's details, like the app since 1.1: the choice a soft gray pill, what you can add plain text on the right. */
+.pchip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 11px; border-radius: 999px; font-size: 13px; background: color-mix(in oklch, var(--app-text) 9%, transparent); }
+.pchip .caret { font-style: normal; color: var(--app-secondary); font-size: 11px; margin-top: -4px; }
+.chips__extras { margin-left: auto; display: inline-flex; gap: 16px; font-size: 13px; color: var(--app-secondary); }
+.chips__extras span { display: inline-flex; align-items: center; gap: 5px; }
+.chips__extras svg { width: 12px; height: 12px; }
+.xclose { margin-left: auto; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--app-secondary); background: var(--app-fill); }
+.encnote { display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px; border-radius: 999px; background: color-mix(in oklch, var(--app-text) 5%, transparent); color: var(--app-secondary); }
+.encnote svg { width: 11px; height: 11px; }
 .pchip svg { width: 12px; height: 12px; }
 .additem__foot { display: flex; align-items: center; gap: 10px; margin-top: 18px; font-size: 13px; color: var(--app-secondary); }
 .additem__foot .save { margin-left: auto; height: 34px; padding: 0 16px; border-radius: 999px; background: var(--brand); color: #fff; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 8px; opacity: 0.45; transition: opacity 0.3s; }
@@ -487,10 +525,17 @@ button.replay:active { transform: scale(0.97); }
 .env__row.is-missing .k b { color: var(--app-amber); }
 .dots { display: flex; gap: 4px; }
 .dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--app-sep); }
-.dots i.on { background: var(--app-green); }
-.envpick { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--app-fill); margin-left: auto; font-family: var(--app-font); font-size: 12px; }
-.envpick span { padding: 3px 10px; border-radius: 6px; }
-.envpick span.on { background: var(--app-paper); box-shadow: 0 1px 2px rgb(0 0 0 / 0.12); font-weight: 600; }
+.dots i.on { background: var(--brand); }
+/* The project's environments, like the app since 1.1: glass tabs with counts, and the folder capsule. */
+.envbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.envtabs { display: inline-flex; padding: 3px; border-radius: 999px; font-size: 12.5px; }
+.envtabs span { display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px; border-radius: 999px; }
+.envtabs span i { font-style: normal; color: var(--app-secondary); font-variant-numeric: tabular-nums; }
+.envtabs span.on { background: color-mix(in oklch, var(--app-text) 10%, transparent); font-weight: 600; }
+.envdot { width: 5px; height: 5px; border-radius: 50%; background: var(--app-amber); }
+.envfolder { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12.5px; }
+.envfolder svg { width: 13px; height: 13px; color: var(--app-secondary); }
+.envfolder svg:last-child { width: 9px; height: 9px; }
 
 /* ---------- Quick Access ---------- */
 .qa { width: min(640px, 100%); border-radius: 18px; padding: 8px; font-family: var(--app-font); color: var(--app-text); text-align: left; }
@@ -751,3 +796,49 @@ a.b-pill--gh:focus-visible { outline: 2px solid var(--brand); outline-offset: 2p
 .agent-term { width: 100%; margin: 0; padding: 14px 16px; border-radius: 14px; background: rgb(18 20 24 / 0.92); color: #d8f3e3;
   font-family: var(--mono); font-size: 12px; line-height: 1.65; white-space: pre; overflow: hidden; box-shadow: 0 18px 40px -24px rgb(0 0 0 / 0.6); }
 .agent-term span { color: #9fb3c8; }
+
+/* A row's short peek, on the right (like the app). */
+.lib__peek { font-family: var(--mono); font-size: 11.5px; color: var(--app-tertiary); white-space: nowrap; }
+
+/* The folder review (Update from Folder), small. */
+.review { max-width: 520px; }
+.rv__head { display: flex; gap: 13px; align-items: center; }
+.rv__title { font-size: 16px; font-weight: 650; }
+.rv__path { display: flex; align-items: center; gap: 6px; margin-top: 2px; font-family: var(--mono); font-size: 11.5px; color: var(--app-secondary); }
+.rv__sec { margin: 14px 2px 6px; font-size: 12px; color: var(--app-secondary); }
+.rv__sec b { color: var(--app-text); font-weight: 600; }
+.rv__rows { display: grid; border-radius: 12px; background: color-mix(in oklch, var(--app-text) 4.5%, transparent); padding: 4px 0; }
+.rv__row { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; min-height: 34px; padding: 0 12px; font-size: 12.5px; }
+.rv__row.is-off { opacity: 0.55; }
+.rv__row--file { grid-template-columns: 16px minmax(0, 1fr) auto auto; }
+.rv__box { width: 14px; height: 14px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--app-sep); display: grid; place-items: center; }
+.rv__box.is-on { background: var(--brand); box-shadow: none; color: #fff; }
+.rv__box svg { width: 10px; height: 10px; }
+.rv__name { font-family: var(--mono); font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px; }
+.rv__peek { font-family: var(--mono); font-size: 11px; color: var(--app-tertiary); white-space: nowrap; }
+.rv__note { font-size: 11.5px; color: var(--app-secondary); white-space: nowrap; }
+.rv__quiet { margin: 10px 2px 0; font-size: 12px; color: var(--app-secondary); }
+.chip--new { color: var(--brand); background: color-mix(in oklch, var(--brand) 13%, transparent); }
+@media (prefers-color-scheme: dark) { .chip--new { color: color-mix(in oklch, var(--brand) 55%, white); } }
+.pchip--sm { height: 24px; padding: 0 9px; font-size: 12px; }
+@media (max-width: 560px) { .rv__peek { display: none; } .rv__row { grid-template-columns: 16px minmax(0, 1fr) auto; } .rv__row--file .pchip { display: none; } }
+
+/* Sync, small: the Settings pane, the other Mac, and the same item on both. */
+.sync { max-width: 460px; display: grid; gap: 12px; }
+.sync .additem__top { margin-bottom: 0; }
+.mono-path { font-family: var(--mono); font-size: 11.5px; }
+.sync__buttons { display: flex; justify-content: space-between; }
+.sync__buttons .copy { margin-left: 0; }
+.sync__note { font-size: 12px; color: var(--app-secondary); line-height: 1.5; }
+.sync__macs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; width: min(620px, 100%); }
+.sync__mac { gap: 6px; padding: 14px 12px; }
+.sync__device { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: var(--app-secondary); padding: 0 4px 4px; }
+.sync__device svg { width: 12px; height: 12px; color: var(--brand); }
+@media (max-width: 620px) { .sync__macs { grid-template-columns: 1fr; } .sync__mac:last-child { display: none; } }
+.keycap--lg { min-width: 38px; text-align: center; font-size: 12px; padding: 3px 7px; }
+.b-tile--full { grid-column: 1 / -1; }
+.b-keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px 16px; }
+.b-key { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.b-key .keycap { min-width: 48px; }
+/* Phone width: the panels' footers keep just the button. */
+@media (max-width: 560px) { .review .encnote, .sync .encnote { display: none; } }

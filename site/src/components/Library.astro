@@ -41,7 +41,7 @@ const first = items[0].id;
         <div class="lib__group">{g}</div>
         {items.filter((i) => i.group === g).map((i) => (
           <div class={`lib__row ${i.id === first ? 'is-on' : ''}`} role="option" aria-selected={i.id === first ? 'true' : 'false'} tabindex="0" data-lib-row={i.id}>
-            <Monogram text={i.by} size={28} />
+            <Monogram text={i.by} size={32} />
             <div class="lib__text">
               <div class={`lib__name ${i.mono ? 'mono' : ''}`}>{i.name}</div>
               <div class="lib__sub">{i.kind === i.service ? i.kind : `${i.kind} · ${i.service}`}</div>
