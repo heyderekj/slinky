@@ -19,6 +19,7 @@ enum SnapshotRunner {
     static var shots: [Shot] {
         [
             Shot(name: "library", fixture: .worst) { m in m.librarySelection = m.document.keys.first.map { .key($0.id) } },
+            Shot(name: "plain-library", fixture: .worst) { _ in },
             Shot(name: "library-codes", fixture: .worst) { m in m.librarySelection = m.document.codeSets.first.map { .codes($0.id) } },
             Shot(name: "library-file", fixture: .worst) { m in m.librarySelection = m.document.secretFiles.first.map { .file($0.id) } },
             Shot(name: "library-short-key", fixture: .worst) { m in m.librarySelection = m.document.keys.first { $0.name == "SHORT_TOKEN" }.map { .key($0.id) } },
