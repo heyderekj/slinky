@@ -71,7 +71,7 @@ struct CategoryTile: View {
     let symbol: String
     let tint: TileColor
     let count: Int
-    /// The count turns amber: something here needs a person.
+    /// The count turns pink, Health's color: something here needs a person.
     var needsYou = false
     let selected: Bool
     let action: () -> Void
@@ -125,6 +125,6 @@ struct CategoryTile: View {
 
     private var countStyle: Color {
         if selected { return Color.onAccent.opacity(0.85) }
-        return needsYou ? .attention : .secondary
+        return needsYou ? .health : .secondary
     }
 }

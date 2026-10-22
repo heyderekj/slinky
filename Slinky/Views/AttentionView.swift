@@ -159,7 +159,7 @@ struct AttentionView: View {
         case let .commit(_, _, project): "\(what) \(verb) in \(findings.count) \(project) commits"
         default: findings[0].title
         }
-        return HealthRow(symbol: symbol(findings[0]), tint: Color.attention, title: title, detail: findings[0].detail,
+        return HealthRow(symbol: symbol(findings[0]), tint: Color.health, title: title, detail: findings[0].detail,
                          path: findings[0].place.isCommit ? findings[0].shownPath : nil) {
             Button("Show") {
                 let urls = Array(Set(findings.map(\.path))).sorted().map { URL(fileURLWithPath: $0) }
@@ -169,7 +169,7 @@ struct AttentionView: View {
     }
 
     private func leakRow(_ finding: LeakFinding) -> some View {
-        HealthRow(symbol: symbol(finding), tint: Color.attention, title: finding.title, detail: finding.detail, path: finding.shownPath) {
+        HealthRow(symbol: symbol(finding), tint: Color.health, title: finding.title, detail: finding.detail, path: finding.shownPath) {
             switch finding.place {
             case .envFile:
                 Button("Move into Slinky") { confirmMove = finding }.glassProminentButton()
@@ -407,7 +407,7 @@ private struct HealthRing: View {
     private func color(_ check: HealthCheck) -> Color {
         switch check.status {
         case .clear: Color.done.opacity(0.55)
-        case .found: Color.attention
+        case .found: Color.health
         case .notChecked, .checking, .nothingToCheck: Color.secondary.opacity(0.2)
         }
     }
@@ -426,9 +426,9 @@ private struct HealthTile: View {
                 HStack {
                     Image(systemName: check.symbol)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(found ? Color.attention : Color.secondary)
+                        .foregroundStyle(found ? Color.health : Color.secondary)
                         .frame(width: 30, height: 30)
-                        .background(found ? Color.attention.opacity(0.14) : Color.secondary.opacity(0.1),
+                        .background(found ? Color.health.opacity(0.14) : Color.secondary.opacity(0.1),
                                     in: .rect(cornerRadius: 8, style: .continuous))
                     Spacer()
                     status
@@ -442,7 +442,7 @@ private struct HealthTile: View {
             .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
             .card(cornerRadius: 16)
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(found ? Color.attention.opacity(0.38) : .clear, lineWidth: 1))
+                .strokeBorder(found ? Color.health.opacity(0.38) : .clear, lineWidth: 1))
             .contentShape(.rect(cornerRadius: 16))
             .animation(.smooth(duration: 0.35), value: check.status)
         }
@@ -463,9 +463,9 @@ private struct HealthTile: View {
             Text("\(n) found")
                 .font(.caption.weight(.semibold))
                 .monospacedDigit()
-                .foregroundStyle(Color.attention)
+                .foregroundStyle(Color.health)
                 .padding(.horizontal, 8).padding(.vertical, 3)
-                .background(Color.attention.opacity(0.14), in: .capsule)
+                .background(Color.health.opacity(0.14), in: .capsule)
         case .checking:
             ProgressView().controlSize(.mini)
         case .notChecked:
@@ -515,9 +515,9 @@ private struct AttentionRow: View {
         HStack(spacing: 12) {
             Image(systemName: item.symbol)
                 .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(Color.attention)
+                .foregroundStyle(Color.health)
                 .frame(width: 32, height: 32)
-                .background(Color.attention.opacity(0.14), in: .rect(cornerRadius: 9))
+                .background(Color.health.opacity(0.14), in: .rect(cornerRadius: 9))
             VStack(alignment: .leading, spacing: 2) {
                 Text(item.title).font(.headline)
                 Text(item.detail).font(.callout).foregroundStyle(.secondary).lineLimit(2)

@@ -27,6 +27,14 @@ extension ShapeStyle where Self == Color {
             : NSColor(red: 0.722, green: 0.525, blue: 0.180, alpha: 1)   // #B8862E
     }) }
 
+    /// What Health found, on the Health screen and its tile: Health's own pink (the tile's color), so the screen
+    /// reads as one place rather than a page of warnings. Amber stays for attention elsewhere.
+    static var health: Color { Color(nsColor: NSColor(name: nil) { appearance in
+        appearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            ? NSColor(red: 0.96, green: 0.46, blue: 0.66, alpha: 1)
+            : NSColor(red: 0.80, green: 0.22, blue: 0.48, alpha: 1)
+    }) }
+
     /// Done, all clear, used: the glacier cyan accent.
     static var done: Color { .accentColor }
 
