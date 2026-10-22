@@ -205,14 +205,20 @@ enum AboutPanel {
         var link = base
         link.removeValue(forKey: .foregroundColor)
         let credits = NSMutableAttributedString()
-        credits.append(NSAttributedString(string: "\(bundleSize()) · Made by Testament Made, LLC\n", attributes: base))
+        credits.append(NSAttributedString(string: "\(bundleSize())\n", attributes: base))
         var site = link; site[.link] = URL(string: "https://slinkyfiles.com")!
         credits.append(NSAttributedString(string: "slinkyfiles.com\n", attributes: site))
         var repo = link; repo[.link] = URL(string: "https://github.com/heyderekj/slinky")!
         credits.append(NSAttributedString(string: "github.com/heyderekj/slinky\n", attributes: repo))
         var mail = link; mail[.link] = URL(string: "mailto:derek@testamentmade.com")!
         credits.append(NSAttributedString(string: "derek@testamentmade.com", attributes: mail))
-        NSApp.orderFrontStandardAboutPanel(options: [.credits: credits])
+        // Like Dinky's and Binky's: the version people know (no build number), the size, the links. The copyright
+        // stays in Info.plist; the panel doesn't repeat it.
+        NSApp.orderFrontStandardAboutPanel(options: [
+            .credits: credits,
+            .version: "",
+            NSApplication.AboutPanelOptionKey(rawValue: "Copyright"): "",
+        ])
         NSApp.activate()
     }
 
