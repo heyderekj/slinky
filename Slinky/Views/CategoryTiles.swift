@@ -17,7 +17,7 @@ struct CategoryGrid: View {
             }
             GridRow {
                 tile(.library(.codes), "Codes", "number", Color(nsColor: .systemYellow), count: libraryCount(.codes))
-                tile(.library(.recoveryKeys), "Recovery Keys", "lifepreserver", Color(nsColor: .systemPurple),
+                tile(.library(.recoveryKeys), "Recovery", "lifepreserver", Color(nsColor: .systemPurple),
                      count: libraryCount(.recoveryKeys))
             }
             GridRow {
@@ -49,7 +49,7 @@ struct CategoryGrid: View {
     }
 }
 
-/// One tile: a colored circle with the place's symbol, its count, its name. Selected, it fills with the accent
+/// One tile: a colored circle with the place's symbol, its count, its name. Selected, it fills with its own color
 /// and the circle turns white, the way Passwords marks where you are.
 struct CategoryTile: View {
     let title: String
@@ -102,7 +102,7 @@ struct CategoryTile: View {
     }
 
     private var fill: Color {
-        if selected { return .accentColor }
+        if selected { return tint }
         return Color.primary.opacity(hovering ? 0.09 : 0.055)
     }
 
