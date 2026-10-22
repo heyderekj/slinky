@@ -59,7 +59,6 @@ private struct DetailsPaneLayout<Pane: View>: ViewModifier {
         // panel in while the list's rows make room, instead of rebuilding a row of views.
         content
             .shrinkable()
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { available = $0 }
             .safeAreaPadding(.trailing, isPresented ? width + paneInset : 0)
             .overlay(alignment: .trailing) {
                 // Always there, slid off the edge when closed. Adding and removing it made the glass play its own
@@ -81,6 +80,9 @@ private struct DetailsPaneLayout<Pane: View>: ViewModifier {
                     .accessibilityHidden(!isPresented)
             }
             .animation(.smooth(duration: 0.32), value: isPresented)
+            // The whole column, measured outside the room the pane makes for itself (inside it, the pane would
+            // keep counting its own width as taken and shrink to its minimum).
+            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { available = $0 }
     }
 }
 
