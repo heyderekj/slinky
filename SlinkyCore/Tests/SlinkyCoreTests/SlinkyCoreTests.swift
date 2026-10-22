@@ -387,6 +387,99 @@ struct ProjectScanTests {
     }
 }
 
+@Suite("Folder changes")
+struct FolderChangesTests {
+    private func source(_ id: String, _ env: AppEnvironment, _ text: String) -> FolderChanges.Source {
+        FolderChanges.Source(id: id, environment: env, lines: DotEnv.parse(text),
+                             precedence: ProjectScan.precedence(of: (id as NSString).lastPathComponent))
+    }
+
+    private var project: Project {
+        var p = Project(name: "harbor", expected: ["OLD_NAME"])
+        p.variables = [
+            Variable(name: "SAME", values: [.local: "EXAMPLE_same", .production: "EXAMPLE_prod"]),
+            Variable(name: "CHANGES", values: [.local: "EXAMPLE_old"]),
+            Variable(name: "ONLY_PROD", values: [.production: "EXAMPLE_p"]),
+            Variable(name: "ONLY_HERE", values: [.local: "EXAMPLE_here"]),
+        ]
+        return p
+    }
+
+    @Test func classifiesEachRow() {
+        let changes = FolderChanges.compare(project, with: [
+            source(".env.local", .local, "SAME=EXAMPLE_same\nCHANGES=EXAMPLE_new\nBRAND_NEW=EXAMPLE_b\nONLY_PROD=EXAMPLE_l"),
+        ], expected: ["SAME", "BRAND_NEW"])
+        func status(_ name: String) -> EnvChange.Status? { changes.changes.first { $0.name == name }?.status() }
+        #expect(status("SAME") == .same)
+        #expect(status("CHANGES") == .changed)
+        #expect(status("BRAND_NEW") == .new)
+        #expect(status("ONLY_PROD") == .new)   // new in Local, though it exists in Production
+        #expect(changes.changes.first { $0.name == "ONLY_PROD" }?.variableExists == true)
+        #expect(status("ONLY_HERE") == .onlyInSlinky)
+        // Production wasn't touched by any file, so nothing there is listed.
+        #expect(!changes.changes.contains { $0.environment == .production })
+        #expect(changes.expectedAdded == ["SAME", "BRAND_NEW"])
+        #expect(changes.expectedRemoved == ["OLD_NAME"])
+    }
+
+    @Test func defaultsSkipBlanksAndPickTheMoreSpecificFile() {
+        let changes = FolderChanges.compare(project, with: [
+            source(".env", .local, "CHANGES=\nNEW_ONE=EXAMPLE_root\nAGREE=EXAMPLE_same"),
+            source(".env.local", .local, "NEW_ONE=EXAMPLE_local\nAGREE=EXAMPLE_same"),
+        ])
+        let picks = changes.defaultPicks
+        let blank = changes.changes.first { $0.name == "CHANGES" }!
+        #expect(blank.status() == .changed)
+        #expect(!picks.rows.contains(blank.id))
+        let conflict = changes.changes.first { $0.name == "NEW_ONE" }!
+        #expect(conflict.isConflict)
+        #expect(conflict.offer()?.source == ".env.local")
+        #expect(conflict.offer(picking: ".env")?.value == "EXAMPLE_root")
+        #expect(!changes.changes.first { $0.name == "AGREE" }!.isConflict)
+    }
+
+    @Test func firstGroupWinsAcrossSubfolders() {
+        let changes = FolderChanges.compare(Project(name: "mono"), with: [
+            source("apps/web/.env", .local, "SHARED=EXAMPLE_web"),
+            source("apps/api/.env.local", .local, "SHARED=EXAMPLE_api"),
+        ])
+        #expect(changes.changes.first?.offer()?.source == "apps/web/.env")
+    }
+
+    @Test func applyNeverRemovesAndCounts() {
+        var p = project
+        let changes = FolderChanges.compare(p, with: [
+            source(".env.local", .local, "SAME=EXAMPLE_same\nCHANGES=EXAMPLE_new\nBRAND_NEW=EXAMPLE_b\nNEXT_PUBLIC_URL=https://example.com\nLEFT_OUT=EXAMPLE_x"),
+        ], expected: ["SAME", "BRAND_NEW"])
+        var picks = changes.defaultPicks
+        picks.rows.remove("local|LEFT_OUT")
+        let summary = changes.apply(picks, to: &p, replaceExpected: true)
+        #expect(summary == FolderChanges.Summary(new: 2, updated: 1, unchanged: 1, skipped: 1))
+        #expect(summary.text == "2 new, 1 updated, 1 unchanged, 1 skipped")
+        #expect(p.variables.first { $0.name == "CHANGES" }?.value(in: .local) == "EXAMPLE_new")
+        #expect(p.variables.first { $0.name == "ONLY_HERE" }?.value(in: .local) == "EXAMPLE_here")
+        #expect(p.variables.first { $0.name == "SAME" }?.value(in: .production) == "EXAMPLE_prod")
+        #expect(p.variables.first { $0.name == "NEXT_PUBLIC_URL" }?.isPlain == true)
+        #expect(p.variables.first { $0.name == "BRAND_NEW" }?.isPlain == false)
+        #expect(!p.variables.contains { $0.name == "LEFT_OUT" })
+        #expect(p.expected == ["SAME", "BRAND_NEW"])
+    }
+
+    @Test func aNewProjectIsAllNew() {
+        let changes = FolderChanges.compare(Project(name: "fresh"), with: [
+            source(".env", .local, "A=EXAMPLE\nB=EXAMPLE"), source(".env.production", .production, "A=EXAMPLE_p"),
+        ])
+        #expect(changes.changes.allSatisfy { $0.status() == .new })
+        var p = Project(name: "fresh")
+        #expect(changes.apply(changes.defaultPicks, to: &p).text == "2 new")
+        #expect(p.variables.first { $0.name == "A" }?.value(in: .production) == "EXAMPLE_p")
+    }
+
+    @Test func emptySummary() {
+        #expect(FolderChanges.Summary().text == "Nothing to change")
+    }
+}
+
 @Suite("Import")
 struct ImportTests {
     private let export = """
