@@ -1004,6 +1004,13 @@ final class AppModel {
         show("Copied \(label). \(Self.clipboardNote)")
     }
 
+    /// A name with no value (for `process.env.NAME` in code). Still through Clipboard, like every copy, but not
+    /// recorded as using anything.
+    func copyName(_ name: String) {
+        Clipboard.copy(name, clearAfter: Double(Preferences.shared.clipboardSeconds))
+        show("Copied the name \(name). No value.")
+    }
+
     /// "The clipboard clears in 60 seconds." with the current setting.
     static var clipboardNote: String { "The clipboard clears in \(Preferences.clipboardDuration(Preferences.shared.clipboardSeconds))." }
 

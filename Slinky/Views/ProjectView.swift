@@ -187,6 +187,19 @@ struct ProjectView: View {
         .onDeleteCommand {
             if case let .variable(id)? = selection { model.deleteVariable(id, in: projectID) }
         }
+        .focusedSceneValue(\.selectionActions, variableActions(p))
+    }
+
+    /// Edit menu shortcuts for the selected variable, in the environment that's showing.
+    private func variableActions(_ p: Project) -> SelectionActions? {
+        guard case let .variable(id)? = selection, let v = p.variables.first(where: { $0.id == id }) else { return nil }
+        var actions = SelectionActions(edit: { showInspector = true })
+        actions.copyName = { model.copyName(v.name) }
+        if let value = v.value(in: env) {
+            actions.copyLine = { model.copy("\(v.name)=\(value)", label: "\(v.name)=…") }
+            actions.copyExport = { model.copy(Broker.shellExports([v.name: value]), label: "export \(v.name)") }
+        }
+        return actions
     }
 
     /// A group's title inside the list: not selectable, no line under it (like the library's).

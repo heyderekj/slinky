@@ -166,6 +166,7 @@ struct ItemActions: View {
             if let key = model.document.keys.first(where: { $0.id == id }) {
                 Button("Copy") { model.copy(key.value, label: key.name, provider: key.provider) }
                 Button("Copy as \(key.name)=…") { model.copy("\(key.name)=\(key.value)", label: key.name, provider: key.provider) }
+                Button("Copy Name") { model.copyName(key.name) }
                 linkButton(key.link)
             }
         case let .codes(id):

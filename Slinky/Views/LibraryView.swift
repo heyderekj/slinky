@@ -224,6 +224,7 @@ struct LibraryView: View {
         }
         // ⌘C (and Edit › Copy) copies the selected item. Return opens the details; Delete moves it to Recently Deleted.
         .onCommand(#selector(NSText.copy(_:))) { visibleSelection.map(copy) }
+        .focusedSceneValue(\.selectionActions, SelectionActions.library(visibleSelection, model: model))
         .onDeleteCommand { visibleSelection.map(delete) }
         .onKeyPress(.return) {
             guard visibleSelection != nil else { return .ignored }

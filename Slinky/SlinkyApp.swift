@@ -80,6 +80,7 @@ struct SlinkyApp: App {
                 SettingsCommand()
             }
             SidebarCommands()
+            SelectionCommands(model: model)
             CommandGroup(replacing: .help) {
                 WindowCommand(title: "Slinky Help", id: "help")
             }
