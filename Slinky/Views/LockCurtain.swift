@@ -96,6 +96,9 @@ struct LockSwitchAccessory: NSViewRepresentable {
         accessory.identifier = id
         accessory.view = container
         accessory.layoutAttribute = .trailing
+        // macOS 26 draws a scroll-edge backdrop behind title bar accessories, hard-edged by default: a pale box
+        // around the switch. The soft style fades instead, so over the window's plain background it doesn't show.
+        if #available(macOS 26.1, *) { accessory.preferredScrollEdgeEffectStyle = .soft }
         window.addTitlebarAccessoryViewController(accessory)
     }
 }
