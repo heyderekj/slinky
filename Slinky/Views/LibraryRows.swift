@@ -68,6 +68,7 @@ struct KeyRow: View {
 
 struct CodeSetRow: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.backgroundProminence) private var prominence
     let set: CodeSet
 
     var body: some View {
@@ -79,7 +80,8 @@ struct CodeSetRow: View {
                 .fixedSize()
                 .contentTransition(.numericText(value: Double(set.remaining)))
                 .animation(.snappy, value: set.remaining)
-                .foregroundStyle(set.isLow ? Color.attention : Color.secondary)
+                // Amber when low, but plain on a selected row, where colored text on the highlight is hard to read.
+                .foregroundStyle(set.isLow && prominence != .increased ? AnyShapeStyle(Color.attention) : AnyShapeStyle(.secondary))
         } action: {
             CopyButton(title: "Copy Next") {
                 if let next = set.nextUnused { model.useCode(next, in: set.id) }

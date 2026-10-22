@@ -69,6 +69,10 @@ enum ChipStyle { case live, test, plain, warn, accent }
 struct Chip: View {
     var text: String
     var style: ChipStyle
+    /// `.increased` on a selected (highlighted) row: colored text on the cyan highlight is hard to read, so the
+    /// chip turns white there, like the row's own text.
+    @Environment(\.backgroundProminence) private var prominence
+    private var onHighlight: Bool { prominence == .increased }
 
     var body: some View {
         Text(text.uppercased())
@@ -83,8 +87,9 @@ struct Chip: View {
     }
 
     private var foreground: Color {
-        switch style {
-        case .live: .red
+        if onHighlight { return .white }
+        return switch style {
+        case .live: .danger
         case .test, .accent: .accentColor
         case .plain: .secondary
         case .warn: .attention
@@ -92,7 +97,8 @@ struct Chip: View {
     }
 
     private var background: Color {
-        switch style {
+        if onHighlight { return Color.white.opacity(0.2) }
+        return switch style {
         case .plain: Color.secondary.opacity(0.1)
         default: foreground.opacity(0.12)
         }
