@@ -1,6 +1,6 @@
 # Slinky
 
-> Slinky keeps secrets out of files. A free, open-source, native Mac app (Apple silicon, macOS 15 Sequoia or later) for API keys and tokens, each project's .env variables, two-step backup codes and recovery keys. Everything is in one encrypted file on the Mac, opened with Touch ID (Secure Enclave), with a printed Recovery Key as the backup. No account, no server, no sync.
+> Slinky keeps secrets out of files. A free, open-source, native Mac app (Apple silicon, macOS 15 Sequoia or later) for API keys and tokens, each project's .env variables, two-step backup codes and recovery keys. Everything is in one encrypted file on the Mac, opened with Touch ID (Secure Enclave), with a printed Recovery Key as the backup. No account and no server. Optional sync: an encrypted copy in a folder the person chooses (iCloud Drive, Dropbox), moved by their own sync service.
 
 ## What it does
 
@@ -20,11 +20,11 @@
 
 ## What leaves the Mac
 
-Nothing about the person or their vault. Once a day Slinky asks GitHub for the latest release (can be turned off). Only if the person turns on Load icons from websites, it asks each saved website directly for its icon (no third-party icon service). Updates install in place only if signed by Slinky's developer (team B3U6BXA8KP). When the person chooses Send to Host, that host's own command-line tool sends the values they picked to that service.
+Nothing about the person or their vault. Once a day Slinky asks GitHub for the latest release (can be turned off). Only if the person turns on Load icons from websites, it asks each saved website directly for its icon (no third-party icon service). Updates install in place only if signed by Slinky's developer (team B3U6BXA8KP). When the person chooses Send to Host, that host's own command-line tool sends the values they picked to that service. If the person turns on sync, Slinky writes an encrypted copy of the vault (openable only with their Recovery Key or on a Mac they set up) to a folder they chose; their sync service, not Slinky, moves it.
 
 ## Coming next
 
-A Raycast extension, and sync between Macs once Slinky has a Developer ID.
+A Raycast extension, and sync through your own Postgres or S3-compatible storage (still encrypted before it leaves the Mac).
 
 ## Download
 
