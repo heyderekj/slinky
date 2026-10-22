@@ -405,32 +405,42 @@ struct EnvironmentBar: View {
         .accessibilityAddTraits(on ? .isSelected : [])
     }
 
+    /// The project's folder, as a glass capsule the same height as the tabs: its name (a menu to show it, update
+    /// from it, or link another), or Link Folder… when there isn't one yet.
     @ViewBuilder
     private var folder: some View {
         if let first = project.folders.first {
-            Button {
-                NSWorkspace.shared.activateFileViewerSelecting(project.folders.map { URL(fileURLWithPath: $0) })
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "folder")
-                    Text((first as NSString).abbreviatingWithTildeInPath)
-                        .lineLimit(1).truncationMode(.head)
-                    if project.folders.count > 1 { Text("+\(project.folders.count - 1)").foregroundStyle(.tertiary) }
+            Menu {
+                Button("Show in Finder") {
+                    NSWorkspace.shared.activateFileViewerSelecting(project.folders.map { URL(fileURLWithPath: $0) })
                 }
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .frame(maxWidth: 300, alignment: .trailing)
+                Button("Update from Folder…") { model.updateFromFolder(project.id) }
+                Divider()
+                Button("Link Another Folder…") { model.chooseFolder(for: project.id) }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "folder")
+                    Text((first as NSString).lastPathComponent).lineLimit(1).truncationMode(.middle)
+                    if project.folders.count > 1 { Text("+\(project.folders.count - 1)").foregroundStyle(.secondary) }
+                    Image(systemName: "chevron.down").imageScale(.small).foregroundStyle(.secondary)
+                }
+                .frame(maxWidth: 220)
             }
-            .buttonStyle(.plain)
-            .help("Show in Finder")
+            .menuIndicator(.hidden)
+            .fixedSize()
+            .glassButton()
+            .buttonBorderShape(.capsule)
+            .help((first as NSString).abbreviatingWithTildeInPath)
         } else {
             Button {
                 model.chooseFolder(for: project.id)
             } label: {
-                Label("Link Folder…", systemImage: "folder.badge.plus").font(.caption)
+                Label("Link Folder…", systemImage: "folder.badge.plus")
             }
-            .buttonStyle(.borderless)
-            .help("Link the project folder, so Slinky can check it for keys left in files")
+            .fixedSize()
+            .glassButton()
+            .buttonBorderShape(.capsule)
+            .help("Link the project folder: Slinky reads its .env files, shows which variables are missing, and checks it for keys left in files")
         }
     }
 }
