@@ -77,6 +77,8 @@ struct CodeSetRow: View {
                 .font(.caption.monospacedDigit())
                 .lineLimit(1)
                 .fixedSize()
+                .contentTransition(.numericText(value: Double(set.remaining)))
+                .animation(.snappy, value: set.remaining)
                 .foregroundStyle(set.isLow ? Color.attention : Color.secondary)
         } action: {
             CopyButton(title: "Copy Next") {
@@ -309,6 +311,8 @@ struct ItemDetail: View {
                 CodeGrid(set: set)
             } header: {
                 Text("\(set.remaining) of \(set.codes.count) left · click a code to copy and cross it off")
+                    .contentTransition(.numericText(value: Double(set.remaining)))
+                    .animation(.snappy, value: set.remaining)
             }
             RotateRow(subject: set.iconSubject, ref: ref, what: "Codes")
             NoteAndLink(note: set.note, link: set.link)
@@ -518,6 +522,7 @@ private struct Dates: View {
 /// Every code in a set. Click one to copy it and cross it off.
 struct CodeGrid: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let set: CodeSet
 
     var body: some View {
@@ -534,8 +539,14 @@ struct CodeGrid: View {
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
                             .truncationMode(.middle)
-                            .strikethrough(used)
                             .foregroundStyle(used ? Color.secondary.opacity(0.6) : Color.primary)
+                            // Crossed off like a printed list: a line drawn left to right, then the checkmark.
+                            .overlay {
+                                Rectangle()
+                                    .frame(height: 1)
+                                    .foregroundStyle(Color.secondary.opacity(0.7))
+                                    .scaleEffect(x: used ? 1 : 0, anchor: .leading)
+                            }
                         if used {
                             Image(systemName: "checkmark")
                                 .font(.system(size: 9, weight: .bold))
@@ -553,6 +564,8 @@ struct CodeGrid: View {
                 .accessibilityLabel(used ? "\(code), used" : "Copy code \(code)")
             }
         }
+        // Lives here, not inside the tiles: the line and checkmark were set without an animation, so they just appeared.
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.28), value: set.used)
     }
 }
 

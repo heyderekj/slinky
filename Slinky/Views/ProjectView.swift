@@ -131,7 +131,12 @@ struct ProjectView: View {
     private func envFile(_ p: Project) -> some View {
         if p.variables.isEmpty && p.missing.isEmpty {
             VStack(spacing: 12) {
-                Image(systemName: "doc.text").font(.system(size: 34)).foregroundStyle(.tertiary)
+                // What a project holds, its example values turning into dots, the way a pasted value does.
+                EnvPreview(masks: true, fontSize: 12)
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(Color.paper.opacity(0.6), in: .rect(cornerRadius: 10))
+                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.secondary.opacity(0.14), lineWidth: 1))
+                    .padding(.bottom, 4)
                 Text("Import a .env file").font(.title3.weight(.semibold))
                 Text("Drop a .env file here, or choose one. Slinky stores each variable encrypted and separates secrets from public settings.")
                     .foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 380)

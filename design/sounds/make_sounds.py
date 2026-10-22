@@ -102,13 +102,19 @@ SOUNDS = {
     'unlocked': lambda: mix(0.5,
                             (0.0, latch(0.85, body=220, brightness=5)),
                             (0.07, coil(14, 0.3, accel=0.6, gain=0.5, f_lo=2500, f_hi=3900, swell=0.25))),
+    # All clear (Health, after Check Now finds nothing): only the coil, a short soft settle, no latch. Quieter
+    # than the others; nothing was saved or locked, things are just as they should be. Last in this list, so
+    # adding it left the other sounds' random draws, and so the sounds themselves, unchanged.
+    'clear': lambda: mix(0.3, (0.0, coil(7, 0.17, accel=1.35, gain=0.45, f_lo=2700, f_hi=3600, swell=0.5))),
 }
+
+PEAK = {'clear': 0.3}
 
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     for name, make in SOUNDS.items():
-        sig = finish(make())
+        sig = finish(make(), peak=PEAK.get(name, 0.45))
         wav = OUT / f'{name}.wav'
         with wave.open(str(wav), 'wb') as w:
             w.setnchannels(1)

@@ -308,7 +308,7 @@ private struct AboutPane: View {
         Form {
             Section {
                 VStack(spacing: 10) {
-                    KeyholeMark(size: 72)
+                    TurningMark(size: 72, onClick: true)
                     Text("Slinky").font(.title.weight(.bold))
                     Text("Slinky keeps secrets out of files.").foregroundStyle(.secondary)
                     Text(version).font(.caption).foregroundStyle(.tertiary)

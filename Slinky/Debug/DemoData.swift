@@ -128,6 +128,7 @@ enum DemoFixture: String, CaseIterable, Identifiable {
                     },
                     expected: ["SERVICE_1_API_KEY", "POSTHOG_KEY", "POSTHOG_KEY", "SENTRY_DSN", "A_VERY_LONG_EXPECTED_VARIABLE_NAME_FROM_DOT_ENV_EXAMPLE_THAT_IS_MISSING", "RESEND_API_KEY", "UPSTASH_REDIS_REST_TOKEN"]),
             Project(name: "Jo", variables: [Variable(name: "X", values: [.local: "EXAMPLE"])]),
+            Project(name: "new-site"),   // empty, for the empty project screen
         ]
         var files: [SecretFile] = []
         var asc = SecretFile(name: "App Store Connect API key for Northwind Industries Holdings (Team B3U6EXAMPLE)",

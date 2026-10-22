@@ -149,9 +149,18 @@ struct RevealField: View {
 
 struct ToastView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        if let toast = model.toast {
+        // The animation lives outside the `if`, so toasts actually slide in and out (inside it, they just appeared).
+        ZStack {
+            if let toast = model.toast { pill(toast) }
+        }
+        .animation(reduceMotion ? .easeOut(duration: 0.2) : .smooth(duration: 0.32), value: model.toast?.id)
+    }
+
+    private func pill(_ toast: Toast) -> some View {
+        Group {
             HStack(spacing: 10) {
                 Image(systemName: symbol(toast.style))
                     .foregroundStyle(toast.style == .success ? Color.done : Color.secondary)
@@ -171,10 +180,9 @@ struct ToastView: View {
             .glass(in: .rect(cornerRadius: 19, style: .continuous))
             .padding(.horizontal, 24)
             .padding(.bottom, 22)
-            .transition(.move(edge: .bottom).combined(with: .opacity))
-            .id(toast.id)
-            .animation(.spring(response: 0.4, dampingFraction: 0.75), value: toast.id)
         }
+        .transition(reduceMotion ? .opacity : .offset(y: 18).combined(with: .opacity))
+        .id(toast.id)
     }
 
     private func symbol(_ style: Toast.Style) -> String {
@@ -248,8 +256,11 @@ struct CopyButton: View {
     var body: some View {
         Button {
             action()
-            copied = true
-            Task { try? await Task.sleep(for: .seconds(1.4)); copied = false }
+            withAnimation(.smooth(duration: 0.25)) { copied = true }
+            Task {
+                try? await Task.sleep(for: .seconds(1.4))
+                withAnimation(.smooth(duration: 0.25)) { copied = false }
+            }
         } label: {
             Label {
                 Text(title)
@@ -281,5 +292,87 @@ extension View {
         onChange(of: text.wrappedValue) { _, new in
             if new.count > max { text.wrappedValue = String(new.prefix(max)) }
         }
+    }
+}
+
+/// The app icon's mark, which turns one step (it looks the same after 60°): the keyhole is absorbed, the asterisk
+/// turns, the keyhole returns. Once on appear (a vault was just made), or on click (a small touch in About).
+/// Still with Reduce Motion.
+struct TurningMark: View {
+    var size: CGFloat
+    var onAppear = false
+    var onClick = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var keyhole: CGFloat = 1
+    @State private var spin: Double = 0
+    @State private var turning = false
+
+    var body: some View {
+        KeyholeMark(size: size, keyholeScale: keyhole, spin: spin)
+            .contentShape(.rect)
+            .onTapGesture { if onClick { turn() } }
+            .task {
+                guard onAppear else { return }
+                try? await Task.sleep(for: .milliseconds(450))
+                turn()
+            }
+            .accessibilityHidden(true)
+    }
+
+    private func turn() {
+        guard !reduceMotion, !turning else { return }
+        turning = true
+        Task {
+            withAnimation(.easeIn(duration: 0.22)) { keyhole = 0 }
+            try? await Task.sleep(for: .milliseconds(200))
+            withAnimation(.spring(response: 0.7, dampingFraction: 0.6)) { spin += 60 }
+            try? await Task.sleep(for: .milliseconds(480))
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.7)) { keyhole = 1 }
+            try? await Task.sleep(for: .milliseconds(400))
+            turning = false
+        }
+    }
+}
+
+/// A tiny .env, to show what a project holds. With `masks`, the example values turn into dots left to right once,
+/// the same move Add Item makes with a pasted value; with Reduce Motion they're dots from the start.
+/// The values are made-up examples, never anything from the vault.
+struct EnvPreview: View {
+    var masks = false
+    var fontSize: CGFloat = 10.5
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var masked: [Int] = [0, 0, 0]
+
+    private static let lines = [("DATABASE_URL", "postgres://local"), ("STRIPE_SECRET_KEY", "sk_test_EXAMPLE"), ("OPENAI_API_KEY", "sk-proj-EXAMPLE")]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(Array(Self.lines.enumerated()), id: \.offset) { i, line in
+                HStack(spacing: 0) {
+                    Text(line.0).foregroundStyle(.secondary)
+                    Text("=" + shown(line.1, masked: masks ? masked[i] : .max)).foregroundStyle(.tertiary)
+                }
+                .font(.system(size: fontSize, weight: .medium, design: .monospaced))
+                .lineLimit(1)
+            }
+        }
+        .task {
+            guard masks else { return }
+            if reduceMotion { masked = Self.lines.map(\.1.count); return }
+            try? await Task.sleep(for: .milliseconds(500))
+            for i in Self.lines.indices {
+                for n in 1...Self.lines[i].1.count {
+                    masked[i] = n
+                    try? await Task.sleep(for: .milliseconds(22))
+                }
+                try? await Task.sleep(for: .milliseconds(90))
+            }
+        }
+    }
+
+    /// The first `masked` characters as dots, the rest as typed; fully masked shows four dots, like a saved value.
+    private func shown(_ value: String, masked: Int) -> String {
+        if masked >= value.count { return "••••" }
+        return String(repeating: "•", count: masked) + value.dropFirst(masked)
     }
 }

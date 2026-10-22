@@ -1,4 +1,5 @@
 import AppKit
+import SwiftUI
 import LocalAuthentication
 import Observation
 import SlinkyCoreShared
@@ -467,20 +468,27 @@ final class AppModel {
         show("Restored.")
     }
 
+    /// A change people should see happen: a new item sliding into the list, a fixed leak leaving Health.
+    /// Just a quick fade with Reduce Motion.
+    func animated(_ body: () -> Void) {
+        let calm = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        withAnimation(calm ? .easeOut(duration: 0.2) : .smooth(duration: 0.38), body)
+    }
+
     func addKept(_ item: KeptItem) {
-        change("Saved to Recovery.") { $0.kept.insert(item, at: 0) }
+        animated { change("Saved to Recovery.") { $0.kept.insert(item, at: 0) } }
         Sounds.play(.saved)
         selection = .library(.recovery)
     }
 
     func addKey(_ key: Key) {
-        change("Saved to Keys & Tokens.") { $0.keys.insert(key, at: 0) }
+        animated { change("Saved to Keys & Tokens.") { $0.keys.insert(key, at: 0) } }
         Sounds.play(.saved)
         selection = .library(.keys)
     }
 
     func addCodeSet(_ set: CodeSet) {
-        change("Saved \(set.codes.count) recovery codes.") { $0.codeSets.insert(set, at: 0) }
+        animated { change("Saved \(set.codes.count) recovery codes.") { $0.codeSets.insert(set, at: 0) } }
         Sounds.play(.saved)
         selection = .library(.recovery)
     }
@@ -747,6 +755,7 @@ final class AppModel {
             }
         }
         record(ActivityEntry(action: .rotated, names: [new.name], detail: projectsUpdated.isEmpty ? "" : "Also updated in " + projectsUpdated.joined(separator: ", ")))
+        Sounds.play(.saved)   // a new key is stored, the same as saving one
         show(projectsUpdated.isEmpty ? "Replaced \(new.name). The old one is in Recently Deleted for 30 days."
                                      : "Replaced \(new.name), and in \(projectsUpdated.joined(separator: ", ")). The old one is in Recently Deleted.")
     }
@@ -780,7 +789,7 @@ final class AppModel {
         if kind == .appStoreConnectKey, let id = SecretFile.keyID(fromFilename: url.lastPathComponent) { fields["Key ID"] = id }
         let name = kind == .appStoreConnectKey ? "App Store Connect API key" : (url.deletingPathExtension().lastPathComponent)
         let file = SecretFile(name: name, filename: url.lastPathComponent, kind: kind, data: data, fields: fields)
-        change("Saved \(url.lastPathComponent) to Slinky. You can move the original to the Trash.") { $0.secretFiles.insert(file, at: 0) }
+        animated { change("Saved \(url.lastPathComponent) to Slinky. You can move the original to the Trash.") { $0.secretFiles.insert(file, at: 0) } }
         Sounds.play(.saved)
         selection = .library(.keys)
         librarySelection = .file(file.id)
@@ -893,7 +902,7 @@ final class AppModel {
     /// Saves what the person picked on the import screen, in one change with one message.
     func importItems(_ items: [Importer.Candidate]) {
         guard !items.isEmpty else { return }
-        change("Imported \(items.count) \(items.count == 1 ? "item" : "items").") { doc in
+        animated { change("Imported \(items.count) \(items.count == 1 ? "item" : "items").") { doc in
             for item in items {
                 switch item.kind {
                 case let .key(provider, isLive, expires):
@@ -905,7 +914,7 @@ final class AppModel {
                     doc.kept.append(KeptItem(label: item.name, kind: kind, value: item.value, note: item.note))
                 }
             }
-        }
+        } }
         Sounds.play(.imported)
         selection = .library(.all)
     }

@@ -200,6 +200,9 @@ struct SidebarView: View {
                 .accessibilityHidden(true)
         }
         .animation(.smooth, value: attention.isEmpty)
+        // Activity and Recently Deleted come and go with what's in them.
+        .animation(.smooth, value: model.document.log.isEmpty)
+        .animation(.smooth, value: model.document.trashed.isEmpty)
         .safeAreaInset(edge: .bottom, spacing: 0) { footer }
     }
 
@@ -360,21 +363,10 @@ struct ProjectsEmptyCard: View {
     @Environment(AppModel.self) private var model
     @State private var targeted = false
 
-    private let examples = ["DATABASE_URL", "STRIPE_SECRET_KEY", "OPENAI_API_KEY"]
-
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             // A small preview of what a project holds: its .env, with values hidden.
-            VStack(alignment: .leading, spacing: 4) {
-                ForEach(examples, id: \.self) { name in
-                    HStack(spacing: 0) {
-                        Text(name).foregroundStyle(.secondary)
-                        Text("=••••").foregroundStyle(.tertiary)
-                    }
-                    .font(.system(size: 10.5, weight: .medium, design: .monospaced))
-                    .lineLimit(1)
-                }
-            }
+            EnvPreview()
             .padding(.horizontal, 10)
             .padding(.vertical, 8)
             .frame(maxWidth: .infinity, alignment: .leading)

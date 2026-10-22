@@ -14,7 +14,7 @@ struct RecoveryKeySheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 12) {
-                KeyholeMark(size: 44)
+                TurningMark(size: 44, onAppear: true)   // a vault was just made: the mark turns once
                 VStack(alignment: .leading, spacing: 2) {
                     Text(isReplacement ? "Save your new Recovery Key" : "Save your Recovery Key").font(.title3.weight(.bold))
                     Text(isReplacement ? "Your old Recovery Key no longer works." : "Your vault is ready. Keep this key somewhere safe.")
@@ -90,12 +90,14 @@ enum RecoveryPrinter {
 /// no sidebar, and the app icon as the lock in the middle (LockStage). Touch ID is usually already asking.
 struct LockView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var autoUnlock = true
     @State private var showRecovery = false
     @State private var recoveryText = ""
 
     var body: some View {
-        LockStage(showFace: model.phase == .locked, scramble: model.busy ? 0.09 : nil) {
+        // The ring scrambles while Touch ID waits; with Reduce Motion it stays still (the button's pulse says it's waiting).
+        LockStage(showFace: model.phase == .locked, scramble: model.busy && !reduceMotion ? 0.09 : nil) {
             LockControls(note: model.lockNote, busy: model.busy, error: model.errorMessage, unlockLabel: model.unlockLabel,
                          unlock: { model.unlock() }, useRecoveryKey: { showRecovery = true })
         }

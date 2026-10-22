@@ -78,7 +78,7 @@ final class Preferences {
     }
 }
 
-/// System sounds only (no audio files), and only when "Play sounds" is on. Like Dinky: a bigger moment, a bigger sound.
+/// Only when "Play sounds" is on. Like Dinky: a bigger moment, a bigger sound.
 /// Slinky's own sounds (Slinky/Sounds, made by design/sounds/make_sounds.py): the real sound of a Slinky's
 /// coils settling, and a damped latch that feels solid. Quiet and mechanical, never cartoon.
 enum Sounds {
@@ -91,6 +91,8 @@ enum Sounds {
         case locked
         /// The latch lets go, then the coil opens out. Timed to the keyhole opening.
         case unlocked
+        /// Only the coil, short and soft: Health found nothing after Check Now.
+        case clear
     }
 
     @MainActor private static var loaded: [Moment: NSSound] = [:]

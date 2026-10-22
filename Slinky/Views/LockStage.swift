@@ -87,7 +87,12 @@ struct LockControls: View {
             Text(note).font(.callout).foregroundStyle(.secondary)
         }
         Button(action: unlock) {
-            Label(unlockLabel, systemImage: "touchid")
+            Label {
+                Text(unlockLabel)
+            } icon: {
+                // Breathes while Touch ID is waiting for your finger (DESIGN.md: .pulse while waiting).
+                Image(systemName: "touchid").symbolEffect(.pulse, options: .repeating, isActive: busy)
+            }
         }
         .glassProminentButton()
         .controlSize(.large)
@@ -95,7 +100,7 @@ struct LockControls: View {
         .disabled(busy)
         .padding(.top, 4)
         if let error {
-            Text(error).font(.callout).foregroundStyle(.red).frame(maxWidth: 380).multilineTextAlignment(.center)
+            Text(error).font(.callout).foregroundStyle(Color.danger).frame(maxWidth: 380).multilineTextAlignment(.center)
         }
         Button("Use Recovery Key…", action: useRecoveryKey)
             .buttonStyle(.link)

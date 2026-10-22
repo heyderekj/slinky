@@ -6,6 +6,17 @@ extension AppModel {
     /// `manual`: started with Check Now (an all-clear result then gets its quiet sound), not the daily check.
     func checkForLeaks(manual: Bool = false) async {
         guard isUnlocked, !checkingLeaks else { return }
+        #if DEBUG
+        // Demo mode never reads the disk: it pretends to look for a moment and keeps the demo's findings.
+        if isDemo {
+            checkingLeaks = true
+            try? await Task.sleep(for: .seconds(1.4))
+            checkingLeaks = false
+            leaksChecked = .now
+            if manual, leaks.isEmpty, attention.isEmpty { Sounds.play(.clear) }
+            return
+        }
+        #endif
         checkingLeaks = true
         let before = Set(leaks.map(\.id))
         let projects = document.projects.map { LeakFinder.ProjectRef(id: $0.id, name: $0.name, folders: $0.folders) }
@@ -18,6 +29,8 @@ extension AppModel {
         let fresh = found.filter { !before.contains($0.id) }
         for f in fresh { record(ActivityEntry(action: .leakFound, names: f.names, actor: "Health", detail: f.title)) }
         if !fresh.isEmpty { Reminders.leaksFound(fresh.flatMap(\.names)) }
+        // Asked, and everything's as it should be: the coil settles. Never for the quiet daily check.
+        if manual, found.isEmpty, attention.isEmpty { Sounds.play(.clear) }
     }
 
     /// The value behind a finding's names (to clean history). Stays in memory.
@@ -40,7 +53,7 @@ extension AppModel {
         }
         do {
             try FileManager.default.trashItem(at: url, resultingItemURL: nil)
-            leaks.removeAll { $0.id == finding.id }
+            animated { leaks.removeAll { $0.id == finding.id } }
             show("Moved \(url.lastPathComponent) into Slinky. It's in the Trash, and .env.example has the names.")
         } catch {
             show("Saved the variables, but couldn't move \(url.lastPathComponent) to the Trash.", style: .info)
@@ -51,7 +64,7 @@ extension AppModel {
         guard case let .history(path) = finding.place else { return }
         do {
             let removed = try LeakFinder.cleanHistory(at: path, values: values(for: finding.names))
-            leaks.removeAll { $0.id == finding.id }
+            animated { leaks.removeAll { $0.id == finding.id } }
             show("Removed \(removed) \(removed == 1 ? "line" : "lines") from \((path as NSString).lastPathComponent). Open terminals keep their own copy until they close.")
         } catch {
             show("Couldn't change \((path as NSString).lastPathComponent).", style: .info)
