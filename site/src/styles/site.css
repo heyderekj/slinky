@@ -837,18 +837,11 @@ a.b-pill--gh:focus-visible { outline: 2px solid var(--brand); outline-offset: 2p
 @media (max-width: 620px) { .sync__macs { grid-template-columns: 1fr; } .sync__mac:last-child { display: none; } }
 .keycap--lg { min-width: 38px; text-align: center; font-size: 12px; padding: 3px 7px; }
 .b-tile--full { grid-column: 1 / -1; }
-/* The keyboard tile: Mac keys, ⌘ beside 1–7 with each place under its key, then three combos. */
-.b-kb { display: grid; gap: 18px; justify-items: start; }
-.b-kb__row { display: flex; gap: 6px; align-items: flex-start; }
-.b-kb__place { display: grid; justify-items: center; gap: 6px; width: 52px; }
-.b-kb__place small { font-size: 11px; color: var(--muted); white-space: nowrap; }
-.kkey { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 8px; font: 500 15px var(--app-font); color: var(--ink); background: var(--card); box-shadow: 0 0 0 0.5px var(--hair), 0 1.5px 0 color-mix(in oklch, var(--ink) 22%, transparent), 0 3px 8px -4px rgb(0 0 0 / 0.18); }
-.kkey--wide { width: 52px; font-size: 18px; }
-.kkey--sm { width: 30px; height: 30px; border-radius: 7px; font-size: 13px; }
-.kkey.is-down { background: var(--brand); color: #fff; box-shadow: 0 0 0 0.5px var(--brand), 0 0.5px 0 color-mix(in oklch, var(--ink) 30%, transparent); transform: translateY(1px); }
-.b-kb__combos { display: flex; flex-wrap: wrap; gap: 10px 22px; }
-.b-kb__combo { display: inline-flex; align-items: center; gap: 4px; }
-.b-kb__combo small { margin-left: 6px; font-size: 13px; color: var(--ink-soft); }
-@media (max-width: 760px) { .b-kb__row { flex-wrap: wrap; } .b-kb__place { width: 46px; } .kkey { width: 34px; height: 34px; } .kkey--wide { width: 44px; } }
+/* The keyboard tile: just ⌘ and 1–7, as Mac keys. */
+.b-kb { display: flex; gap: 6px; justify-content: flex-end; flex-wrap: wrap; }
+.kkey { display: inline-grid; place-items: center; width: 34px; height: 34px; border-radius: 7px; font: 500 14px var(--app-font); color: var(--ink); background: var(--card); box-shadow: 0 0 0 0.5px var(--hair), 0 1.5px 0 color-mix(in oklch, var(--ink) 20%, transparent); }
+.kkey--wide { width: 46px; font-size: 16px; }
+.kkey.is-down { background: var(--brand); color: #fff; box-shadow: 0 0 0 0.5px var(--brand); transform: translateY(1px); }
+@media (max-width: 760px) { .b-kb { justify-content: flex-start; } }
 /* Phone width: the panels' footers keep just the button. */
 @media (max-width: 560px) { .review .encnote, .sync .encnote { display: none; } }

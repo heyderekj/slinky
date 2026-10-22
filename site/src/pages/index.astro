@@ -304,17 +304,8 @@ $ slinky lock</pre></div>
         <div class="b-tile b-tile--wide b-tile--full card-plain">
           <div><Icon name="grid" class="feature-icon" /><h3>Made for the keyboard</h3><p>⌘1 to ⌘7 for each place, ⌘E to edit, ⇧⌘C to copy as NAME=value. Select several things to change or delete them together, and Undo puts them back.</p></div>
           <div class="b-art b-kb" aria-hidden="true">
-            <div class="b-kb__row">
-              <span class="kkey kkey--wide">⌘</span>
-              {[['1', 'All'], ['2', 'Keys'], ['3', 'Codes'], ['4', 'Recovery'], ['5', 'Health'], ['6', 'Deleted'], ['7', 'Activity']].map(([k, label], i) => (
-                <span class="b-kb__place"><span class:list={['kkey', { 'is-down': i === 0 }]}>{k}</span><small>{label}</small></span>
-              ))}
-            </div>
-            <div class="b-kb__combos">
-              <span class="b-kb__combo"><span class="kkey kkey--sm">⌘</span><span class="kkey kkey--sm">E</span><small>Edit</small></span>
-              <span class="b-kb__combo"><span class="kkey kkey--sm">⇧</span><span class="kkey kkey--sm">⌘</span><span class="kkey kkey--sm">C</span><small>Copy as NAME=value</small></span>
-              <span class="b-kb__combo"><span class="kkey kkey--sm">⌘</span><span class="kkey kkey--sm">Z</span><small>Undo</small></span>
-            </div>
+            <span class="kkey kkey--wide">⌘</span>
+            {['1', '2', '3', '4', '5', '6', '7'].map((k, i) => <span class:list={['kkey', { 'is-down': i === 0 }]}>{k}</span>)}
           </div>
         </div>
         <div class="b-tile b-tile--wide b-tile--row card-plain"><Icon name="github" class="feature-icon" /><div><h3>Free and open source</h3><p>MIT licensed, made by Testament Made. Read every line on GitHub.</p></div><a class="b-pill b-pill--gh" href="https://github.com/heyderekj/slinky"><Icon name="github" /> heyderekj/slinky</a></div>
