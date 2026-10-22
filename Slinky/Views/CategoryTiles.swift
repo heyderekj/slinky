@@ -12,25 +12,25 @@ struct CategoryGrid: View {
         // and Deleted).
         Grid(horizontalSpacing: 8, verticalSpacing: 8) {
             GridRow {
-                tile(.library(.all), "All", "square.grid.2x2", .accentColor, count: libraryCount(.all))
-                tile(.library(.keys), "Keys", "key", Color(nsColor: .systemBlue), count: libraryCount(.keys))
+                tile(.library(.all), "All", "square.grid.2x2", .glacier, count: libraryCount(.all))
+                tile(.library(.keys), "Keys", "key", .sky, count: libraryCount(.keys))
             }
             GridRow {
-                tile(.library(.codes), "Codes", "number", Color(nsColor: .systemYellow), count: libraryCount(.codes))
-                tile(.library(.recoveryKeys), "Recovery", "lifepreserver", Color(nsColor: .systemPurple),
+                tile(.library(.codes), "Codes", "number", .mint, count: libraryCount(.codes))
+                tile(.library(.recoveryKeys), "Recovery", "lifepreserver", .violet,
                      count: libraryCount(.recoveryKeys))
             }
             GridRow {
-                tile(.attention, "Health", "heart", Color(nsColor: .systemPink), count: model.healthCount,
+                tile(.attention, "Health", "heart", .pink, count: model.healthCount,
                      needsYou: model.healthCount > 0)
-                tile(.trash, "Deleted", "trash", Color(nsColor: .systemGray), count: model.document.trashed.count)
+                tile(.trash, "Deleted", "trash", .slate, count: model.document.trashed.count)
             }
         }
         // Each row as tall as its tallest tile, and no taller.
         .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func tile(_ item: SidebarItem, _ title: String, _ symbol: String, _ tint: Color, count: Int,
+    private func tile(_ item: SidebarItem, _ title: String, _ symbol: String, _ tint: TileColor, count: Int,
                       needsYou: Bool = false) -> some View {
         CategoryTile(title: title, symbol: symbol, tint: tint, count: count, needsYou: needsYou,
                      selected: model.selection == item) {
@@ -51,10 +51,25 @@ struct CategoryGrid: View {
 
 /// One tile: a colored circle with the place's symbol, its count, its name. Selected, it fills with its own color
 /// and the circle turns white, the way Passwords marks where you are.
+/// Slinky's own colors, from the monogram palette (Components.swift), not the system's: a light top and a deep
+/// bottom for the circle's gradient, like the monograms and the app icon. The deep color carries white text, so
+/// it's also the selected tile's fill.
+struct TileColor {
+    let top: Color
+    let deep: Color
+
+    static let glacier = TileColor(top: Color(red: 0.50, green: 0.89, blue: 0.95), deep: Color(red: 0.043, green: 0.498, blue: 0.561))   // #0b7f8f, the accent
+    static let sky = TileColor(top: Color(red: 0.55, green: 0.76, blue: 0.98), deep: Color(red: 0.16, green: 0.42, blue: 0.84))
+    static let mint = TileColor(top: Color(red: 0.56, green: 0.92, blue: 0.66), deep: Color(red: 0.08, green: 0.50, blue: 0.34))
+    static let violet = TileColor(top: Color(red: 0.80, green: 0.64, blue: 1.00), deep: Color(red: 0.48, green: 0.26, blue: 0.84))
+    static let pink = TileColor(top: Color(red: 1.00, green: 0.64, blue: 0.80), deep: Color(red: 0.80, green: 0.22, blue: 0.48))
+    static let slate = TileColor(top: Color(red: 0.72, green: 0.78, blue: 0.83), deep: Color(red: 0.38, green: 0.44, blue: 0.50))
+}
+
 struct CategoryTile: View {
     let title: String
     let symbol: String
-    let tint: Color
+    let tint: TileColor
     let count: Int
     /// The count turns amber: something here needs a person.
     var needsYou = false
@@ -68,9 +83,11 @@ struct CategoryTile: View {
                 HStack(alignment: .top) {
                     Image(systemName: symbol)
                         .font(.callout.weight(.semibold))
-                        .foregroundStyle(selected ? tint : Color.white)
+                        .foregroundStyle(selected ? tint.deep : Color.white)
                         .frame(width: 28, height: 28)
-                        .background(selected ? Color.white : tint, in: .circle)
+                        .background(in: .circle)
+                        .backgroundStyle(selected ? AnyShapeStyle(Color.white)
+                                                  : AnyShapeStyle(LinearGradient(colors: [tint.top, tint.deep], startPoint: .top, endPoint: .bottom)))
                     Spacer(minLength: 4)
                     Text(count, format: .number)
                         .font(.subheadline.weight(.semibold).monospacedDigit())
@@ -102,7 +119,7 @@ struct CategoryTile: View {
     }
 
     private var fill: Color {
-        if selected { return tint }
+        if selected { return tint.deep }
         return Color.primary.opacity(hovering ? 0.09 : 0.055)
     }
 
