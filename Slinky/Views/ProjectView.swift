@@ -2,55 +2,40 @@ import SlinkyCoreShared
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Layout A: the project as its .env file. Only the values are masked.
+/// Layout A: a project's .env, as a list like the library's. Pick an environment at the top (each shows how many
+/// variables it has), then Missing (listed in .env.example, not saved yet), Secrets and Public settings. Selecting
+/// a variable shows it in the details on the right, with every environment's value in one place.
 struct ProjectView: View {
     @Environment(AppModel.self) private var model
     let projectID: UUID
     @State private var env: AppEnvironment = .local
-    @State private var selectedVariable: UUID?
-    @State private var selectedMissing: String?
+    @State private var selection: ProjectRow?
     @State private var showInspector = true
     @State private var dropTargeted = false
-    /// The list's width, so the KEY and environment columns give the VALUE column room in a narrow window.
-    @State private var listWidth: CGFloat = 800
     @State private var pushing = false
+
+    /// A row in the list: a saved variable, or a name .env.example expects.
+    enum ProjectRow: Hashable { case variable(UUID), missing(String) }
 
     private var project: Project? { model.document.projects.first { $0.id == projectID } }
 
     var body: some View {
         if let project {
             VStack(spacing: 0) {
-                if !project.missing.isEmpty {
-                    HStack(spacing: 10) {
-                        Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(Color.attention)
-                        Text("**.env.example** lists \(project.missing.count) variable\(project.missing.count == 1 ? "" : "s") that \(project.missing.count == 1 ? "isn't" : "aren't") saved in Slinky yet.")
-                        Spacer()
-                    }
-                    .font(.callout)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 9)
-                    .background(Color.attention.opacity(0.12), in: .rect(cornerRadius: 11))
-                    .padding([.horizontal, .top], 14)
+                if project.variables.isEmpty && project.missing.isEmpty {
+                    emptyProject(project)
+                } else {
+                    EnvironmentBar(project: project, env: $env)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 10)
+                        .padding(.bottom, 4)
+                    list(project)
                 }
-                // Values stay on opaque paper: the .env is a sheet floating on the glass.
-                envFile(project)
-                    .background(Color.paper, in: .rect(cornerRadius: 16))
-                    .clipShape(.rect(cornerRadius: 16))
-                    .overlay(RoundedRectangle(cornerRadius: 16).strokeBorder(Color.secondary.opacity(0.15), lineWidth: 0.5))
-                    .shadow(color: .black.opacity(0.08), radius: 10, y: 4)
-                    .padding(14)
             }
             .screenTitle(project.name, subtitle: subtitle(project))
             .toolbar {
                 // Away while Slinky locks or unlocks, when the toolbar is the locked window's.
                 if !model.lockedChrome {
-                    ToolbarItem(placement: .principal) {
-                        Picker("Environment", selection: $env) {
-                            ForEach(AppEnvironment.allCases) { Text($0.title).tag($0) }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 260)
-                    }
                     ToolbarItem {
                         Menu {
                             Button("Import .env File…") { pickEnvFile(project) }
@@ -84,7 +69,8 @@ struct ProjectView: View {
                         .help("Copy this environment as .env lines, or save a .env.example with names only")
                     }
                     ToolbarItem {
-                        Button { showInspector.toggle() } label: { Label("Inspector", systemImage: "sidebar.right") }
+                        Button { showInspector.toggle() } label: { Label("Details", systemImage: "sidebar.right") }
+                            .help(showInspector ? "Hide Details" : "Show Details")
                     }
                 }
             }
@@ -123,174 +109,138 @@ struct ProjectView: View {
 
     private func subtitle(_ p: Project) -> String {
         let secrets = p.variables.filter { !$0.isPlain }.count
-        // Short: a long subtitle widens the content column and squeezes the sidebar. The folder is in Edit Project.
-        return counted(p.variables.count, "variable") + " · " + counted(secrets, "secret")
+        // Short: a long subtitle widens the content column and squeezes the sidebar. The folder is in the bar.
+        var parts = [counted(p.variables.count, "variable"), counted(secrets, "secret")]
+        if !p.missing.isEmpty { parts.append("\(p.missing.count) missing") }
+        return parts.joined(separator: " · ")
     }
 
-    @ViewBuilder
-    private func envFile(_ p: Project) -> some View {
-        if p.variables.isEmpty && p.missing.isEmpty {
-            VStack(spacing: 12) {
-                // What a project holds, its example values turning into dots, the way a pasted value does.
-                EnvPreview(masks: true, fontSize: 12)
-                    .padding(.horizontal, 14).padding(.vertical, 10)
-                    .background(Color.paper.opacity(0.6), in: .rect(cornerRadius: 10))
-                    .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.secondary.opacity(0.14), lineWidth: 1))
-                    .padding(.bottom, 4)
-                Text("Import a .env file").font(.title3.weight(.semibold))
-                Text("Drop a .env file here, or choose one. Slinky stores each variable encrypted and separates secrets from public settings.")
-                    .foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 380)
-                HStack {
-                    Button("Import .env File…") { pickEnvFile(p) }
-                    Button("Add Variable…") { model.openAddItem(project: projectID) }
-                }
-                .glassButton()
+    private func emptyProject(_ p: Project) -> some View {
+        VStack(spacing: 12) {
+            // What a project holds, its example values turning into dots, the way a pasted value does.
+            EnvPreview(masks: true, fontSize: 12)
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(Color.paper.opacity(0.6), in: .rect(cornerRadius: 10))
+                .overlay(RoundedRectangle(cornerRadius: 10).strokeBorder(Color.secondary.opacity(0.14), lineWidth: 1))
+                .padding(.bottom, 4)
+            Text("Import a .env file").font(.title3.weight(.semibold))
+            Text("Drop a .env file here, or choose one. Slinky stores each variable encrypted and separates secrets from public settings.")
+                .foregroundStyle(.secondary).multilineTextAlignment(.center).frame(maxWidth: 380)
+            HStack {
+                Button("Import .env File…") { pickEnvFile(p) }
+                Button("Add Variable…") { model.openAddItem(project: projectID) }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-        } else {
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 0) {
-                    header
-                    ForEach(Array(p.variables.enumerated()), id: \.element.id) { index, variable in
-                        row(number: index + 1, variable: variable)
+            .glassButton()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    // MARK: List
+
+    private func list(_ p: Project) -> some View {
+        let secrets = p.variables.filter { !$0.isPlain }
+        let plain = p.variables.filter(\.isPlain)
+        return List(selection: $selection) {
+            if !p.missing.isEmpty {
+                Section {
+                    groupTitle("Missing", note: "Listed in .env.example, not saved in Slinky yet")
+                    ForEach(p.missing, id: \.self) { name in
+                        MissingRow(name: name) { tuckMissing(name) }.tag(ProjectRow.missing(name))
                     }
-                    ForEach(Array(p.missing.enumerated()), id: \.element) { index, name in
-                        missingRow(number: p.variables.count + index + 1, name: name)
-                    }
                 }
-                .padding(.vertical, 10)
             }
-            .onGeometryChange(for: CGFloat.self) { $0.size.width } action: { listWidth = $0 }
+            if !secrets.isEmpty {
+                Section {
+                    groupTitle("Secrets")
+                    ForEach(secrets) { VariableRow(variable: $0, env: env).tag(ProjectRow.variable($0.id)) }
+                }
+            }
+            if !plain.isEmpty {
+                Section {
+                    groupTitle("Public settings", note: "Not secret: these ship to the browser anyway")
+                    ForEach(plain) { VariableRow(variable: $0, env: env).tag(ProjectRow.variable($0.id)) }
+                }
+            }
+        }
+        .listStyle(.inset)
+        .scrollContentBackground(.hidden)
+        .contextMenu(forSelectionType: ProjectRow.self) { rows in
+            if rows.count == 1, case let .variable(id)? = rows.first, let v = p.variables.first(where: { $0.id == id }) {
+                if let value = v.value(in: env) {
+                    Button("Copy \(env.title) Value") { model.copy(value, label: v.name) }
+                    Button("Copy as KEY=value") { model.copy("\(v.name)=\(value)", label: "\(v.name)=…") }
+                    Divider()
+                }
+                Button("Delete", role: .destructive) { model.deleteVariable(id, in: projectID) }
+            } else if rows.count == 1, case let .missing(name)? = rows.first {
+                Button("Add Value…") { tuckMissing(name) }
+            }
+        } primaryAction: { rows in
+            if rows.count == 1, case let .missing(name)? = rows.first { tuckMissing(name) } else { showInspector = true }
+        }
+        .onChange(of: selection) { _, row in if row != nil, !showInspector { showInspector = true } }
+        // ⌘C copies the selected variable's value for this environment; Delete moves it to Recently Deleted.
+        .onCommand(#selector(NSText.copy(_:))) {
+            if case let .variable(id)? = selection, let v = p.variables.first(where: { $0.id == id }), let value = v.value(in: env) {
+                model.copy(value, label: v.name)
+            }
+        }
+        .onDeleteCommand {
+            if case let .variable(id)? = selection { model.deleteVariable(id, in: projectID) }
         }
     }
 
-    /// About two fifths of the list for names, between 140 and 260. In a narrow list the environment dots go (the
-    /// picker above says which environment you're looking at) and the row numbers get slimmer, so values keep room.
-    private var narrow: Bool { listWidth < 520 }
-    private var keyWidth: CGFloat { min(260, max(140, listWidth * 0.38)) }
-    private var dotsWidth: CGFloat { narrow ? 0 : 130 }
-    private var numberWidth: CGFloat { narrow ? 28 : 40 }
-
-    private var header: some View {
-        HStack(spacing: 0) {
-            Text("").frame(width: numberWidth)
-            Text("KEY").frame(width: keyWidth, alignment: .leading)
-            HStack(spacing: 0) {
-                ForEach(AppEnvironment.allCases) { e in
-                    Text(e == .preview ? "PREV" : e == .production ? "PROD" : "LOCAL")
-                        .foregroundStyle(e == env ? Color.accentColor : Color.secondary.opacity(0.6))
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            .frame(width: dotsWidth)
-            .opacity(narrow ? 0 : 1)
-            Text("VALUE").padding(.leading, 12)
-            Spacer()
+    /// A group's title inside the list: not selectable, no line under it (like the library's).
+    private func groupTitle(_ text: String, note: String? = nil) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(text).font(.headline).foregroundStyle(.secondary)
+            if let note { Text(note).font(.caption).foregroundStyle(.tertiary).lineLimit(1) }
         }
-        .font(.system(size: 10, weight: .bold))
-        .tracking(0.5)
-        .foregroundStyle(.tertiary)
-        .padding(.bottom, 4)
+        .padding(.top, 6)
+        .selectionDisabled()
+        .listRowSeparator(.hidden)
+        .accessibilityAddTraits(.isHeader)
     }
 
-    private func row(number: Int, variable: Variable) -> some View {
-        let selected = selectedVariable == variable.id
-        let value = variable.value(in: env)
-        let detection = value.flatMap { Detector.detect($0) }
-        return HStack(spacing: 0) {
-            Text("\(number)").font(.system(size: 11, design: .monospaced)).foregroundStyle(.tertiary)
-                .frame(width: numberWidth, alignment: .trailing).padding(.trailing, 0)
-            Text(variable.name)
-                .font(.system(size: 12.5, weight: .semibold, design: .monospaced))
-                .lineLimit(1).truncationMode(.middle)
-                .padding(.leading, 14)
-                .frame(width: keyWidth, alignment: .leading)
-            HStack(spacing: 0) {
-                ForEach(AppEnvironment.allCases) { e in
-                    Circle()
-                        .fill(variable.value(in: e) == nil ? Color.clear : Color.accentColor.opacity(e == env ? 1 : 0.35))
-                        .overlay(Circle().strokeBorder(variable.value(in: e) == nil ? Color.secondary.opacity(0.5) : .clear, lineWidth: 1.2))
-                        .frame(width: 9, height: 9)
-                        .frame(maxWidth: .infinity)
-                }
-            }
-            .frame(width: dotsWidth)
-            .opacity(narrow ? 0 : 1)
-            HStack(spacing: 8) {
-                if let value {
-                    Text(variable.isPlain ? value : Peek.of(value))
-                        .font(.system(size: 12.5, design: .monospaced))
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1).truncationMode(.middle)
-                    if variable.isPlain { Chip(text: "public", style: .plain) }
-                    if detection?.isLive == true { Chip(text: "live", style: .live) }
-                } else {
-                    Text("not in \(env.title)").font(.callout).foregroundStyle(Color.attention)
-                }
-            }
-            .padding(.leading, 12)
-            Spacer(minLength: 0)
-        }
-        .frame(minHeight: 30)
-        .padding(.trailing, 12)
-        .background(selected ? Color.accentColor.opacity(0.14) : Color.clear)
-        .contentShape(Rectangle())
-        .onTapGesture { selectedVariable = variable.id; selectedMissing = nil; showInspector = true }
-        .contextMenu {
-            if let value { Button("Copy Value") { model.copy(value, label: variable.name) } }
-            if let value { Button("Copy as KEY=value") { model.copy("\(variable.name)=\(value)", label: "\(variable.name)=…") } }
-            Divider()
-            Button("Delete", role: .destructive) { model.deleteVariable(variable.id, in: projectID) }
-        }
-    }
-
-    private func missingRow(number: Int, name: String) -> some View {
-        HStack(spacing: 0) {
-            Text("\(number)").font(.system(size: 11, design: .monospaced)).foregroundStyle(.tertiary)
-                .frame(width: numberWidth, alignment: .trailing)
-            Text(name).font(.system(size: 12.5, weight: .semibold, design: .monospaced)).foregroundStyle(.secondary)
-                .lineLimit(1).truncationMode(.middle)
-                .padding(.leading, 14).frame(width: keyWidth, alignment: .leading)
-            HStack(spacing: 0) {
-                ForEach(AppEnvironment.allCases) { _ in
-                    Circle().strokeBorder(Color.secondary.opacity(0.5), lineWidth: 1.2).frame(width: 9, height: 9).frame(maxWidth: .infinity)
-                }
-            }
-            .frame(width: dotsWidth)
-            .opacity(narrow ? 0 : 1)
-            HStack(spacing: 8) {
-                Text("missing").foregroundStyle(Color.attention)
-                Button("Add") { tuckMissing(name) }
-                    .glassButton().controlSize(.small)
-            }
-            .padding(.leading, 12)
-            Spacer()
-        }
-        .frame(minHeight: 30)
-        .background(selectedMissing == name ? Color.accentColor.opacity(0.14) : Color.clear)
-        .contentShape(Rectangle())
-        .onTapGesture { selectedMissing = name; selectedVariable = nil; showInspector = true }
-    }
+    // MARK: Details
 
     @ViewBuilder
     private func inspector(_ p: Project) -> some View {
-        if let id = selectedVariable, let v = p.variables.first(where: { $0.id == id }) {
-            VariableInspector(projectID: projectID, variable: v, env: env)
-        } else if let name = selectedMissing {
+        switch selection {
+        case let .variable(id)?:
+            if let v = p.variables.first(where: { $0.id == id }) {
+                VariableInspector(projectID: projectID, variable: v, env: env)
+            } else {
+                nothingSelected
+            }
+        case let .missing(name)?:
             VStack(alignment: .leading, spacing: 12) {
-                Text(name).font(.system(.headline, design: .monospaced))
-                Text("Listed in .env.example but not saved in Slinky.").foregroundStyle(.secondary)
+                HStack(spacing: 10) {
+                    Image(systemName: "questionmark.square.dashed")
+                        .font(.system(size: 22)).foregroundStyle(Color.attention)
+                        .frame(width: 36, height: 36)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(name).font(.system(size: 13, weight: .semibold, design: .monospaced)).lineLimit(2).truncationMode(.middle)
+                        Text("Missing").font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Text("Listed in this project's .env.example, but not saved in Slinky yet. Add its value and Slinky keeps it with the rest.")
+                    .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 Button("Add Value…") { tuckMissing(name) }.glassProminentButton()
                 Spacer()
             }
             .padding(18)
-        } else {
-            VStack(spacing: 8) {
-                Image(systemName: "cursorarrow.click").font(.title).foregroundStyle(.tertiary)
-                Text("Select a variable to see its details.").foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        case nil:
+            nothingSelected
         }
+    }
+
+    private var nothingSelected: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "cursorarrow.click").font(.title).foregroundStyle(.tertiary)
+            Text("Select a variable to see its details.").foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private func tuckMissing(_ name: String) {
@@ -341,12 +291,208 @@ struct ProjectView: View {
     }
 }
 
+/// The environment picker for a project, at the top of its list: each environment with how many variables it has,
+/// and a small amber dot when some aren't set there. The selection slides between them. The linked folder sits on
+/// the right (click to show it in Finder).
+struct EnvironmentBar: View {
+    @Environment(AppModel.self) private var model
+    let project: Project
+    @Binding var env: AppEnvironment
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var pill
+
+    var body: some View {
+        // Narrow windows lose the folder first, then the counts; the tabs themselves never wrap.
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 12) {
+                tabs(counts: true)
+                Spacer(minLength: 8)
+                folder
+            }
+            HStack { tabs(counts: true); Spacer(minLength: 0) }
+            HStack { tabs(counts: false); Spacer(minLength: 0) }
+        }
+        .font(.callout)
+    }
+
+    private func tabs(counts: Bool) -> some View {
+        HStack(spacing: 2) {
+            ForEach(AppEnvironment.allCases) { e in tab(e, count: counts) }
+        }
+        .padding(3)
+        .background(Color.secondary.opacity(0.1), in: .capsule)
+        .fixedSize()
+    }
+
+    private func tab(_ e: AppEnvironment, count showCount: Bool) -> some View {
+        let count = project.variables.filter { $0.value(in: e) != nil }.count
+        let short = count < project.variables.count
+        let on = e == env
+        return Button {
+            withAnimation(reduceMotion ? nil : .snappy(duration: 0.28)) { env = e }
+        } label: {
+            HStack(spacing: 6) {
+                Text(e.title).fontWeight(on ? .semibold : .regular)
+                if showCount { Text("\(count)").monospacedDigit().foregroundStyle(.secondary) }
+                if short { Circle().fill(Color.attention).frame(width: 5, height: 5) }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 5)
+            .background {
+                if on {
+                    Capsule()
+                        .fill(Color.paper)
+                        .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
+                        .matchedGeometryEffect(id: "pill", in: pill)
+                }
+            }
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
+        .help(short ? "\(count) of \(counted(project.variables.count, "variable")) set for \(e.title)" : "Every variable is set for \(e.title)")
+        .accessibilityAddTraits(on ? .isSelected : [])
+    }
+
+    @ViewBuilder
+    private var folder: some View {
+        if let first = project.folders.first {
+            Button {
+                NSWorkspace.shared.activateFileViewerSelecting(project.folders.map { URL(fileURLWithPath: $0) })
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "folder")
+                    Text((first as NSString).abbreviatingWithTildeInPath)
+                        .lineLimit(1).truncationMode(.head)
+                    if project.folders.count > 1 { Text("+\(project.folders.count - 1)").foregroundStyle(.tertiary) }
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: 300, alignment: .trailing)
+            }
+            .buttonStyle(.plain)
+            .help("Show in Finder")
+        } else {
+            Button {
+                let panel = NSOpenPanel()
+                panel.canChooseDirectories = true
+                panel.canChooseFiles = false
+                panel.prompt = "Link"
+                if panel.runModal() == .OK, let url = panel.url { model.linkFolder(url, to: project.id) }
+            } label: {
+                Label("Link Folder…", systemImage: "folder.badge.plus").font(.caption)
+            }
+            .buttonStyle(.borderless)
+            .help("Link the project folder, so Slinky can check it for keys left in files")
+        }
+    }
+}
+
+/// One variable, like a library row: its icon and name, where it's from or that it isn't set for this environment,
+/// its peek, and three small dots for which environments have it.
+struct VariableRow: View {
+    @Environment(AppModel.self) private var model
+    let variable: Variable
+    let env: AppEnvironment
+
+    var body: some View {
+        let value = variable.value(in: env)
+        let live = value.flatMap { Detector.detect($0) }?.isLive == true
+        // A service's own icon when Slinky knows it (or one was chosen); otherwise a quiet tile, so a project of
+        // forty variables isn't forty colored initials.
+        let known = variable.icon != nil || IconResolver.shared.service(for: variable.iconSubject) != nil
+        ItemRowLayout(icon: variable.iconSubject, title: variable.name, mono: true,
+                      subtitle: subtitle(value), peek: value.map(peek),
+                      plainSymbol: known ? nil : (variable.isPlain ? "textformat" : "key.fill")) {
+            if live { Chip(text: "live", style: .live) }
+            EnvDots(variable: variable, current: env)
+        } action: {
+            CopyButton { if let value { model.copy(value, label: variable.name) } }
+                .disabled(value == nil)
+                .help(value == nil ? "Not set for \(env.title)" : "Copy the \(env.title) value")
+        }
+    }
+
+    private func subtitle(_ value: String?) -> String {
+        if value == nil { return "Not set for \(env.title)" }
+        if let service = IconResolver.shared.service(for: variable.iconSubject)?.name { return service }
+        return variable.provider ?? (variable.isPlain ? "Public setting" : "Secret")
+    }
+
+    /// Public settings show their value (short); secrets only their peek.
+    private func peek(_ value: String) -> String {
+        guard variable.isPlain else { return Peek.of(value) }
+        return value.count > 26 ? String(value.prefix(24)) + "…" : value
+    }
+}
+
+/// Which environments a variable is set in: Local, Preview, Production, left to right. The one you're looking at
+/// is the strongest; an empty ring means not set there.
+struct EnvDots: View {
+    let variable: Variable
+    let current: AppEnvironment
+    @Environment(\.backgroundProminence) private var prominence
+
+    var body: some View {
+        let onHighlight = prominence == .increased
+        HStack(spacing: 3) {
+            ForEach(AppEnvironment.allCases) { e in
+                let set = variable.value(in: e) != nil
+                let tint: Color = onHighlight ? .white : .accentColor
+                Circle()
+                    .fill(set ? tint.opacity(e == current ? 1 : 0.4) : .clear)
+                    .overlay(Circle().strokeBorder(set ? .clear : (onHighlight ? Color.white.opacity(0.6) : Color.secondary.opacity(0.5)), lineWidth: 1))
+                    .frame(width: 6, height: 6)
+            }
+        }
+        .help(help)
+        .accessibilityLabel(help)
+    }
+
+    private var help: String {
+        let set = AppEnvironment.allCases.filter { variable.value(in: $0) != nil }.map(\.title)
+        if set.count == AppEnvironment.allCases.count { return "Set for every environment" }
+        if set.isEmpty { return "Not set anywhere" }
+        return "Set for " + set.formatted(.list(type: .and))
+    }
+}
+
+/// A name the project's .env.example expects that Slinky doesn't have yet.
+struct MissingRow: View {
+    let name: String
+    let add: () -> Void
+
+    var body: some View {
+        HStack(spacing: 10) {
+            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                .strokeBorder(Color.attention.opacity(0.7), style: StrokeStyle(lineWidth: 1.2, dash: [3, 2.5]))
+                .frame(width: 28, height: 28)
+                .overlay(Image(systemName: "plus").font(.system(size: 11, weight: .semibold)).foregroundStyle(Color.attention))
+            VStack(alignment: .leading, spacing: 1) {
+                Text(name)
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1).truncationMode(.middle)
+                Text("Not saved in Slinky yet").font(.caption).foregroundStyle(.tertiary)
+            }
+            .layoutPriority(1)
+            Spacer(minLength: 8)
+            Button("Add…", action: add)
+                .buttonStyle(.borderless)
+                .controlSize(.small)
+                .fixedSize()
+        }
+        .padding(.vertical, 4)
+    }
+}
+
 struct VariableInspector: View {
     @Environment(AppModel.self) private var model
     let projectID: UUID
     let variable: Variable
     let env: AppEnvironment
     @State private var editing = false
+    /// Which environment's value the sheet sets (any of them, from the Environments list).
+    @State private var editEnv: AppEnvironment = .local
     @State private var draft = ""
     @State private var note = ""
     @State private var link = ""
@@ -374,13 +520,44 @@ struct VariableInspector: View {
                     HStack {
                         CopyButton { model.copy(value, label: variable.name) }
                         Button { model.copy("\(variable.name)=\(value)", label: "\(variable.name)=…") } label: { Text("KEY=value") }
-                        Button { draft = ""; editing = true } label: { Image(systemName: "pencil") }.help("Replace the \(env.title) value")
+                        Button { edit(env) } label: { Image(systemName: "pencil") }.help("Replace the \(env.title) value")
                     }
                     .glassButton()
                     .controlSize(.small)
                 } else {
                     Text("Not set for \(env.title).").foregroundStyle(Color.attention)
-                    Button("Set \(env.title) Value…") { draft = ""; editing = true }.glassButton()
+                    Button("Set \(env.title) Value…") { edit(env) }.glassButton()
+                }
+
+                // Every environment at a glance, each with its own Set or Replace.
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Environments").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                    VStack(spacing: 0) {
+                        ForEach(AppEnvironment.allCases) { e in
+                            let v = variable.value(in: e)
+                            HStack(spacing: 8) {
+                                Text(e.title).font(.callout).fontWeight(e == env ? .semibold : .regular)
+                                    .frame(width: 78, alignment: .leading)
+                                Group {
+                                    if let v {
+                                        Text(variable.isPlain ? v : Peek.of(v)).foregroundStyle(.secondary)
+                                    } else {
+                                        Text("Not set").foregroundStyle(Color.attention)
+                                    }
+                                }
+                                .font(.system(size: 11.5, design: .monospaced))
+                                .lineLimit(1).truncationMode(.middle)
+                                Spacer(minLength: 4)
+                                Button(v == nil ? "Set…" : "Replace…") { edit(e) }
+                                    .buttonStyle(.borderless).controlSize(.small).fixedSize()
+                            }
+                            .padding(.vertical, 6)
+                            .padding(.horizontal, 10)
+                            if e != AppEnvironment.allCases.last { Divider().padding(.leading, 10) }
+                        }
+                    }
+                    .background(Color.paper, in: .rect(cornerRadius: 9))
+                    .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.separator.opacity(0.6), lineWidth: 0.5))
                 }
 
                 if !variable.isPlain {
@@ -437,21 +614,21 @@ struct VariableInspector: View {
         .onDisappear(perform: saveDetails)
         .sheet(isPresented: $editing) {
             VStack(alignment: .leading, spacing: 12) {
-                Text("\(variable.name) · \(env.title)").font(.system(.headline, design: .monospaced))
+                Text("\(variable.name) · \(editEnv.title)").font(.system(.headline, design: .monospaced))
                 SecureField("Paste the new value", text: $draft)
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
                 HStack {
-                    if variable.value(in: env) != nil {
-                        Button("Remove from \(env.title)", role: .destructive) {
-                            model.setValue(nil, variable: variable.id, in: projectID, env: env)
+                    if variable.value(in: editEnv) != nil {
+                        Button("Remove from \(editEnv.title)", role: .destructive) {
+                            model.setValue(nil, variable: variable.id, in: projectID, env: editEnv)
                             editing = false
                         }
                     }
                     Spacer()
                     Button("Cancel") { editing = false }
                     Button("Save") {
-                        model.setValue(draft, variable: variable.id, in: projectID, env: env)
+                        model.setValue(draft, variable: variable.id, in: projectID, env: editEnv)
                         editing = false
                     }
                     .buttonStyle(.borderedProminent)
@@ -462,6 +639,12 @@ struct VariableInspector: View {
             .padding(22)
             .frame(width: 440)
         }
+    }
+
+    private func edit(_ e: AppEnvironment) {
+        editEnv = e
+        draft = ""
+        editing = true
     }
 
     private func loadDetails() {

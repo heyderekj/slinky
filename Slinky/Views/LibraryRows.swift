@@ -11,12 +11,22 @@ struct ItemRowLayout<Tags: View, Action: View>: View {
     var mono = false
     var subtitle: String
     var peek: String?
+    /// A quiet symbol tile instead of initials, for a list where most items have no service of their own.
+    var plainSymbol: String? = nil
     @ViewBuilder var tags: Tags
     @ViewBuilder var action: Action
 
     var body: some View {
         HStack(spacing: 10) {
-            ServiceIcon(subject: icon, size: 28)
+            if let plainSymbol {
+                Image(systemName: plainSymbol)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 28, height: 28)
+                    .background(Color.secondary.opacity(0.1), in: .rect(cornerRadius: 7, style: .continuous))
+            } else {
+                ServiceIcon(subject: icon, size: 28)
+            }
             VStack(alignment: .leading, spacing: 1) {
                 // Cut in the middle: names that share a start (…_EU_WEST, …_US_EAST) stay tellable apart.
                 Text(title)
