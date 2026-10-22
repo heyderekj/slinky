@@ -301,7 +301,8 @@ struct UpdateBanner: View {
             }
         }
         .padding(12)
-        .glass(in: .rect(cornerRadius: 14))
+        // Not glass: the sidebar it sits in already is.
+        .card(cornerRadius: 14)
     }
 }
 

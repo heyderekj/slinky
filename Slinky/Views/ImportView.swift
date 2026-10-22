@@ -145,9 +145,7 @@ private struct ImportPanel: View {
         .frame(width: 680)
         .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)
-        .scaleEffect(appeared ? 1 : 0.95)
-        .offset(y: appeared ? 0 : 14)
-        .opacity(appeared ? 1 : 0)
+        .panelEntrance(appeared)
         .onAppear {
             // Everything starts checked except what's already in Slinky.
             chosen = Set(result.candidates.filter { !isDuplicate($0) }.map(\.id))

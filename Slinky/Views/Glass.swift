@@ -35,6 +35,17 @@ extension View {
         }
     }
 
+    /// A bar across the top of a scrolling list, like a filter bar: on Tahoe the list scrolls under it with the
+    /// system's soft edge; on Sequoia it sits on the bar material.
+    @ViewBuilder
+    func topBar<Bar: View>(@ViewBuilder _ bar: () -> Bar) -> some View {
+        if #available(macOS 26.0, *) {
+            safeAreaBar(edge: .top, spacing: 0) { bar() }
+        } else {
+            safeAreaInset(edge: .top, spacing: 0) { bar().background(.bar) }
+        }
+    }
+
     /// A dialog's row of buttons: large capsules, all the same height, like Tahoe's own sheets. Cancel uses
     /// `glassButton()` and the default action `glassProminentButton()`. Capsules work on Sequoia too.
     func dialogButtons() -> some View {

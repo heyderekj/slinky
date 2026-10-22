@@ -74,9 +74,7 @@ private struct EditPanel: View {
         .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)
         .padding(.vertical, 20)   // room from the window's edges when it's short
-        .scaleEffect(appeared ? 1 : 0.95)
-        .offset(y: appeared ? 0 : 14)
-        .opacity(appeared ? 1 : 0)
+        .panelEntrance(appeared)
         .animation(.spring(response: 0.3, dampingFraction: 0.88), value: replacing)
         .animation(.spring(response: 0.3, dampingFraction: 0.88), value: hasExpiry)
         .onChange(of: closeRequest) { requestClose() }

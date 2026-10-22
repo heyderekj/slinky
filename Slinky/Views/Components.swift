@@ -75,15 +75,15 @@ struct Chip: View {
     private var onHighlight: Bool { prominence == .increased }
 
     var body: some View {
-        Text(text.uppercased())
-            .font(.system(size: 9.5, weight: .bold))
-            .tracking(0.4)
+        // Sentence case in a capsule, the way Tahoe marks status (not tiny capitals in a box).
+        Text(text.prefix(1).uppercased() + text.dropFirst())
+            .font(.caption.weight(.semibold))
             .lineLimit(1)
             .fixedSize()   // a status never wraps; the name beside it gives way instead
-            .padding(.horizontal, 6)
+            .padding(.horizontal, 7)
             .padding(.vertical, 2)
             .foregroundStyle(foreground)
-            .background(background, in: .rect(cornerRadius: 5))
+            .background(background, in: .capsule)
     }
 
     private var foreground: Color {
@@ -105,25 +105,28 @@ struct Chip: View {
     }
 }
 
-/// Dots by default, the real value while the pointer is over it (like Apple Passwords).
+/// Dots by default, the real value while the pointer is over it (like Apple Passwords), or while it has keyboard
+/// focus, so it works without a mouse too. Return shows the whole value.
 struct RevealField: View {
     var value: String
     var mono = true
-    @State private var revealed = false
+    @State private var hovering = false
+    @FocusState private var focused: Bool
     @State private var showAll = false
+    private var revealed: Bool { hovering || focused }
 
     var body: some View {
         HStack(spacing: 8) {
             // Always one line, so hovering never moves what's below it. The whole value is one click away.
             Text(revealed ? value : Peek.of(value))
-                .font(.system(size: 12.5, design: mono ? .monospaced : .default))
+                .font(mono ? .callout.monospaced() : .callout)
                 .textSelection(.enabled)
                 .lineLimit(1)
                 .truncationMode(.middle)
             Spacer(minLength: 0)
             if revealed {
                 Button { showAll = true } label: {
-                    Image(systemName: "arrow.up.left.and.arrow.down.right").font(.system(size: 10, weight: .semibold))
+                    Image(systemName: "arrow.up.left.and.arrow.down.right").imageScale(.small).fontWeight(.semibold)
                 }
                 .buttonStyle(.borderless)
                 .help("Show the whole value")
@@ -134,13 +137,17 @@ struct RevealField: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 8)
-        .background(.background.secondary, in: .rect(cornerRadius: 9))
-        .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.separator.opacity(0.6), lineWidth: 0.5))
-        .onHover { revealed = $0 }
+        // Values sit on paper. No outline: inside a grouped form row, a box in a box.
+        .background(Color.paper, in: .rect(cornerRadius: 9))
+        .onHover { hovering = $0 }
+        .focusable()
+        .focused($focused)
+        .onKeyPress(.return) { showAll = true; return .handled }
+        .accessibilityAction(named: "Show the whole value") { showAll = true }
         .popover(isPresented: $showAll, arrowEdge: .bottom) {
             ScrollView {
                 Text(value)
-                    .font(.system(size: 12.5, design: mono ? .monospaced : .default))
+                    .font(mono ? .callout.monospaced() : .callout)
                     .textSelection(.enabled)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(14)
@@ -258,6 +265,8 @@ struct CopyButton: View {
     var title = "Copy"
     let action: () -> Void
     @State private var copied = false
+    /// On a selected (accent) row everything is white, the check included: cyan on cyan disappears.
+    @Environment(\.backgroundProminence) private var prominence
 
     var body: some View {
         Button {
@@ -272,7 +281,7 @@ struct CopyButton: View {
                 Text(title)
             } icon: {
                 Image(systemName: copied ? "checkmark" : "doc.on.doc")
-                    .foregroundStyle(copied ? Color.done : Color.primary)
+                    .foregroundStyle(prominence == .increased ? Color.onAccent : copied ? Color.done : Color.primary)
                     .contentTransition(.symbolEffect(.replace))
             }
         }
@@ -397,5 +406,31 @@ struct PanelCloseButton: View {
         .buttonBorderShape(.circle)
         .controlSize(.large)
         .help("Close (esc)")
+    }
+}
+
+extension View {
+    /// A floating panel coming in: it rises a little and grows into place. With Reduce Motion it only fades.
+    func panelEntrance(_ appeared: Bool) -> some View {
+        modifier(PanelEntrance(appeared: appeared))
+    }
+}
+
+private struct PanelEntrance: ViewModifier {
+    let appeared: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(appeared || reduceMotion ? 1 : 0.95)
+            .offset(y: appeared || reduceMotion ? 0 : 14)
+            .opacity(appeared ? 1 : 0)
+    }
+}
+
+extension View {
+    /// A card on the content surface: a soft gray fill, no outline, like Passwords' tiles. Content, so not glass.
+    func card(cornerRadius: CGFloat) -> some View {
+        background(Color.primary.opacity(0.045), in: .rect(cornerRadius: cornerRadius, style: .continuous))
     }
 }

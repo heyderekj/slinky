@@ -53,9 +53,7 @@ struct NewProjectPanel: View {
         .frame(width: 720)
         .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)
-        .scaleEffect(appeared ? 1 : 0.95)
-        .offset(y: appeared ? 0 : 14)
-        .opacity(appeared ? 1 : 0)
+        .panelEntrance(appeared)
         .animation(.spring(response: 0.38, dampingFraction: 0.86), value: scan?.folder)
         .onDrop(of: [.fileURL], isTargeted: $dropTargeted) { providers in
             for provider in providers {

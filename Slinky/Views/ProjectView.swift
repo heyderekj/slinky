@@ -10,7 +10,8 @@ struct ProjectView: View {
     let projectID: UUID
     @State private var env: AppEnvironment = .local
     @State private var selection: ProjectRow?
-    @State private var showInspector = true
+    // Only whether the pane is open, like the library's. Nothing about any variable.
+    @AppStorage("projectInspector") private var showInspector = true
     @State private var dropTargeted = false
     @State private var pushing = false
 
@@ -25,11 +26,14 @@ struct ProjectView: View {
                 if project.variables.isEmpty && project.missing.isEmpty {
                     emptyProject(project)
                 } else {
-                    EnvironmentBar(project: project, env: $env)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 10)
-                        .padding(.bottom, 4)
+                    // In a bar the rows scroll under (with the toolbar's soft edge on Tahoe), not stacked above them.
                     list(project)
+                        .topBar {
+                            EnvironmentBar(project: project, env: $env)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 6)
+                                .padding(.bottom, 6)
+                        }
                 }
             }
             .screenTitle(project.name, subtitle: subtitle(project))
@@ -318,7 +322,8 @@ struct EnvironmentBar: View {
             ForEach(AppEnvironment.allCases) { e in tab(e, count: counts) }
         }
         .padding(3)
-        .background(Color.secondary.opacity(0.1), in: .capsule)
+        // Chrome, so glass (a frosted capsule on Sequoia), like the toolbar's own controls.
+        .glass(in: .capsule)
         .fixedSize()
     }
 
@@ -339,8 +344,7 @@ struct EnvironmentBar: View {
             .background {
                 if on {
                     Capsule()
-                        .fill(Color.paper)
-                        .shadow(color: .black.opacity(0.12), radius: 2, y: 1)
+                        .fill(Color.primary.opacity(0.1))
                         .matchedGeometryEffect(id: "pill", in: pill)
                 }
             }
@@ -497,45 +501,60 @@ struct VariableInspector: View {
 
     var body: some View {
         let value = variable.value(in: env)
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                HStack(spacing: 10) {
-                    ServiceIcon(subject: variable.iconSubject, size: 36)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(variable.name).font(.system(size: 13, weight: .semibold, design: .monospaced)).textSelection(.enabled)
-                        Text([variable.provider, env.title].compactMap { $0 }.joined(separator: " · "))
-                            .font(.caption).foregroundStyle(.secondary)
-                    }
+        // The same shape as an item's details: a header, then a grouped form.
+        VStack(spacing: 0) {
+            HStack(spacing: 14) {
+                ServiceIcon(subject: variable.iconSubject, size: 44)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(variable.name)
+                        .font(.title3.monospaced().weight(.semibold))
+                        .lineLimit(2)
+                        .textSelection(.enabled)
+                    Text([variable.provider, env.title].compactMap { $0 }.joined(separator: " · "))
+                        .font(.callout).foregroundStyle(.secondary).lineLimit(1)
                 }
-                if let value {
-                    if variable.isPlain {
-                        Text(value).font(.system(size: 12.5, design: .monospaced)).textSelection(.enabled)
-                            .padding(10).frame(maxWidth: .infinity, alignment: .leading)
-                            .background(.background.secondary, in: .rect(cornerRadius: 9))
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 16)
+
+            Form {
+                Section {
+                    if let value {
+                        if variable.isPlain {
+                            Text(value).font(.callout.monospaced()).textSelection(.enabled)
+                                .lineLimit(3).truncationMode(.middle)
+                        } else {
+                            RevealField(value: value)
+                        }
+                        HStack(spacing: 8) {
+                            CopyButton { model.copy(value, label: variable.name) }
+                                .glassProminentButton()
+                            Menu {
+                                Button("Copy as \(variable.name)=…") { model.copy("\(variable.name)=\(value)", label: "\(variable.name)=…") }
+                                Button("Replace \(env.title) Value…") { edit(env) }
+                            } label: {
+                                Image(systemName: "ellipsis")
+                            }
+                            .menuIndicator(.hidden)
+                            .fixedSize()
+                            .glassButton()
+                            .accessibilityLabel("More")
+                        }
                     } else {
-                        RevealField(value: value)
+                        Text("Not set for \(env.title).").foregroundStyle(Color.attention)
+                        Button("Set \(env.title) Value…") { edit(env) }.glassProminentButton()
                     }
-                    HStack {
-                        CopyButton { model.copy(value, label: variable.name) }
-                        Button { model.copy("\(variable.name)=\(value)", label: "\(variable.name)=…") } label: { Text("KEY=value") }
-                        Button { edit(env) } label: { Image(systemName: "pencil") }.help("Replace the \(env.title) value")
-                    }
-                    .glassButton()
-                    .controlSize(.small)
-                } else {
-                    Text("Not set for \(env.title).").foregroundStyle(Color.attention)
-                    Button("Set \(env.title) Value…") { edit(env) }.glassButton()
                 }
 
                 // Every environment at a glance, each with its own Set or Replace.
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Environments").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                    VStack(spacing: 0) {
-                        ForEach(AppEnvironment.allCases) { e in
-                            let v = variable.value(in: e)
-                            HStack(spacing: 8) {
-                                Text(e.title).font(.callout).fontWeight(e == env ? .semibold : .regular)
-                                    .frame(width: 78, alignment: .leading)
+                Section("Environments") {
+                    ForEach(AppEnvironment.allCases) { e in
+                        let v = variable.value(in: e)
+                        // One line each: the pane is narrow, and a labeled row put the value under its name.
+                        HStack(spacing: 8) {
+                            Text(e.title).fontWeight(e == env ? .semibold : .regular)
+                                .frame(width: 78, alignment: .leading)
                                 Group {
                                     if let v {
                                         Text(variable.isPlain ? v : Peek.of(v)).foregroundStyle(.secondary)
@@ -543,65 +562,63 @@ struct VariableInspector: View {
                                         Text("Not set").foregroundStyle(Color.attention)
                                     }
                                 }
-                                .font(.system(size: 11.5, design: .monospaced))
+                                .font(.callout.monospaced())
                                 .lineLimit(1).truncationMode(.middle)
                                 Spacer(minLength: 4)
                                 Button(v == nil ? "Set…" : "Replace…") { edit(e) }
-                                    .buttonStyle(.borderless).controlSize(.small).fixedSize()
-                            }
-                            .padding(.vertical, 6)
-                            .padding(.horizontal, 10)
-                            if e != AppEnvironment.allCases.last { Divider().padding(.leading, 10) }
+                                    .buttonStyle(.borderless).fixedSize()
+                                    .accessibilityLabel(v == nil ? "Set \(e.title) value" : "Replace \(e.title) value")
                         }
                     }
-                    .background(Color.paper, in: .rect(cornerRadius: 9))
-                    .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.separator.opacity(0.6), lineWidth: 0.5))
                 }
 
                 if !variable.isPlain {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("AI agents").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                        Picker("Agents", selection: Binding(
+                    Section {
+                        Picker("AI agents", selection: Binding(
                             get: { variable.agentPolicy },
                             set: { model.setPolicy($0, variable: variable.id, in: projectID) })) {
                             ForEach(AgentPolicy.allCases, id: \.self) { Text($0.title).tag($0) }
                         }
-                        .pickerStyle(.segmented)
-                        .labelsHidden()
-                        Text(policyNote).font(.caption2).foregroundStyle(.tertiary)
+                    } footer: {
+                        Text(policyNote).font(.caption).foregroundStyle(.secondary)
                     }
                 }
 
-                VStack(alignment: .leading, spacing: 6) {
-                    Text("Note and link").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                Section("Note and link") {
                     TextField("Note", text: $note, prompt: Text("Optional, like where to make a new one"), axis: .vertical)
+                        .labelsHidden()
                         .lineLimit(1...4)
                         .onSubmit(saveDetails)
                     HStack(spacing: 6) {
                         TextField("Link", text: $link, prompt: Text("Optional, like the dashboard page"))
+                            .labelsHidden()
                             .onSubmit(saveDetails)
                         if let url = ItemActions.url(variable.link) {
-                            Button("Open") { NSWorkspace.shared.open(url) }.help(url.absoluteString)
+                            Button("Open") { NSWorkspace.shared.open(url) }.buttonStyle(.borderless).help(url.absoluteString)
                         }
                     }
                     if !link.trimmingCharacters(in: .whitespaces).isEmpty, Links.normalized(link) == nil {
-                        Text("Only web addresses (https) are kept.").font(.caption2).foregroundStyle(Color.attention)
+                        Text("Only web addresses (https) are kept.").font(.caption).foregroundStyle(Color.attention)
                     }
                 }
-                .textFieldStyle(.roundedBorder)
-                .controlSize(.small)
 
-                Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 6) {
-                    GridRow { Text("Updated").foregroundStyle(.secondary); Text(variable.updated.formatted(.relative(presentation: .named))) }
-                    GridRow { Text("Added").foregroundStyle(.secondary); Text(variable.created.formatted(date: .abbreviated, time: .omitted)) }
+                Section {
+                    LabeledContent("Updated", value: variable.updated.formatted(.relative(presentation: .named)))
+                    LabeledContent("Added", value: variable.created.formatted(date: .abbreviated, time: .omitted))
                 }
-                .font(.caption)
-
-                Button("Delete Variable", role: .destructive) { model.deleteVariable(variable.id, in: projectID) }
-                    .buttonStyle(.borderless)
-                    .font(.callout)
             }
-            .padding(18)
+            .formStyle(.grouped)
+            .scrollContentBackground(.hidden)
+
+            HStack {
+                Button("Delete", role: .destructive) { model.deleteVariable(variable.id, in: projectID) }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(Color.danger)
+                    .help("Move to Recently Deleted")
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
         }
         .onAppear(perform: loadDetails)
         .onChange(of: variable.id) { old, _ in
@@ -613,7 +630,8 @@ struct VariableInspector: View {
         .sheet(isPresented: $editing) {
             VStack(alignment: .leading, spacing: 12) {
                 Text("\(variable.name) · \(editEnv.title)").font(.system(.headline, design: .monospaced))
-                SecureField("Paste the new value", text: $draft)
+                SecureField("New value", text: $draft, prompt: Text("Paste the new value"))
+                    .labelsHidden()
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
                 HStack {
@@ -625,14 +643,17 @@ struct VariableInspector: View {
                     }
                     Spacer()
                     Button("Cancel") { editing = false }
+                        .keyboardShortcut(.cancelAction)
+                        .glassButton()
                     Button("Save") {
                         model.setValue(draft, variable: variable.id, in: projectID, env: editEnv)
                         editing = false
                     }
-                    .buttonStyle(.borderedProminent)
+                    .glassProminentButton()
                     .keyboardShortcut(.defaultAction)
                     .disabled(draft.isEmpty)
                 }
+                .dialogButtons()
             }
             .padding(22)
             .frame(width: 440)

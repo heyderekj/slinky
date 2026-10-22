@@ -339,7 +339,7 @@ private struct HealthSummary: View {
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .glass(in: .rect(cornerRadius: 22))
+        .card(cornerRadius: 22)
     }
 
     private func headline(issues: Int, unchecked: Bool) -> String {
@@ -440,9 +440,9 @@ private struct HealthTile: View {
             }
             .padding(14)
             .frame(maxWidth: .infinity, minHeight: 104, alignment: .topLeading)
-            .background(Color.paper.opacity(0.6), in: .rect(cornerRadius: 16, style: .continuous))
+            .card(cornerRadius: 16)
             .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous)
-                .strokeBorder(found ? Color.attention.opacity(0.38) : Color.secondary.opacity(0.14), lineWidth: 1))
+                .strokeBorder(found ? Color.attention.opacity(0.38) : .clear, lineWidth: 1))
             .contentShape(.rect(cornerRadius: 16))
             .animation(.smooth(duration: 0.35), value: check.status)
         }
@@ -502,7 +502,7 @@ private struct HealthRow<Actions: View>: View {
             actions
         }
         .padding(12)
-        .glass(in: .rect(cornerRadius: 14))
+        .card(cornerRadius: 14)
     }
 }
 
@@ -536,7 +536,7 @@ private struct AttentionRow: View {
             }
         }
         .padding(12)
-        .glass(in: .rect(cornerRadius: 14))
+        .card(cornerRadius: 14)
     }
 }
 
