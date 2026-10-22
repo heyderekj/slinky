@@ -186,5 +186,37 @@ enum DemoFixture: String, CaseIterable, Identifiable {
         doc.log = (0..<1000).map { i in ActivityEntry(action: .copied, names: ["SERVICE_\(i)_API_KEY"], date: now.addingTimeInterval(-Double(i) * 600)) }
         return doc
     }
+
+    /// Folder scans for the review panel, made up in memory (EXAMPLE values only, never a real folder): an update
+    /// for the first project with new, changed, same, only-in-Slinky and conflicting rows, a nested app and a .p8.
+    static func reviewScans(for project: Project?) -> [ProjectScan] {
+        let root = URL(fileURLWithPath: NSHomeDirectory() + "/Developer/clients/northwind-industries-holdings/web")
+        func file(_ name: String, _ folder: String = "", _ env: AppEnvironment, _ text: String, ignored: Bool? = true) -> ProjectScan.EnvFile {
+            ProjectScan.EnvFile(fileName: name, folder: folder, url: root.appendingPathComponent(folder).appendingPathComponent(name),
+                                environment: env, lines: DotEnv.parse(text), ignoredByGit: ignored)
+        }
+        let first = project?.variables.prefix(3).map(\.name) ?? ["SERVICE_1_API_KEY", "SERVICE_2_API_KEY", "SERVICE_3_API_KEY"]
+        let local = """
+        \(first[0])=EXAMPLE-local-0
+        \(first.count > 1 ? first[1] : "SERVICE_2_API_KEY")=EXAMPLE-local-CHANGED
+        POSTHOG_KEY=phc_EXAMPLEEXAMPLEEXAMPLE
+        SENTRY_DSN=https://EXAMPLE@o0.ingest.sentry.io/0
+        RESEND_API_KEY=re_EXAMPLE_from_env
+        """
+        let localOverride = "RESEND_API_KEY=re_EXAMPLE_from_env_local\nUPSTASH_REDIS_REST_TOKEN=\n"
+        let production = "\(first[0])=EXAMPLE-production-0\nPOSTHOG_KEY=phc_EXAMPLEPRODUCTION\n"
+        let web = "NEXT_PUBLIC_SITE_URL=https://example.com\nSTRIPE_SECRET_KEY=sk_test_EXAMPLEEXAMPLE\n"
+        let p8 = Data("-----BEGIN PRIVATE KEY-----\nEXAMPLE\n-----END PRIVATE KEY-----".utf8)
+        return [ProjectScan(
+            folder: root,
+            envFiles: [file(".env", "", .local, local), file(".env.local", "", .local, localOverride),
+                       file(".env.production", "", .production, production, ignored: false),
+                       file(".env.local", "apps/storefront", .local, web)],
+            examples: [ProjectScan.Example(id: ".env.example", names: ["POSTHOG_KEY", "SENTRY_DSN", "RESEND_API_KEY", "UPSTASH_REDIS_REST_TOKEN", "STRIPE_WEBHOOK_SECRET"])],
+            skippedFiles: [".env.vault"],
+            secretFiles: [ProjectScan.FoundFile(id: "keys/AuthKey_EXAMPLE1234.p8", url: root.appendingPathComponent("keys/AuthKey_EXAMPLE1234.p8"),
+                                                data: p8, kind: .appStoreConnectKey, likelyFixture: false)],
+            isGitRepo: true)]
+    }
 }
 #endif

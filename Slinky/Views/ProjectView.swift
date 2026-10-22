@@ -43,8 +43,11 @@ struct ProjectView: View {
                 ToolbarItemGroup(placement: .primaryAction) {
                     if !model.lockedChrome {
                         Menu {
+                            if !project.folders.isEmpty {
+                                Button("Update from Folder…") { model.updateFromFolder(projectID) }
+                            }
                             Button("Import .env File…") { pickEnvFile(project) }
-                            Button("Link Folder…") { pickFolder(project) }
+                            Button(project.folders.isEmpty ? "Link Folder…" : "Link Another Folder…") { model.chooseFolder(for: projectID) }
                             if !project.folders.isEmpty {
                                 Button("Stop Commits with Secrets") {
                                     for folder in project.folders {
@@ -84,20 +87,10 @@ struct ProjectView: View {
             .detailsPane(isPresented: $showInspector) {
                 inspector(project)
             }
+            // A folder or .env file dropped here opens the review of what it would change; a .env whose name doesn't
+            // say its environment goes to the tab that's showing.
             .onDrop(of: [.fileURL], isTargeted: $dropTargeted) { providers in
-                for provider in providers {
-                    _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                        guard let url else { return }
-                        Task { @MainActor in
-                            var isDir: ObjCBool = false
-                            if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
-                                model.linkFolder(url, to: projectID)
-                            } else {
-                                model.importEnvFile(url, into: projectID, env: env)
-                            }
-                        }
-                    }
-                }
+                Task { model.open(await AppModel.urls(from: providers), on: .project(projectID, environment: env)) }
                 return true
             }
             .overlay {
@@ -279,17 +272,9 @@ struct ProjectView: View {
         panel.showsHiddenFiles = true
         panel.allowsMultipleSelection = false
         panel.prompt = "Import"
-        panel.message = "Choose a .env file to import. Choosing a .env.example only marks which variables are missing."
+        panel.message = "Choose a .env file. Slinky shows what it would change before saving. A .env.example only marks which variables are missing."
         if let folder = p.folders.first { panel.directoryURL = URL(fileURLWithPath: folder) }
-        if panel.runModal() == .OK, let url = panel.url { model.importEnvFile(url, into: projectID, env: env) }
-    }
-
-    private func pickFolder(_ p: Project) {
-        let panel = NSOpenPanel()
-        panel.canChooseDirectories = true
-        panel.canChooseFiles = false
-        panel.prompt = "Link"
-        if panel.runModal() == .OK, let url = panel.url { model.linkFolder(url, to: projectID) }
+        if panel.runModal() == .OK, let url = panel.url { model.open([url], on: .project(projectID, environment: env)) }
     }
 }
 
@@ -375,11 +360,7 @@ struct EnvironmentBar: View {
             .help("Show in Finder")
         } else {
             Button {
-                let panel = NSOpenPanel()
-                panel.canChooseDirectories = true
-                panel.canChooseFiles = false
-                panel.prompt = "Link"
-                if panel.runModal() == .OK, let url = panel.url { model.linkFolder(url, to: project.id) }
+                model.chooseFolder(for: project.id)
             } label: {
                 Label("Link Folder…", systemImage: "folder.badge.plus").font(.caption)
             }

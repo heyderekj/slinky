@@ -30,6 +30,12 @@ enum SnapshotRunner {
             Shot(name: "add-env", fixture: .worst) { m in m.openAddItem(prefill: (0..<8).map { "SERVICE_\($0)_API_KEY=EXAMPLE\($0)" }.joined(separator: "\n")) },
             Shot(name: "edit-key", fixture: .worst) { m in m.editing = m.document.keys.first.map { .key($0.id) } },
             Shot(name: "edit-codes", fixture: .worst) { m in m.editing = m.document.codeSets.first.map { .codes($0.id) } },
+            Shot(name: "review-update", fixture: .worst) { m in
+                guard let p = m.document.projects.first else { return }
+                m.selection = .project(p.id)
+                m.review = FolderReview(target: .project(p.id), scans: DemoFixture.reviewScans(for: p))
+            },
+            Shot(name: "review-new", fixture: .worst) { m in m.review = FolderReview(target: .newProject, scans: DemoFixture.reviewScans(for: nil)) },
             Shot(name: "project", fixture: .worst) { m in m.selection = m.document.projects.first.map { .project($0.id) } },
             Shot(name: "health", fixture: .worst) { m in m.selection = .attention },
             Shot(name: "activity", fixture: .worst) { m in m.selection = .activity },

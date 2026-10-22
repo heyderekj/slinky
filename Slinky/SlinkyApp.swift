@@ -53,7 +53,7 @@ struct SlinkyApp: App {
                 }
                     .keyboardShortcut("n")
                     .disabled(!model.isUnlocked || model.panelOpen)
-                Button("New Project…") { model.showNewProject = true }
+                Button("New Project…") { model.review = FolderReview(target: .newProject) }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                     .disabled(!model.isUnlocked || model.panelOpen)
                 Divider()
@@ -96,6 +96,17 @@ struct SlinkyApp: App {
                     Button(fixture.title) { model.startDemo(fixture) }
                         .disabled(!model.isDemoMode)
                 }
+                Divider()
+                Button("Review: Update from Folder") {
+                    guard let project = model.document.projects.first else { return }
+                    model.selection = .project(project.id)
+                    model.review = FolderReview(target: .project(project.id), scans: DemoFixture.reviewScans(for: project))
+                }
+                .disabled(!model.isDemoMode || model.panelOpen)
+                Button("Review: New Project") {
+                    model.review = FolderReview(target: .newProject, scans: DemoFixture.reviewScans(for: nil))
+                }
+                .disabled(!model.isDemoMode || model.panelOpen)
             }
             #endif
         }

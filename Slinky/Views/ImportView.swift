@@ -3,18 +3,24 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 extension AppModel {
-    /// File › Import… Picks the file, reads it in memory, then opens the import panel.
+    /// File › Import… Picks the file, then reads it like a dropped one: an export opens the import panel, a .env
+    /// file or a folder opens the folder review.
     func beginImport() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [UTType(filenameExtension: "1pux"), .commaSeparatedText].compactMap { $0 }
-        panel.allowsOtherFileTypes = false
-        panel.message = "Choose an export from another app (.1pux or .csv). Slinky picks out keys, tokens and recovery codes, and skips passwords."
+        panel.message = "Choose an export from another app (.1pux, .csv or .txt), or a .env file. Slinky picks out keys, tokens and recovery codes, and skips passwords."
         panel.prompt = "Read File"
+        panel.showsHiddenFiles = true   // .env files start with a dot
+        panel.canChooseDirectories = true
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        open([url], on: .window)
+    }
+
+    /// Reads an export in memory and opens the import panel.
+    func openImport(_ url: URL) {
         do {
             let result = try Importer.read(url)
             showTuck = false
-            showNewProject = false
+            review = nil
             editing = nil
             importSource = url
             importing = result
@@ -53,6 +59,8 @@ private struct ImportPanel: View {
     let close: () -> Void
 
     @State private var chosen: Set<UUID> = []
+    /// Names as edited in the list; an empty one falls back to the name Slinky found.
+    @State private var names: [UUID: String] = [:]
     @State private var trashExport = true
     @State private var appeared = false
 
@@ -68,7 +76,7 @@ private struct ImportPanel: View {
                     .background(Color.accentColor.opacity(0.14), in: .rect(cornerRadius: 10))
                 VStack(alignment: .leading, spacing: 1) {
                     Text("Import").font(.headline)
-                    Text(fileName).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+                    Text(fileName).font(.subheadline).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
                 }
                 Spacer()
                 PanelCloseButton(action: close)
@@ -127,7 +135,6 @@ private struct ImportPanel: View {
                 Button("Cancel", action: close)
                     .keyboardShortcut(.cancelAction)
                     .glassButton()
-                    .controlSize(.large)
                 Button(action: importChosen) {
                     HStack(spacing: 8) {
                         Text(chosen.isEmpty ? "Import" : "Import \(chosen.count) \(chosen.count == 1 ? "Item" : "Items")")
@@ -136,9 +143,9 @@ private struct ImportPanel: View {
                 }
                 .keyboardShortcut(.defaultAction)
                 .glassProminentButton()
-                .controlSize(.large)
                 .disabled(chosen.isEmpty)
             }
+            .dialogButtons()
             .padding(.top, 14)
         }
         .padding(.horizontal, 18)
@@ -164,16 +171,20 @@ private struct ImportPanel: View {
             ServiceIcon(subject: IconSubject(name: item.name, provider: provider(item)), size: 30)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 8) {
-                    Text(item.name)
-                        .font(.system(size: 13, weight: .semibold, design: isKey(item) ? .monospaced : .default))
-                        .lineLimit(1)
+                    // The name can be changed here, before anything is saved.
+                    TextField("Name", text: Binding(get: { names[item.id] ?? item.name }, set: { names[item.id] = $0 }))
+                        .labelsHidden()
+                        .textFieldStyle(.plain)
+                        .font(isKey(item) ? .body.monospaced().weight(.semibold) : .body.weight(.semibold))
+                        .limit(Binding(get: { names[item.id] ?? item.name }, set: { names[item.id] = $0 }), to: FieldLimit.name)
+                        .help("Click to rename before importing")
                     if duplicate { Chip(text: "Already in Slinky", style: .warn) }
                 }
-                Text(subtitle(item)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                Text(subtitle(item)).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
             }
             Spacer(minLength: 8)
             Text(peek(item))
-                .font(.system(size: 12, design: .monospaced))
+                .font(.callout.monospaced())
                 .foregroundStyle(.tertiary)
                 .lineLimit(1)
         }
@@ -196,8 +207,8 @@ private struct ImportPanel: View {
         let place: String
         switch item.kind {
         case let .key(provider, isLive, _): place = "Keys & Tokens" + (provider.map { " · \($0)" } ?? "") + (isLive ? " · live" : "")
-        case let .codes(codes): place = "Recovery · \(codes.count) codes"
-        case .recoveryKey: place = "Recovery · recovery key"
+        case let .codes(codes): place = "Recovery Codes · \(codes.count) codes"
+        case .recoveryKey: place = "Recovery Keys"
         }
         return place + " · from " + item.source
     }
@@ -213,11 +224,20 @@ private struct ImportPanel: View {
     }
 
     private func importChosen() {
-        let items = result.candidates.filter { chosen.contains($0.id) }
+        let items = result.candidates.filter { chosen.contains($0.id) }.map { item -> Importer.Candidate in
+            var item = item
+            let name = (names[item.id] ?? "").trimmingCharacters(in: .whitespaces)
+            if !name.isEmpty { item.name = name }
+            return item
+        }
         guard !items.isEmpty else { return }
         let source = model.importSource
-        model.importItems(items)
-        if trashExport, let source {
+        let left = result.candidates.filter { !chosen.contains($0.id) }
+        let unchanged = left.filter(isDuplicate).count
+        let skipped = left.count - unchanged + result.skippedPasswords + result.skippedOther
+        let saved = model.importItems(items, unchanged: unchanged, skipped: skipped, from: source?.lastPathComponent)
+        // Only once the items are safely in the vault does the export go.
+        if saved, trashExport, let source, !model.isDemoMode {
             // The Trash, not a permanent delete: it can be put back.
             NSWorkspace.shared.recycle([source]) { _, error in
                 if error != nil {

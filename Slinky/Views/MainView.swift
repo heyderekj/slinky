@@ -45,16 +45,11 @@ struct MainView: View {
                     ToolbarItem(placement: .primaryAction) { AddItemButton() }
                 }
             }
-            // Drop a secret file (.p8, .pem, .p12, service-account JSON) onto the library to keep it in the vault.
-            // Projects take their own drops (.env files and folders).
+            // Files dropped on the content: an export opens Import, a folder or .env file the folder review, a key file
+            // (.p8, .pem, service-account JSON) is kept in the vault. Projects take their own drops.
             .onDrop(of: [.fileURL], isTargeted: nil) { providers in
                 guard canAdd, !isProject else { return false }
-                for provider in providers {
-                    _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                        guard let url, !url.hasDirectoryPath, !ProjectScan.isEnvFile(url.lastPathComponent) else { return }
-                        Task { @MainActor in AppModel.shared.addFile(url) }
-                    }
-                }
+                Task { model.open(await AppModel.urls(from: providers), on: .window) }
                 return true
             }
             // Drop a key or some .env lines anywhere on the content to add them.
@@ -88,8 +83,8 @@ struct MainView: View {
         .overlay {
             if model.showTuck {
                 AddItemOverlay().transition(.opacity)
-            } else if model.showNewProject {
-                NewProjectOverlay().transition(.opacity)
+            } else if let review = model.review {
+                FolderReviewOverlay(review: review).id(review.id).transition(.opacity)
             } else if let target = model.editing {
                 EditOverlay(target: target).transition(.opacity)
             } else if let result = model.importing {
@@ -97,7 +92,7 @@ struct MainView: View {
             }
         }
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showTuck)
-        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showNewProject)
+        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.review)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.editing)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.importing != nil)
         .sheet(isPresented: $model.showRestore) { RestoreBackupView() }
@@ -122,7 +117,7 @@ struct MainView: View {
 
     /// Nothing else is open on top, so adding makes sense right now.
     private var canAdd: Bool {
-        model.isUnlocked && !model.showTuck && !model.showNewProject && model.editing == nil && model.importing == nil
+        model.isUnlocked && !model.panelOpen
     }
 
     private func addHere(prefill: String = "") {
@@ -174,10 +169,17 @@ struct SidebarView: View {
                     projectRow(project)
                 }
             } header: {
-                Text("Projects")
+                ProjectsHeader()
             }
         }
         .listStyle(.sidebar)
+        // A folder or .env file dropped on the sidebar's empty space makes a new project too (rows and the
+        // Projects heading take their own drops first).
+        .onDrop(of: [.fileURL], isTargeted: nil) { providers in
+            guard model.isUnlocked, !model.panelOpen else { return false }
+            Task { model.open(await AppModel.urls(from: providers), on: .projects) }
+            return true
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) { footer }
     }
 
@@ -191,7 +193,7 @@ struct SidebarView: View {
         .badge(missing > 0 ? Text("\(missing) missing").foregroundStyle(Color.attention) : Text("\(project.variables.count)"))
         .tag(SidebarItem.project(project.id))
         .listRowBackground(dropTarget == project.id ? RoundedRectangle(cornerRadius: 6).fill(Color.accentColor.opacity(0.18)) : nil)
-        .help(missing > 0 ? "\(project.name) is missing \(counted(missing, "variable"))" : "Drop a .env file here to import it")
+        .help(missing > 0 ? "\(project.name) is missing \(counted(missing, "variable"))" : "Drop a .env file or the project folder here to update it")
         .onDrop(of: [.fileURL], isTargeted: Binding(get: { dropTarget == project.id },
                                                     set: { dropTarget = $0 ? project.id : (dropTarget == project.id ? nil : dropTarget) })) { providers in
             drop(providers, on: project.id)
@@ -203,27 +205,19 @@ struct SidebarView: View {
                 }
                 Divider()
             }
+            Button(project.folders.isEmpty ? "Link Folder…" : "Update from Folder…") { model.updateFromFolder(project.id) }
             Button("Edit Project…") { model.editing = .project(project.id) }
             Divider()
             Button("Delete Project", role: .destructive) { model.deleteProject(project.id) }
         }
     }
 
-    /// A .env file dropped on a project imports into Local; a folder links it.
+    /// A folder or .env file dropped on a project opens the review of what it would change there.
     private func drop(_ providers: [NSItemProvider], on projectID: UUID) -> Bool {
-        for provider in providers {
-            _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                guard let url else { return }
-                Task { @MainActor in
-                    var isDir: ObjCBool = false
-                    if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
-                        model.linkFolder(url, to: projectID)
-                    } else {
-                        model.importEnvFile(url, into: projectID, env: .local)
-                    }
-                    model.selection = .project(projectID)
-                }
-            }
+        Task {
+            let urls = await AppModel.urls(from: providers)
+            model.selection = .project(projectID)
+            model.open(urls, on: .project(projectID))
         }
         return true
     }
@@ -245,7 +239,7 @@ struct SidebarView: View {
     private var footerRow: some View {
         HStack {
             Button {
-                model.showNewProject = true
+                model.review = FolderReview(target: .newProject)
             } label: {
                 Label("New Project", systemImage: "plus.circle")
             }
@@ -324,6 +318,28 @@ struct UpdateBanner: View {
     }
 }
 
+/// The Projects heading, which also takes a dropped folder or .env file to make a new project, whatever's
+/// in the list already. It says so while something is held over it.
+struct ProjectsHeader: View {
+    @Environment(AppModel.self) private var model
+    @State private var targeted = false
+
+    var body: some View {
+        HStack {
+            Text(targeted ? "Drop to make a new project" : "Projects")
+                .foregroundStyle(targeted ? Color.accentColor : .secondary)
+            Spacer()
+        }
+        .contentShape(.rect)
+        .animation(.smooth(duration: 0.15), value: targeted)
+        .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
+            Task { model.open(await AppModel.urls(from: providers), on: .projects) }
+            return true
+        }
+        .help("Drop a project folder or .env file here to make a new project")
+    }
+}
+
 /// The sidebar's welcome for projects: what a project is, with a drop zone that makes one.
 struct ProjectsEmptyCard: View {
     @Environment(AppModel.self) private var model
@@ -361,12 +377,7 @@ struct ProjectsEmptyCard: View {
         .animation(.smooth(duration: 0.2), value: targeted)
         .padding(.vertical, 4)
         .onDrop(of: [.fileURL], isTargeted: $targeted) { providers in
-            for provider in providers {
-                _ = provider.loadObject(ofClass: URL.self) { url, _ in
-                    guard let url else { return }
-                    Task { @MainActor in model.startProject(dropped: url) }
-                }
-            }
+            Task { model.open(await AppModel.urls(from: providers), on: .projects) }
             return true
         }
     }

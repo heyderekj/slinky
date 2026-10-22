@@ -39,25 +39,14 @@ extension AppModel {
         return secrets.filter { names.contains($0.name) }.map(\.value)
     }
 
-    /// A .env in a linked project: its variables go into the project (for the environment its name suggests),
-    /// a .env.example with names only is written if there isn't one, and the .env goes to the Trash.
+    /// A .env in a linked project opens the folder review for that one file, with "then move it to the Trash" on:
+    /// nothing is overwritten without a look first, and the file moves only after the variables are saved.
     func moveIntoSlinky(_ finding: LeakFinding) {
         guard case let .envFile(path, projectID) = finding.place, let projectID else { return }
         let url = URL(fileURLWithPath: path)
-        guard let text = try? String(contentsOf: url, encoding: .utf8) else { show("Couldn't read \(url.lastPathComponent).", style: .info); return }
-        importEnvFile(url, into: projectID, env: ProjectScan.environment(for: url.lastPathComponent))
-        let example = url.deletingLastPathComponent().appendingPathComponent(".env.example")
-        if !FileManager.default.fileExists(atPath: example.path) {
-            let names = DotEnv.names(text)
-            try? (names.map { "\($0)=" }.joined(separator: "\n") + "\n").write(to: example, atomically: true, encoding: .utf8)
-        }
-        do {
-            try FileManager.default.trashItem(at: url, resultingItemURL: nil)
-            animated { leaks.removeAll { $0.id == finding.id } }
-            show("Moved \(url.lastPathComponent) into Slinky. It's in the Trash, and .env.example has the names.")
-        } catch {
-            show("Saved the variables, but couldn't move \(url.lastPathComponent) to the Trash.", style: .info)
-        }
+        guard FileManager.default.isReadableFile(atPath: url.path) else { show("Couldn't read \(url.lastPathComponent).", style: .info); return }
+        guard !panelOpen else { show("Finish or cancel what's open first.", style: .info); return }
+        review = FolderReview(target: .project(projectID), file: url, trashAfter: url)
     }
 
     func cleanHistory(_ finding: LeakFinding) {

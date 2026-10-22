@@ -176,6 +176,13 @@ struct AddItemPanel: View {
                 if let detection {
                     detectionLine(detection).padding(.top, 12)
                 }
+                if let replacing = replacingNote {
+                    Label(replacing, systemImage: "arrow.triangle.2.circlepath")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .padding(.top, 6)
+                        .transition(.opacity)
+                }
                 if let duplicate = duplicateNote {
                     Label(duplicate, systemImage: "exclamationmark.triangle")
                         .font(.callout)
@@ -755,14 +762,12 @@ struct AddItemPanel: View {
             set.service = service
             model.addCodeSet(set)
         case .project:
-            let projectID: UUID
-            switch project {
-            case let .existing(id): projectID = id
-            case .new: projectID = model.createProject(name: newProjectName.trimmingCharacters(in: .whitespaces))
-            }
             let lines = envLines.count > 1 ? envLines : [DotEnvLine(name: label, value: singleValue)]
-            model.addVariables(lines, to: projectID, env: env)
-            if lines.count == 1 { model.setDetails(note: savedNote, link: savedLink, variableNamed: lines[0].name, in: projectID) }
+            switch project {
+            case let .existing(id): model.addVariables(lines, to: .existing(id), env: env, note: savedNote, link: savedLink)
+            case .new: model.addVariables(lines, to: .new(newProjectName.trimmingCharacters(in: .whitespaces)), env: env,
+                                          note: savedNote, link: savedLink)
+            }
         }
         finished = true
         model.addDraft = nil
@@ -770,6 +775,15 @@ struct AddItemPanel: View {
     }
 
     // MARK: Derived values
+
+    /// "Replaces the Local value of 2 variables." Before anything is overwritten in a project, it's said.
+    private var replacingNote: String? {
+        guard captured, destination == .project, case let .existing(id) = project else { return nil }
+        let lines = envLines.count > 1 ? envLines : [DotEnvLine(name: name.trimmingCharacters(in: .whitespaces), value: singleValue)]
+        let n = model.replacing(lines, in: id, env: env)
+        guard n > 0 else { return nil }
+        return n == 1 && lines.count == 1 ? "Replaces the \(env.title) value of \(lines[0].name)." : "Replaces the \(env.title) value of \(counted(n, "variable"))."
+    }
 
     /// "Already saved in Keys & Tokens, as GITHUB_TOKEN." Saving again is allowed; this just says so.
     private var duplicateNote: String? {

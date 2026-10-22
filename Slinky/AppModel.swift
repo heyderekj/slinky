@@ -127,7 +127,8 @@ final class AppModel {
     @ObservationIgnored var quickItemsCache: [QuickItem]?
     var selection: SidebarItem? = .library(.all)
     var showTuck = false
-    var showNewProject = false
+    /// The folder review (New Project, Update from Folder), while it's open.
+    var review: FolderReview?
     /// The item open in the Edit panel, if any.
     var editing: EditTarget?
     /// Saved values found outside Slinky (Health). In memory only; cleared on lock.
@@ -148,7 +149,6 @@ final class AppModel {
     var importing: Importer.Result?
     var importSource: URL?
     /// A folder to start New Project with (from a drop on the sidebar).
-    var newProjectFolder: URL?
     var tuckPrefill = ""
     var tuckProject: UUID?
     /// Unsaved Add Item work, kept in memory so a stray Esc or click doesn't lose it. Cleared on lock.
@@ -446,7 +446,7 @@ final class AppModel {
         // A message from while it was open would otherwise sit on the lock screen and hold up Touch ID.
         errorMessage = nil
         showTuck = false
-        showNewProject = false
+        review = nil
         editing = nil
         importing = nil
         importSource = nil
@@ -569,58 +569,49 @@ final class AppModel {
         selection = .library(.codes)
     }
 
-    @discardableResult
-    func createProject(name: String, folder: URL? = nil) -> UUID {
-        var project = Project(name: name, folders: folder.map { [$0.path] } ?? [])
-        if let folder { project.expected = ProjectScan.expectedNames(inFolders: [folder]) }
-        change { $0.projects.append(project) }
-        selection = .project(project.id)
-        return project.id
-    }
+    enum ProjectChoice { case existing(UUID), new(String) }
 
-    /// A dropped folder or .env file opens New Project with that folder already read, so it can be checked first.
-    func startProject(dropped url: URL) {
-        var isDir: ObjCBool = false
-        let isFolder = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir) && isDir.boolValue
-        newProjectFolder = isFolder ? url : url.deletingLastPathComponent()
-        showTuck = false
-        showNewProject = true
-    }
-
-    /// Creates a project and imports its variables in one step, with one message.
-    @discardableResult
-    func createProject(name: String, folder: URL?, expected: [String], imports: [(lines: [DotEnvLine], env: AppEnvironment)]) -> UUID {
-        var project = Project(name: name, folders: folder.map { [$0.path] } ?? [])
-        project.expected = expected
-        for item in imports { Self.merge(item.lines, into: &project, env: item.env) }
-        let count = Set(project.variables.map(\.name)).count
-        change(count == 0 ? "Created \(name)." : "Created \(name) with \(count) \(count == 1 ? "variable" : "variables").") {
-            $0.projects.append(project)
+    /// Variables from Add Item, into an existing project or a new one, as one change Undo takes back. Values
+    /// already there are replaced (Add Item says so first); nothing else in the project changes.
+    func addVariables(_ lines: [DotEnvLine], to choice: ProjectChoice, env: AppEnvironment,
+                      note: String? = nil, link: String? = nil) {
+        let isNew: Bool
+        var project: Project
+        switch choice {
+        case let .existing(id):
+            guard let p = document.projects.first(where: { $0.id == id }) else { return }
+            project = p
+            isNew = false
+        case let .new(name):
+            project = Project(name: name)
+            isNew = true
         }
-        Sounds.play(count > 1 ? .imported : .saved)
-        selection = .project(project.id)
-        return project.id
-    }
-
-    private static func merge(_ lines: [DotEnvLine], into project: inout Project, env: AppEnvironment) {
-        for line in lines {
-            if let v = project.variables.firstIndex(where: { $0.name == line.name }) {
-                project.variables[v].setValue(line.value, in: env)
-            } else {
-                project.variables.append(Variable(
-                    name: line.name, values: [env: line.value], isPlain: line.isPlain,
-                    provider: Detector.detect(line.value)?.provider))
+        let changes = FolderChanges.compare(project, with: [FolderChanges.Source(id: "Add Item", environment: env, lines: lines, precedence: 0)])
+        let picks = FolderChanges.Picks(rows: Set(changes.changes.filter { [.new, .changed].contains($0.status()) }.map(\.id)))
+        let summary = changes.summary(for: picks)
+        changes.apply(picks, to: &project)
+        if lines.count == 1, let i = project.variables.firstIndex(where: { $0.name == lines[0].name }) {
+            if let note { project.variables[i].note = note }
+            if let link { project.variables[i].link = link }
+        }
+        let text = lines.count == 1 ? "Saved \(lines[0].name) to \(project.name)." : "Saved to \(project.name): \(summary.text)."
+        let saved = change(text, undo: .records(name: isNew ? "New Project" : "Add Variables", undone: "Took that back."),
+                           toastStyle: .success) { doc in
+            if isNew {
+                doc.projects.append(project)
+            } else if let i = doc.projects.firstIndex(where: { $0.id == project.id }) {
+                doc.projects[i] = project
             }
         }
+        guard saved else { return }
+        Sounds.play(lines.count > 1 ? .imported : .saved)
+        selection = .project(project.id)
     }
 
-    func addVariables(_ lines: [DotEnvLine], to projectID: UUID, env: AppEnvironment) {
-        guard let p = document.projects.firstIndex(where: { $0.id == projectID }) else { return }
-        change(lines.count == 1 ? "Saved \(lines[0].name) to \(document.projects[p].name)." : "Imported \(lines.count) variables to \(document.projects[p].name).") { doc in
-            Self.merge(lines, into: &doc.projects[p], env: env)
-        }
-        Sounds.play(lines.count > 1 ? .imported : .saved)
-        selection = .project(projectID)
+    /// How many of these names already have a different value in the project's environment (Add Item says so).
+    func replacing(_ lines: [DotEnvLine], in projectID: UUID, env: AppEnvironment) -> Int {
+        guard let project = document.projects.first(where: { $0.id == projectID }) else { return 0 }
+        return lines.filter { line in project.variables.first { $0.name == line.name }?.value(in: env).map { $0 != line.value } ?? false }.count
     }
 
     func importEnvFile(_ url: URL, into projectID: UUID, env: AppEnvironment) {
@@ -634,29 +625,18 @@ final class AppModel {
         }
         // .env.example, .sample, .template, .dist: names only, added to what the project expects.
         if ProjectScan.isExample(url.lastPathComponent) {
-            change("Read \(url.lastPathComponent). Missing variables are marked.") { doc in
+            change("Read \(url.lastPathComponent). Missing variables are marked.", undo: .records(name: "Read Example File")) { doc in
                 guard let p = doc.projects.firstIndex(where: { $0.id == projectID }) else { return }
                 var seen = Set(doc.projects[p].expected)
                 doc.projects[p].expected += DotEnv.names(text).filter { seen.insert($0).inserted }
             }
             return
         }
-        let lines = DotEnv.parse(text)
-        guard !lines.isEmpty else {
+        guard !DotEnv.parse(text).isEmpty else {
             show("No KEY=value lines in \(url.lastPathComponent).", style: .info)
             return
         }
-        addVariables(lines, to: projectID, env: env)
-    }
-
-    func linkFolder(_ url: URL, to projectID: UUID) {
-        change("Linked \(url.lastPathComponent).") { doc in
-            guard let p = doc.projects.firstIndex(where: { $0.id == projectID }) else { return }
-            if !doc.projects[p].folders.contains(url.path) { doc.projects[p].folders.append(url.path) }
-            // Every example file in every linked folder, not just this one's .env.example.
-            let names = ProjectScan.expectedNames(inFolders: doc.projects[p].folders.map { URL(fileURLWithPath: $0) })
-            if !names.isEmpty { doc.projects[p].expected = names }
-        }
+        review = FolderReview(target: .project(projectID), file: url, environmentHint: env)
     }
 
     func setPolicy(_ policy: AgentPolicy, variable: UUID, in projectID: UUID) {
@@ -678,29 +658,18 @@ final class AppModel {
     /// Opens Add Item. `prefill` is something handed in (a paste, a drop, Shortcuts); `project` aims it at a project.
     /// Every way in goes through here, so nothing from an earlier time can linger.
     /// Add Item, Edit, New Project or Import is open. Only one at a time: opening another over Edit lost its changes.
-    var panelOpen: Bool { showTuck || showNewProject || editing != nil || importing != nil }
+    var panelOpen: Bool { showTuck || review != nil || editing != nil || importing != nil }
 
     func openAddItem(prefill: String = "", project: UUID? = nil) {
         guard isUnlocked else { return }
         // From the menu bar, Quick Access, a shortcut or the clipboard: don't replace something half done.
-        guard !showNewProject, editing == nil, importing == nil else {
+        guard review == nil, editing == nil, importing == nil else {
             show("Finish or cancel what's open first.", style: .info)
             return
         }
         tuckPrefill = prefill
         tuckProject = project
         showTuck = true
-    }
-
-    /// A note and link for a variable that was just added from Add Item.
-    func setDetails(note: String?, link: String?, variableNamed name: String, in projectID: UUID) {
-        guard note != nil || link != nil else { return }
-        change { doc in
-            guard let p = doc.projects.firstIndex(where: { $0.id == projectID }),
-                  let v = doc.projects[p].variables.firstIndex(where: { $0.name == name }) else { return }
-            if let note { doc.projects[p].variables[v].note = note }
-            if let link { doc.projects[p].variables[v].link = link }
-        }
     }
 
     /// The details pane's note and link fields. Empty clears them; a link that isn't https is dropped.
@@ -988,9 +957,16 @@ final class AppModel {
     }
 
     /// Saves what the person picked on the import screen, in one change with one message.
-    func importItems(_ items: [Importer.Candidate]) {
-        guard !items.isEmpty else { return }
-        animated { change("Imported \(items.count) \(items.count == 1 ? "item" : "items").") { doc in
+    /// Saves what was picked in the import panel as one change that Undo takes back, with a summary and an
+    /// Activity entry (names only). Returns whether it saved.
+    @discardableResult
+    func importItems(_ items: [Importer.Candidate], unchanged: Int = 0, skipped: Int = 0, from file: String? = nil) -> Bool {
+        guard !items.isEmpty else { return false }
+        let summary = FolderChanges.Summary(new: items.count, unchanged: unchanged, skipped: skipped)
+        let entry = ActivityEntry(action: .imported, names: items.map(\.name), detail: file.map { "from \($0)" } ?? "")
+        var saved = false
+        animated { saved = change("Imported: \(summary.text).", undo: .records(name: "Import", undone: "Took back the import."),
+                                  activity: entry, toastStyle: .success) { doc in
             for item in items {
                 switch item.kind {
                 case let .key(provider, isLive, expires):
@@ -1003,8 +979,10 @@ final class AppModel {
                 }
             }
         } }
+        guard saved else { return false }
         Sounds.play(.imported)
         selection = .library(.all)
+        return true
     }
 
     func markPrinted(_ id: UUID) {
