@@ -73,7 +73,7 @@ private struct ImportPanel: View {
                 Spacer()
                 PanelCloseButton(action: close)
             }
-            .padding(.bottom, 16)
+            .padding(.bottom, 12)
 
             if result.candidates.isEmpty {
                 Text("Slinky didn't find any API keys, tokens, recovery codes or recovery keys in \(fileName).")
@@ -139,9 +139,10 @@ private struct ImportPanel: View {
                 .controlSize(.large)
                 .disabled(chosen.isEmpty)
             }
-            .padding(.top, 18)
+            .padding(.top, 14)
         }
-        .padding(24)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
         .frame(width: 680)
         .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)

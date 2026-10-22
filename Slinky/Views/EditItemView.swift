@@ -55,7 +55,7 @@ private struct EditPanel: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             header
-                .padding(.bottom, 18)
+                .padding(.bottom, 12)
 
             // In a short window the fields scroll and the name and Save stay put.
             ScrollView {
@@ -67,9 +67,10 @@ private struct EditPanel: View {
             .scrollBounceBehavior(.basedOnSize)
             .frame(maxHeight: fieldsHeight > 0 ? fieldsHeight : nil)
 
-            footer.padding(.top, 18)
+            footer.padding(.top, 14)
         }
-        .padding(24)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
         .frame(width: 620)
         .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)

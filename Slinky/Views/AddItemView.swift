@@ -168,7 +168,7 @@ struct AddItemPanel: View {
                 Spacer()
                 PanelCloseButton(action: requestClose)
             }
-            .padding(.bottom, 14)
+            .padding(.bottom, 12)
 
             if captured {
                 slab
@@ -193,9 +193,10 @@ struct AddItemPanel: View {
                 starters.padding(.top, 12)
             }
 
-            footer.padding(.top, 18)
+            footer.padding(.top, 14)
         }
-        .padding(24)
+        .padding(.horizontal, 24)
+        .padding(.vertical, 16)
         .frame(width: 720)
         .glass(in: .rect(cornerRadius: 28))
         .shadow(color: .black.opacity(0.25), radius: 30, y: 14)
@@ -852,7 +853,7 @@ struct AddItemPanel: View {
 
 // MARK: Small parts
 
-/// The reassurance in every panel footer: a quiet capsule with a small glacier lock. Click it for where things
+/// The reassurance in every panel footer: a quiet capsule with a small lock. Click it for where things
 /// are kept, in the same words as the website's FAQ (honest and plain, no promise beyond that).
 struct EncryptedNote: View {
     @State private var open = false
@@ -862,17 +863,14 @@ struct EncryptedNote: View {
         Button { open.toggle() } label: {
             HStack(spacing: 7) {
                 Image(systemName: "lock")
-                    .font(.caption2.weight(.bold))
-                    .foregroundStyle(Color.onAccent)
-                    .frame(width: 20, height: 20)
-                    .background(Color.accentColor, in: .circle)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.secondary)
                 Text("Encrypted on this Mac")
                     .font(.callout)
                     .foregroundStyle(hovering ? .primary : .secondary)
             }
-            .padding(.leading, 4)
-            .padding(.trailing, 12)
-            .padding(.vertical, 4)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
             .background(Color.primary.opacity(hovering ? 0.08 : 0.05), in: .capsule)
             .contentShape(.capsule)
         }
