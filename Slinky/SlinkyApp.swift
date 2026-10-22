@@ -52,16 +52,16 @@ struct SlinkyApp: App {
                     if case let .project(id)? = model.selection { model.openAddItem(project: id) } else { model.openAddItem() }
                 }
                     .keyboardShortcut("n")
-                    .disabled(!model.isUnlocked)
+                    .disabled(!model.isUnlocked || model.panelOpen)
                 Button("New Project…") { model.showNewProject = true }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
-                    .disabled(!model.isUnlocked)
+                    .disabled(!model.isUnlocked || model.panelOpen)
                 Divider()
                 Button("Import…") { model.beginImport() }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
-                    .disabled(!model.isUnlocked)
+                    .disabled(!model.isUnlocked || model.panelOpen)
                 Button("Add Secret File…") { addSecretFile() }
-                    .disabled(!model.isUnlocked)
+                    .disabled(!model.isUnlocked || model.panelOpen)
                 Divider()
                 Button("Export Backup…") { Task { await model.exportBackup() } }
                     .disabled(!model.canExportBackup)

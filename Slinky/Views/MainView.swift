@@ -40,7 +40,7 @@ struct MainView: View {
                 ToolbarItem(placement: .primaryAction) {
                     Button { addHere() } label: { Label("Add Item", systemImage: "plus") }
                         .help(isProject ? "Add a variable to this project (⌘N)" : "Add Item (⌘N)")
-                        .disabled(model.lockedChrome)
+                        .disabled(model.lockedChrome || model.panelOpen)
                 }
             }
             // Drop a secret file (.p8, .pem, .p12, service-account JSON) onto the library to keep it in the vault.
@@ -286,6 +286,7 @@ struct SidebarView: View {
             .buttonStyle(.borderless)
             .foregroundStyle(.secondary)
             .help("New Project (⇧⌘N)")
+            .disabled(model.panelOpen)
             Spacer()
         }
         .padding(.horizontal, 16)

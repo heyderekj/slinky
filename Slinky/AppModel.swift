@@ -597,8 +597,16 @@ final class AppModel {
 
     /// Opens Add Item. `prefill` is something handed in (a paste, a drop, Shortcuts); `project` aims it at a project.
     /// Every way in goes through here, so nothing from an earlier time can linger.
+    /// Add Item, Edit, New Project or Import is open. Only one at a time: opening another over Edit lost its changes.
+    var panelOpen: Bool { showTuck || showNewProject || editing != nil || importing != nil }
+
     func openAddItem(prefill: String = "", project: UUID? = nil) {
         guard isUnlocked else { return }
+        // From the menu bar, Quick Access, a shortcut or the clipboard: don't replace something half done.
+        guard !showNewProject, editing == nil, importing == nil else {
+            show("Finish or cancel what's open first.", style: .info)
+            return
+        }
         tuckPrefill = prefill
         tuckProject = project
         showTuck = true
