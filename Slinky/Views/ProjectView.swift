@@ -500,6 +500,9 @@ struct VariableInspector: View {
     let variable: Variable
     let env: AppEnvironment
     @State private var editing = false
+    @State private var renaming = false
+    @State private var newName = ""
+    @State private var renameProblem: String?
     /// Which environment's value the sheet sets (any of them, from the Environments list).
     @State private var editEnv: AppEnvironment = .local
     @State private var draft = ""
@@ -517,10 +520,11 @@ struct VariableInspector: View {
                         .font(.title3.monospaced().weight(.semibold))
                         .lineLimit(2)
                         .textSelection(.enabled)
-                    Text([variable.provider, env.title].compactMap { $0 }.joined(separator: " · "))
+                    Text([variable.isPlain ? "Public setting" : "Secret", variable.provider, env.title].compactMap { $0 }.joined(separator: " · "))
                         .font(.callout).foregroundStyle(.secondary).lineLimit(1)
                 }
                 Spacer(minLength: 0)
+                moreMenu
             }
             .padding(.horizontal, 20)
             .padding(.top, 16)
@@ -643,6 +647,14 @@ struct VariableInspector: View {
                     .labelsHidden()
                     .textFieldStyle(.roundedBorder)
                     .font(.system(.body, design: .monospaced))
+                // Often an environment uses the same value as Local: one click, no pasting.
+                if editEnv != .local, let local = variable.value(in: .local), local != variable.value(in: editEnv) {
+                    Button("Use the Local Value (\(Peek.of(local)))") {
+                        model.setValue(local, variable: variable.id, in: projectID, env: editEnv)
+                        editing = false
+                    }
+                    .buttonStyle(.link)
+                }
                 HStack {
                     if variable.value(in: editEnv) != nil {
                         Button("Remove from \(editEnv.title)", role: .destructive) {
@@ -667,6 +679,63 @@ struct VariableInspector: View {
             .padding(22)
             .frame(width: 440)
         }
+    }
+
+    /// Rename, Secret or Public, and copy or move to another project.
+    private var moreMenu: some View {
+        Menu {
+            Button("Rename…") { newName = variable.name; renameProblem = nil; renaming = true }
+            Button(variable.isPlain ? "Make It a Secret" : "Make It a Public Setting") {
+                model.setPlain(!variable.isPlain, variable: variable.id, in: projectID)
+            }
+            let others = model.document.projects.filter { $0.id != projectID }
+            if !others.isEmpty {
+                Divider()
+                Menu("Copy to Project") {
+                    ForEach(others) { p in Button(p.name) { model.copyVariable(variable.id, from: projectID, to: p.id, move: false) } }
+                }
+                Menu("Move to Project") {
+                    ForEach(others) { p in Button(p.name) { model.copyVariable(variable.id, from: projectID, to: p.id, move: true) } }
+                }
+            }
+        } label: {
+            Label("More", systemImage: "ellipsis")
+                .labelStyle(.iconOnly)
+        }
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .glassButton()
+        .buttonBorderShape(.circle)
+        .help("Rename, make it public or secret, or copy it to another project")
+        .popover(isPresented: $renaming, arrowEdge: .bottom) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Rename \(variable.name)").font(.headline)
+                TextField("Name", text: $newName, prompt: Text("RESEND_API_KEY"))
+                    .labelsHidden()
+                    .font(.body.monospaced())
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit(rename)
+                if let renameProblem {
+                    Text(renameProblem).font(.callout).foregroundStyle(Color.danger).fixedSize(horizontal: false, vertical: true)
+                }
+                Text("Your project's code reads it by this name, so change it there too.")
+                    .font(.callout).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    Spacer()
+                    Button("Cancel") { renaming = false }.keyboardShortcut(.cancelAction).glassButton()
+                    Button("Rename", action: rename).keyboardShortcut(.defaultAction).glassProminentButton()
+                        .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+                .dialogButtons()
+            }
+            .padding(16)
+            .frame(width: 340)
+        }
+    }
+
+    private func rename() {
+        renameProblem = model.renameVariable(variable.id, in: projectID, to: newName)
+        if renameProblem == nil { renaming = false }
     }
 
     private func edit(_ e: AppEnvironment) {

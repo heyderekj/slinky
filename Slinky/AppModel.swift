@@ -658,11 +658,11 @@ final class AppModel {
         }
     }
 
-    /// Opens Add Item. `prefill` is something handed in (a paste, a drop, Shortcuts); `project` aims it at a project.
-    /// Every way in goes through here, so nothing from an earlier time can linger.
     /// Add Item, Edit, New Project or Import is open. Only one at a time: opening another over Edit lost its changes.
     var panelOpen: Bool { showTuck || review != nil || editing != nil || importing != nil }
 
+    /// Opens Add Item. `prefill` is something handed in (a paste, a drop, Shortcuts); `project` aims it at a project.
+    /// Every way in goes through here, so nothing from an earlier time can linger.
     func openAddItem(prefill: String = "", project: UUID? = nil) {
         guard isUnlocked else { return }
         // From the menu bar, Quick Access, a shortcut or the clipboard: don't replace something half done.
@@ -686,6 +686,59 @@ final class AppModel {
         change { doc in
             doc.projects[p].variables[v].note = note.isEmpty ? nil : note
             doc.projects[p].variables[v].link = link
+        }
+    }
+
+    /// Renames a variable. Names follow .env rules, and two variables in a project can't share one.
+    /// Returns a plain reason when it can't.
+    @discardableResult
+    func renameVariable(_ variable: UUID, in projectID: UUID, to newName: String) -> String? {
+        let name = newName.trimmingCharacters(in: .whitespaces)
+        guard name.range(of: #"^[A-Za-z_][A-Za-z0-9_]*$"#, options: .regularExpression) != nil else {
+            return "Use letters, numbers and underscores, starting with a letter, like RESEND_API_KEY."
+        }
+        guard let p = document.projects.firstIndex(where: { $0.id == projectID }) else { return nil }
+        guard !document.projects[p].variables.contains(where: { $0.name == name && $0.id != variable }) else {
+            return "\(document.projects[p].name) already has \(name)."
+        }
+        change("Renamed to \(name).", undo: .records(name: "Rename")) { doc in
+            guard let v = doc.projects[p].variables.firstIndex(where: { $0.id == variable }) else { return }
+            doc.projects[p].variables[v].name = name
+            doc.projects[p].variables[v].updated = .now
+        }
+        return nil
+    }
+
+    /// Public settings ship to the browser anyway; secrets never do. Switches which one a variable is.
+    func setPlain(_ plain: Bool, variable: UUID, in projectID: UUID) {
+        change(plain ? "Moved to Public settings." : "Moved to Secrets.") { doc in
+            guard let p = doc.projects.firstIndex(where: { $0.id == projectID }),
+                  let v = doc.projects[p].variables.firstIndex(where: { $0.id == variable }) else { return }
+            doc.projects[p].variables[v].isPlain = plain
+        }
+    }
+
+    /// Copies (or moves) a variable to another project. If that project already has the name, only environments
+    /// it doesn't have a value for are filled in.
+    func copyVariable(_ variable: UUID, from projectID: UUID, to targetID: UUID, move: Bool) {
+        guard let source = document.projects.first(where: { $0.id == projectID }),
+              let v = source.variables.first(where: { $0.id == variable }),
+              let target = document.projects.first(where: { $0.id == targetID }) else { return }
+        change("\(move ? "Moved" : "Copied") \(v.name) to \(target.name).", undo: .records(name: move ? "Move" : "Copy to Project")) { doc in
+            guard let t = doc.projects.firstIndex(where: { $0.id == targetID }) else { return }
+            if let existing = doc.projects[t].variables.firstIndex(where: { $0.name == v.name }) {
+                for env in AppEnvironment.allCases where doc.projects[t].variables[existing].value(in: env) == nil {
+                    if let value = v.value(in: env) { doc.projects[t].variables[existing].setValue(value, in: env) }
+                }
+            } else {
+                var copy = v
+                copy.id = UUID()
+                copy.updated = .now
+                doc.projects[t].variables.append(copy)
+            }
+            if move, let s = doc.projects.firstIndex(where: { $0.id == projectID }) {
+                doc.projects[s].variables.removeAll { $0.id == variable }
+            }
         }
     }
 
