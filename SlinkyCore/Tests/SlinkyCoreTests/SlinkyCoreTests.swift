@@ -545,6 +545,67 @@ struct ImportTests {
         #expect(result.skippedPasswords == 1)
     }
 
+    @Test func lastPassNotesAndPersonalNotes() {
+        let text = """
+        url,username,password,totp,extra,name,grouping,fav
+        https://github.com,derek,EXAMPLE-password,,"GitHub token: ghp_EXAMPLEEXAMPLEEXAMPLEEXAMPLE1234",GitHub,,0
+        http://sn,,,,"NoteType:Credit Card
+        Number:4111111111111111",Visa,,0
+        """
+        let result = Importer.csv(text, source: "LastPass")
+        #expect(result.candidates.count == 1)
+        #expect(result.candidates.first?.value.hasPrefix("ghp_") == true)
+        #expect(result.candidates.first?.note == "From GitHub")
+        #expect(result.skippedOther == 1)
+    }
+
+    @Test func keePassColumns() {
+        let text = """
+        "Account","Login Name","Password","Web Site","Comments"
+        "Anthropic","derek","sk-ant-EXAMPLEEXAMPLE","https://console.anthropic.com",""
+        "Router","admin","EXAMPLE-hunter2","http://192.168.1.1",""
+        """
+        let result = Importer.csv(text, source: "KeePass")
+        #expect(result.candidates.map(\.name) == ["ANTHROPIC_API_KEY"])
+        #expect(result.skippedPasswords == 1)
+    }
+
+    @Test func bitwardenFieldsAndCards() {
+        let text = """
+        folder,favorite,type,name,notes,fields,reprompt,login_uri,login_username,login_password,login_totp
+        ,,login,Cloudflare,,"API token: sk_live_EXAMPLEEXAMPLE1234",0,https://dash.cloudflare.com,derek,EXAMPLE-pass,
+        ,,card,My card,,,0,,,,
+        """
+        let result = Importer.csv(text, source: "Bitwarden")
+        #expect(result.candidates.count == 1)
+        #expect(result.candidates.first?.value == "sk_live_EXAMPLEEXAMPLE1234")
+        #expect(result.skippedOther == 1)
+        #expect(result.skippedPasswords == 0)
+    }
+
+    @Test func onePasswordCSVSkipsArchived() {
+        let text = """
+        Title,Url,Username,Password,OTPAuth,Favorite,Archived,Tags,Notes
+        OpenAI,https://platform.openai.com,derek,sk-proj-EXAMPLEEXAMPLEEXAMPLE,,false,false,,
+        Old OpenAI,https://platform.openai.com,derek,sk-proj-EXAMPLEEXAMPLEOLD1,,false,true,,
+        """
+        let result = Importer.csv(text, source: "1Password")
+        #expect(result.candidates.count == 1)
+        #expect(result.skippedOther == 1)
+    }
+
+    @Test func passwordsInNotesStaySkipped() {
+        let found = Importer.keys(inNotes: "password: EXAMPLE-hunter2\nSTRIPE_KEY=sk_live_EXAMPLEEXAMPLE1234", title: "Notes", source: "x")
+        #expect(found.map(\.name) == ["STRIPE_KEY"])
+    }
+
+    @Test func plainTextCodesAndLines() {
+        let codes = Importer.csv("ab12c-3de45\nfg67h-8ij90\nkl12m-3no45\npq67r-8st90\n", source: "github-codes")
+        if case let .codes(c)? = codes.candidates.first?.kind { #expect(c.count == 4) } else { Issue.record("expected codes") }
+        let lines = Importer.csv("RESEND_API_KEY=re_EXAMPLEEXAMPLE\n", source: "keys")
+        #expect(lines.candidates.map(\.name) == ["RESEND_API_KEY"])
+    }
+
     @Test func plainNameValueSheet() {
         let result = Importer.csv("name,value\nMY_SERVICE_TOKEN,EXAMPLE123\n\"Quoted, name\",\"has \"\"quotes\"\"\"\n", source: "keys")
         #expect(result.candidates.map(\.name) == ["MY_SERVICE_TOKEN", "Quoted, name"])

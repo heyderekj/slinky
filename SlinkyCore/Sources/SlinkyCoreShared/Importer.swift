@@ -43,15 +43,15 @@ public enum Importer {
         }
     }
 
-    /// Reads a file by its extension: `.1pux` (1Password's export) or `.csv` (1Password, Apple Passwords,
-    /// Bitwarden, or a simple name,value sheet).
+    /// Reads a file by its extension: `.1pux` (1Password's export), `.csv` (1Password, Apple Passwords, Bitwarden,
+    /// LastPass, KeePass, or a simple name,value sheet), or plain text (codes, KEY=value lines, a key).
     public static func read(_ url: URL) throws -> Result {
         guard let data = try? Data(contentsOf: url) else { throw ImportError.unreadable }
         switch url.pathExtension.lowercased() {
         case "1pux":
             guard let json = try ZipReader.file(named: "export.data", in: data) else { throw ImportError.notAnExport }
             return try onePassword(json)
-        case "csv", "txt":
+        case "csv", "txt", "env", "":
             guard let text = String(data: data, encoding: .utf8) ?? String(data: data, encoding: .isoLatin1) else { throw ImportError.unreadable }
             return csv(text, source: url.deletingPathExtension().lastPathComponent)
         default:
@@ -105,11 +105,14 @@ public enum Importer {
                             }
                         }
                     }
-                    // Notes often hold backup codes or a recovery key.
+                    // Notes often hold backup codes or a recovery key, and sometimes an API key or .env lines.
                     if let fromNotes = candidate(fromNotes: notes, title: title, source: source) {
                         result.candidates.append(fromNotes)
                         found = true
                     }
+                    let known = Set(result.candidates.map(\.value))
+                    let inNotes = keys(inNotes: notes, title: title, source: source).filter { !known.contains($0.value) }
+                    if !inNotes.isEmpty { result.candidates += inNotes; found = true }
                     if !found {
                         if passwordCategories.contains(category) { result.skippedPasswords += 1 } else { result.skippedOther += 1 }
                     }
@@ -147,10 +150,13 @@ public enum Importer {
     // MARK: CSV
 
     /// Column names people use, lowercased. The first match wins.
-    private static let nameColumns = ["title", "name", "label", "key name", "item"]
+    private static let nameColumns = ["title", "name", "label", "key name", "item", "account"]
     private static let valueColumns = ["value", "secret", "token", "api key", "apikey", "key", "credential", "password", "login_password"]
-    private static let noteColumns = ["notes", "note", "comments"]
-    private static let urlColumns = ["url", "website", "login_uri", "urls"]
+    private static let noteColumns = ["notes", "note", "comments", "extra"]   // extra: LastPass
+    private static let urlColumns = ["url", "website", "login_uri", "urls", "web site"]   // web site: KeePass
+    /// LastPass secure notes that are cards, IDs or records: never keys.
+    private static let personalNoteTypes = ["credit card", "bank account", "passport", "social security", "driver's license",
+                                            "insurance", "health insurance", "membership", "address"]
 
     public static func csv(_ text: String, source: String) -> Result {
         let rows = CSV.parse(text)
@@ -161,13 +167,24 @@ public enum Importer {
             return nil
         }
         let nameAt = index(nameColumns), valueAt = index(valueColumns), noteAt = index(noteColumns), urlAt = index(urlColumns)
+        let typeAt = index(["type"]), fieldsAt = index(["fields"]), archivedAt = index(["archived"])
+        // Not a table at all: a text file of codes, KEY=value lines or a key.
+        guard nameAt != nil || valueAt != nil else { return plainText(text, source: source) }
         // A password-manager export has a URL or username column; a plain sheet of keys usually doesn't.
         let isPasswordExport = urlAt != nil || columns.contains("username") || columns.contains("login_username")
+            || columns.contains("login name")
 
         var result = Result()
         for row in rows.dropFirst() where !row.allSatisfy({ $0.isEmpty }) {
             func cell(_ i: Int?) -> String { i.flatMap { $0 < row.count ? row[$0] : nil }?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "" }
             let title = cell(nameAt).isEmpty ? (cell(urlAt).isEmpty ? "Untitled" : cell(urlAt)) : cell(nameAt)
+            // Bitwarden cards and identities, 1Password's archived rows, LastPass's personal notes: never keys.
+            if ["card", "identity"].contains(cell(typeAt).lowercased())
+                || ["true", "1", "yes"].contains(cell(archivedAt).lowercased())
+                || personalNoteTypes.contains(where: { cell(noteAt).lowercased().hasPrefix("notetype:\($0)") }) {
+                result.skippedOther += 1
+                continue
+            }
             let value = cell(valueAt)
             var found = false
             if !value.isEmpty, let detection = Detector.detect(value) {
@@ -194,12 +211,77 @@ public enum Importer {
                 result.candidates.append(fromNotes)
                 found = true
             }
+            // API keys in notes or in Bitwarden's custom fields ("Name: value" lines).
+            let known = Set(result.candidates.map(\.value))
+            let extra = (keys(inNotes: cell(noteAt), title: title, source: source)
+                         + keys(inNotes: cell(fieldsAt), title: title, source: source)).filter { !known.contains($0.value) }
+            if !extra.isEmpty { result.candidates += extra; found = true }
             if !found { if isPasswordExport { result.skippedPasswords += 1 } else { result.skippedOther += 1 } }
         }
         return result
     }
 
+    // MARK: Plain text
+
+    /// A text file with no table: a block of recovery codes, KEY=value lines, or a key on its own.
+    static func plainText(_ text: String, source: String) -> Result {
+        var result = Result()
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !Detector.isWalletSeed(trimmed) else { return result }
+        let codes = RecoveryCodes.extract(trimmed)
+        if codes.count >= 4 {
+            result.candidates.append(Candidate(name: source, kind: .codes(codes), value: codes.joined(separator: "\n"), source: source, note: nil))
+            return result
+        }
+        for line in DotEnv.parse(trimmed) where !line.value.isEmpty {
+            let detection = Detector.detect(line.value)
+            result.candidates.append(Candidate(name: line.name, kind: .key(provider: detection?.provider, isLive: detection?.isLive ?? false, expires: nil),
+                                               value: line.value, source: source, note: nil))
+        }
+        if result.candidates.isEmpty, let detection = Detector.detect(trimmed) {
+            switch detection.kind {
+            case .apiKey:
+                result.candidates.append(Candidate(name: detection.suggestedName ?? source,
+                                                   kind: .key(provider: detection.provider, isLive: detection.isLive, expires: nil),
+                                                   value: trimmed, source: source, note: nil))
+            case .recoveryKey:
+                result.candidates.append(Candidate(name: source, kind: .recoveryKey(.recoveryKey), value: trimmed, source: source, note: nil))
+            default:
+                result.skippedOther += 1
+            }
+        }
+        return result
+    }
+
     // MARK: Shared
+
+    /// API keys inside notes or custom fields: `NAME=value` lines, `Label: value` lines, or a token on its own.
+    /// Only values Slinky recognizes as a service's key are kept. Anything else could be a password.
+    public static func keys(inNotes notes: String, title: String, source: String) -> [Candidate] {
+        let text = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty, !Detector.isWalletSeed(text) else { return [] }
+        var out: [Candidate] = []
+        var seen = Set<String>()
+        func consider(_ value: String, label: String?) {
+            let v = value.trimmingCharacters(in: .whitespacesAndNewlines.union(CharacterSet(charactersIn: "\"'`")))
+            guard v.count >= 12, !seen.contains(v), let d = Detector.detect(v), d.kind == .apiKey, d.provider != nil else { return }
+            seen.insert(v)
+            let name = label.flatMap { $0.range(of: #"^[A-Za-z_][A-Za-z0-9_]*$"#, options: .regularExpression) != nil ? $0 : nil }
+                ?? d.suggestedName ?? title
+            out.append(Candidate(name: name, kind: .key(provider: d.provider, isLive: d.isLive, expires: nil),
+                                 value: v, source: source, note: "From \(title)"))
+        }
+        for line in text.split(whereSeparator: \.isNewline).map(String.init) {
+            if let env = DotEnv.parse(line).first {
+                consider(env.value, label: env.name)
+            } else if let colon = line.firstIndex(of: ":"), line[line.index(after: colon)...].hasPrefix(" ") {
+                consider(String(line[line.index(after: colon)...]), label: line[..<colon].trimmingCharacters(in: .whitespaces))
+            } else {
+                for word in line.split(whereSeparator: \.isWhitespace) { consider(String(word), label: nil) }
+            }
+        }
+        return out
+    }
 
     /// Backup codes or a recovery key tucked into an item's notes.
     static func candidate(fromNotes notes: String, title: String, source: String) -> Candidate? {
