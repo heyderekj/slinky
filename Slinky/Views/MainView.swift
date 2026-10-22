@@ -146,9 +146,18 @@ struct SidebarView: View {
                 Label {
                     Text("Health")
                 } icon: {
+                    // The same icon as its neighbours; a small dot says something needs you (white on the selected row).
                     Image(systemName: "heart.text.square")
-                        .foregroundStyle(model.selection == .attention ? AnyShapeStyle(.primary)
-                                         : model.healthCount > 0 ? AnyShapeStyle(Color.attention) : AnyShapeStyle(.secondary))
+                        .overlay(alignment: .topTrailing) {
+                            if model.healthCount > 0 {
+                                Circle()
+                                    .fill(model.selection == .attention ? Color.white : Color.attention)
+                                    .frame(width: 6, height: 6)
+                                    .offset(x: 3, y: -2)
+                                    .transition(.scale.combined(with: .opacity))
+                            }
+                        }
+                        .animation(.smooth(duration: 0.25), value: model.healthCount > 0)
                 }
                 .badge(model.healthCount)
                 .tag(SidebarItem.attention)
