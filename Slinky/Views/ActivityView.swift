@@ -24,6 +24,10 @@ struct ActivityView: View {
                             ForEach(entries) { row($0) }
                         } header: {
                             Text(Self.dayTitle(day))
+                                .font(.headline)
+                                .foregroundStyle(.secondary)
+                                .padding(.top, 10)
+                                .padding(.bottom, 2)
                         }
                     }
                 }
@@ -45,21 +49,34 @@ struct ActivityView: View {
         }
     }
 
+    /// One thing that happened: what kind (a tinted tile), a sentence with the names in code type, any detail
+    /// under it, and the time. Room to breathe, like the library's rows.
     private func row(_ e: ActivityEntry) -> some View {
-        HStack(spacing: 12) {
+        let warn = e.action == .guarded || e.action == .leakFound
+        let tint = warn ? Color.attention : Color.accentColor
+        return HStack(alignment: .top, spacing: 12) {
             Image(systemName: symbol(e.action))
-                .foregroundStyle(e.action == .guarded || e.action == .leakFound ? Color.attention : Color.accentColor)
-                .frame(width: 22)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(sentence(e)).lineLimit(2)
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(tint)
+                .frame(width: 30, height: 30)
+                .background(tint.opacity(0.12), in: .rect(cornerRadius: 8, style: .continuous))
+            VStack(alignment: .leading, spacing: 3) {
+                sentence(e)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 if !e.detail.isEmpty {
-                    Text(e.detail).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    Text(e.detail).font(.callout).foregroundStyle(.secondary).lineLimit(2).truncationMode(.middle)
                 }
             }
+            .padding(.top, 5)
+            .layoutPriority(1)
             Spacer(minLength: 8)
-            Text(e.date.formatted(date: .omitted, time: .shortened)).font(.caption).foregroundStyle(.secondary).monospacedDigit()
+            Text(e.date.formatted(date: .omitted, time: .shortened))
+                .font(.callout).foregroundStyle(.tertiary).monospacedDigit()
+                .padding(.top, 6)
+                .fixedSize()
         }
-        .padding(.vertical, 3)
+        .padding(.vertical, 8)
     }
 
     private func names(_ e: ActivityEntry) -> String {
@@ -71,20 +88,29 @@ struct ActivityView: View {
         }
     }
 
-    private func sentence(_ e: ActivityEntry) -> String {
+    /// The names in code type, with "and 3 more" left as words.
+    private func codeNames(_ e: ActivityEntry) -> Text {
+        let code = { (s: String) in Text(s).font(.system(.body, design: .monospaced)).fontWeight(.medium) }
+        guard e.names.count > 3 else { return code(names(e)) }
+        return code(e.names.prefix(2).joined(separator: ", ")) + Text(" and \(e.names.count - 2) more")
+    }
+
+    /// The sentence, with the names in code type so they stand out from the words around them.
+    private func sentence(_ e: ActivityEntry) -> Text {
         let who = e.actor == "You" ? "You" : e.actor
+        let n = codeNames(e)
         switch e.action {
-        case .copied: return "\(who) copied \(names(e))"
-        case .codeUsed: return "\(who) used a \(names(e))"
-        case .ran: return "\(who) ran a command with \(names(e))"
-        case .exported: return "\(who) loaded \(names(e)) into a shell"
-        case .xcconfig: return "\(who) used \(names(e)) for a build"
-        case .requested: return "\(who) asked for \(names(e))"
-        case .guarded: return "A commit with \(names(e)) was stopped"
-        case .leakFound: return "\(names(e)) found outside Slinky"
-        case .pushed: return "\(who) sent \(names(e)) to a host"
-        case .notarized: return "\(who) saved a notarytool profile from \(names(e))"
-        case .rotated: return "\(who) replaced \(names(e)) with a new one"
+        case .copied: return Text("\(who) copied ") + n
+        case .codeUsed: return Text("\(who) used a ") + Text(names(e)).fontWeight(.medium)   // "a GitHub recovery code": words, not a name
+        case .ran: return Text("\(who) ran a command with ") + n
+        case .exported: return Text("\(who) loaded ") + n + Text(" into a shell")
+        case .xcconfig: return Text("\(who) used ") + n + Text(" for a build")
+        case .requested: return Text("\(who) asked for ") + n
+        case .guarded: return Text("A commit with ") + n + Text(" was stopped")
+        case .leakFound: return n + Text(" found outside Slinky")
+        case .pushed: return Text("\(who) sent ") + n + Text(" to a host")
+        case .notarized: return Text("\(who) saved a notarytool profile from ") + n
+        case .rotated: return Text("\(who) replaced ") + n + Text(" with a new one")
         }
     }
 

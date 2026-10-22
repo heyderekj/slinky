@@ -355,102 +355,140 @@ struct AddItemPanel: View {
 
     // MARK: Chips
 
-    /// The details for this item, as chips that wrap onto a second line when they don't fit.
+    /// The details for this item, in two quiet groups. On the left, what it is and where it goes, read as a
+    /// sentence: "Project Variable in harbor-app for Local". On the right, what you can add (an expiry date, where it
+    /// lives, a link, a note) as light text buttons; each moves into the sentence once it has something in it.
     private var chips: some View {
-        FlowLayout(spacing: 8, lineSpacing: 8) {
-            Menu {
-                ForEach(Detection.Destination.allCases, id: \.self) { d in
-                    Button { destination = d; destinationTouched = true } label: { Label(d.title, systemImage: d.symbol) }
-                }
-            } label: {
-                ChipLabel(symbol: destination.symbol, text: destination.title, menu: true)
-            }
-            .menuStyle(.button)
-            .buttonStyle(ChipButtonStyle(selected: true))
-            .menuIndicator(.hidden)
-            .fixedSize()
-
-            switch destination {
-            case .key:
-                Button {
-                    if !hasExpiry { hasExpiry = true }
-                    showExpiry = true
-                } label: {
-                    ChipLabel(symbol: "calendar", text: hasExpiry ? "Expires \(expiry.formatted(date: .abbreviated, time: .omitted))" : "Add expiry date")
-                }
-                .buttonStyle(ChipButtonStyle(selected: hasExpiry))
-                .popover(isPresented: $showExpiry, arrowEdge: .bottom) {
-                    VStack(alignment: .trailing, spacing: 8) {
-                        DatePicker("Expires", selection: $expiry, in: Date.now..., displayedComponents: .date)
-                            .datePickerStyle(.graphical)
-                            .labelsHidden()
-                        Button("No Expiry Date") { hasExpiry = false; showExpiry = false }
-                            .buttonStyle(.link)
+        HStack(alignment: .top, spacing: 14) {
+            FlowLayout(spacing: 6, lineSpacing: 8) {
+                destinationMenu
+                switch destination {
+                case .key:
+                    if hasExpiry { expiryChip }
+                case .project:
+                    connector("in")
+                    projectMenu
+                    if project == .new {
+                        ChipField(symbol: "plus", prompt: "Project name", text: $newProjectName)
+                            .focused($focus, equals: .projectName)
                     }
-                    .padding(12)
-                }
-            case .project:
-                Menu {
-                    ForEach(model.document.projects) { p in
-                        Button(p.name) { project = .existing(p.id) }
+                    connector("for")
+                    envMenu
+                case .kept, .codes:
+                    if showFrom || !from.isEmpty {
+                        connector(destination == .kept ? "from" : "for")
+                        ChipField(symbol: destination == .kept ? "globe" : "person",
+                                  prompt: destination == .kept ? "Website or app" : "Username", text: $from)
+                            .focused($focus, equals: .from)
                     }
-                    if !model.document.projects.isEmpty { Divider() }
-                    Button("New Project…") { project = .new; focus = .projectName }
-                } label: {
-                    ChipLabel(symbol: "folder", text: projectTitle, menu: true, maxTextWidth: 220)
                 }
-                .menuStyle(.button)
-                .buttonStyle(ChipButtonStyle(selected: true))
-                .menuIndicator(.hidden)
-                .fixedSize()
-                if project == .new {
-                    ChipField(symbol: "plus", prompt: "Project name", text: $newProjectName)
-                        .focused($focus, equals: .projectName)
-                }
-                Menu {
-                    ForEach(AppEnvironment.allCases) { e in Button(e.title) { env = e } }
-                } label: {
-                    ChipLabel(symbol: "circle.lefthalf.filled", text: env.title, menu: true)
-                }
-                .menuStyle(.button)
-                .buttonStyle(ChipButtonStyle(selected: true))
-                .menuIndicator(.hidden)
-                .fixedSize()
-            case .kept, .codes:
-                let prompt = destination == .kept ? "Website or app" : "Username"
-                if showFrom || !from.isEmpty {
-                    ChipField(symbol: destination == .kept ? "globe" : "person", prompt: prompt, text: $from)
-                        .focused($focus, equals: .from)
-                } else {
-                    Button {
-                        showFrom = true
-                        focus = .from
-                    } label: {
-                        ChipLabel(symbol: "plus", text: "Add \(prompt.lowercased())")
-                    }
-                    .buttonStyle(ChipButtonStyle(selected: false))
-                }
-            }
-            // Extras for any one item: where it lives, a note, and a link to where it came from.
-            if !isMultiLine || destination == .codes {
-                // Project variables don't get one: where a variable lives is its project.
-                if destination != .project {
-                    ServiceChip(selection: $service, subject: iconSubject, automatic: IconResolver.shared.matched(iconSubject))
-                }
-                if showLink || !link.isEmpty {
+                if showsExtras, showLink || !link.isEmpty {
                     ChipField(symbol: "link", prompt: "Link, like dash.cloudflare.com", text: $link)
                         .focused($focus, equals: .link)
-                } else {
-                    Button { showLink = true; focus = .link } label: { ChipLabel(symbol: "link", text: "Add link") }
-                        .buttonStyle(ChipButtonStyle(selected: false))
-                }
-                if !(showNote || !note.isEmpty) {
-                    Button { showNote = true; focus = .note } label: { ChipLabel(symbol: "text.alignleft", text: "Add note") }
-                        .buttonStyle(ChipButtonStyle(selected: false))
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
+            HStack(spacing: 2) {
+                if destination == .key, !hasExpiry {
+                    option("Expiry", symbol: "calendar") { hasExpiry = true; showExpiry = true }
+                }
+                if destination == .kept || destination == .codes, !(showFrom || !from.isEmpty) {
+                    option(destination == .kept ? "Website" : "Username", symbol: destination == .kept ? "globe" : "person") {
+                        showFrom = true
+                        focus = .from
+                    }
+                }
+                if showsExtras {
+                    // Project variables don't get one: where a variable lives is its project.
+                    if destination != .project {
+                        ServiceChip(selection: $service, subject: iconSubject, automatic: IconResolver.shared.matched(iconSubject))
+                    }
+                    if !(showLink || !link.isEmpty) {
+                        option("Link", symbol: "link") { showLink = true; focus = .link }
+                    }
+                    if !(showNote || !note.isEmpty) {
+                        option("Note", symbol: "text.alignleft") { showNote = true; focus = .note }
+                    }
+                }
+            }
+            .fixedSize()
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    /// Link, note and where it lives are for one item (or a set of codes), not a block of .env lines.
+    private var showsExtras: Bool { !isMultiLine || destination == .codes }
+
+    private var destinationMenu: some View {
+        Menu {
+            ForEach(Detection.Destination.allCases, id: \.self) { d in
+                Button { destination = d; destinationTouched = true } label: { Label(d.title, systemImage: d.symbol) }
+            }
+        } label: {
+            ChipLabel(symbol: destination.symbol, text: destination.title, menu: true)
+        }
+        .menuStyle(.button)
+        .buttonStyle(ChipButtonStyle(selected: true))
+        .menuIndicator(.hidden)
+        .fixedSize()
+    }
+
+    private var projectMenu: some View {
+        Menu {
+            ForEach(model.document.projects) { p in
+                Button(p.name) { project = .existing(p.id) }
+            }
+            if !model.document.projects.isEmpty { Divider() }
+            Button("New Project…") { project = .new; focus = .projectName }
+        } label: {
+            ChipLabel(symbol: nil, text: projectTitle, menu: true, maxTextWidth: 220)
+        }
+        .menuStyle(.button)
+        .buttonStyle(ChipButtonStyle(selected: true))
+        .menuIndicator(.hidden)
+        .fixedSize()
+    }
+
+    private var envMenu: some View {
+        Menu {
+            ForEach(AppEnvironment.allCases) { e in Button(e.title) { env = e } }
+        } label: {
+            ChipLabel(symbol: nil, text: env.title, menu: true)
+        }
+        .menuStyle(.button)
+        .buttonStyle(ChipButtonStyle(selected: true))
+        .menuIndicator(.hidden)
+        .fixedSize()
+    }
+
+    private var expiryChip: some View {
+        Button { showExpiry = true } label: {
+            ChipLabel(symbol: "calendar", text: "Expires \(expiry.formatted(date: .abbreviated, time: .omitted))", menu: true)
+        }
+        .buttonStyle(ChipButtonStyle(selected: true))
+        .fixedSize()
+        .popover(isPresented: $showExpiry, arrowEdge: .bottom) {
+            VStack(alignment: .trailing, spacing: 8) {
+                DatePicker("Expires", selection: $expiry, in: Date.now..., displayedComponents: .date)
+                    .datePickerStyle(.graphical)
+                    .labelsHidden()
+                Button("No Expiry Date") { hasExpiry = false; showExpiry = false }
+                    .buttonStyle(.link)
+            }
+            .padding(12)
+        }
+    }
+
+    /// A small word between choices, so they read as a sentence.
+    private func connector(_ text: String) -> some View {
+        Text(text).font(.callout).foregroundStyle(.tertiary).padding(.vertical, 5)
+    }
+
+    /// Something you can add: a light text button, no outline.
+    private func option(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { ChipLabel(symbol: symbol, text: title) }
+            .buttonStyle(ChipButtonStyle(selected: false))
+            .fixedSize()
     }
 
     private var noteField: some View {
@@ -803,14 +841,14 @@ struct Keycap: View {
 }
 
 struct ChipLabel: View {
-    let symbol: String
+    let symbol: String?
     let text: String
     var menu = false
     /// A long name (a project, a service) is cut in the middle rather than stretching the row.
     var maxTextWidth: CGFloat? = nil
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: symbol).font(.system(size: 11, weight: .semibold))
+            if let symbol { Image(systemName: symbol).font(.system(size: 11, weight: .semibold)) }
             Text(text)
                 .lineLimit(1)
                 .truncationMode(.middle)
@@ -842,7 +880,8 @@ struct TileButtonStyle: ButtonStyle {
     }
 }
 
-/// A capsule chip: tinted when it holds a choice, quiet when it's an option you can add.
+/// A capsule chip. A choice is a soft gray pill; something you can add is just its words until you point at it.
+/// No outlines and no color, so the item itself stays the brightest thing in the panel.
 struct ChipButtonStyle: ButtonStyle {
     var selected: Bool
     @State private var hovering = false
@@ -850,19 +889,18 @@ struct ChipButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .font(.callout)
-            .foregroundStyle(selected ? Color.primary : Color.secondary)
-            .padding(.horizontal, 11)
-            .padding(.vertical, 6)
+            .foregroundStyle(selected ? Color.primary : (hovering ? Color.primary : Color.secondary))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
             .background(fill(configuration.isPressed), in: Capsule())
-            .overlay(Capsule().strokeBorder(selected ? Color.accentColor.opacity(0.35) : Color.secondary.opacity(0.22),
-                                            style: StrokeStyle(lineWidth: 1, dash: selected ? [] : [3, 2.5])))
             .contentShape(Capsule())
             .onHover { hovering = $0 }
+            .animation(.easeOut(duration: 0.12), value: hovering)
     }
 
     private func fill(_ pressed: Bool) -> Color {
-        if selected { return Color.accentColor.opacity(pressed ? 0.26 : hovering ? 0.2 : 0.14) }
-        return Color.secondary.opacity(pressed ? 0.16 : hovering ? 0.1 : 0)
+        if selected { return Color.secondary.opacity(pressed ? 0.22 : hovering ? 0.16 : 0.11) }
+        return Color.secondary.opacity(pressed ? 0.14 : hovering ? 0.09 : 0)
     }
 }
 
@@ -880,10 +918,9 @@ struct ChipField: View {
                 .limit($text, to: FieldLimit.link)
         }
         .font(.callout)
-        .padding(.horizontal, 11)
-        .padding(.vertical, 6)
-        .background(Color.accentColor.opacity(0.1), in: Capsule())
-        .overlay(Capsule().strokeBorder(Color.accentColor.opacity(0.35), lineWidth: 1))
+        .padding(.horizontal, 10)
+        .padding(.vertical, 5)
+        .background(Color.secondary.opacity(0.11), in: Capsule())
     }
 }
 
