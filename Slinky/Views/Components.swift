@@ -122,7 +122,8 @@ struct RevealField: View {
         .background(.background.secondary, in: .rect(cornerRadius: 9))
         .overlay(RoundedRectangle(cornerRadius: 9).strokeBorder(.separator.opacity(0.6), lineWidth: 0.5))
         .onHover { revealed = $0 }
-        .accessibilityLabel("Hidden value, ends in \(String(value.suffix(4)))")
+        // The same peek sighted people get: never the end of a value too short to hide it.
+        .accessibilityLabel(Peek.of(value).hasPrefix("••••••••") ? "Hidden value" : "Hidden value, ends in \(String(value.suffix(4)))")
     }
 }
 
