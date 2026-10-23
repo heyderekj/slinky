@@ -1,0 +1,98 @@
+/* ============================================================
+   The compare and guide pages. Same tokens, cards and table as the homepage (site.css);
+   this file only adds what those pages need: a page heading, the two "choose" cards,
+   link cards for the hubs, and readable prose for the guides.
+   ============================================================ */
+.sub { padding-top: 96px; }
+@media (max-width: 640px) { .sub { padding-top: 84px; } }
+
+/* The nav on these pages points at the page you're on. */
+.nav a.nav__link[aria-current='page'] { color: var(--ink); background: color-mix(in oklch, var(--ink) 7%, transparent); }
+
+.crumbs ol { display: flex; flex-wrap: wrap; gap: 4px 0; margin: 0; padding: 0; list-style: none; font-size: 14px; color: var(--muted); }
+.crumbs li + li::before { content: '›'; margin: 0 8px; color: color-mix(in oklch, var(--muted) 70%, transparent); }
+.crumbs a { color: var(--ink-soft); text-decoration: none; }
+.crumbs a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+.page-head { margin-top: 28px; max-width: 46rem; }
+.page-head h1 { font-size: clamp(36px, 5.2vw, 56px); line-height: 1.04; letter-spacing: -0.038em; font-weight: 700; }
+.page-head .lede { margin-top: 16px; font-size: clamp(18px, 1.9vw, 20px); line-height: 1.5; color: var(--ink-soft); letter-spacing: -0.012em; }
+.page-head .lede a { color: inherit; text-underline-offset: 3px; }
+.page-head code { font-family: var(--mono); font-size: 0.84em; padding: 2px 6px; border-radius: 6px; background: color-mix(in oklch, var(--ink) 6%, transparent); }
+.page-head .asof { margin-top: 12px; font-size: 14px; color: var(--muted); }
+
+.block { margin-top: 64px; }
+.block > h2 { font-size: clamp(24px, 2.8vw, 30px); line-height: 1.15; letter-spacing: -0.028em; font-weight: 700; }
+.block > h2 + p { margin-top: 8px; color: var(--ink-soft); max-width: 40rem; }
+
+/* "Choose X if…" beside "Choose Slinky if…". Slinky's card carries the brand tint, like its table column. */
+.choose { margin-top: 36px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.choose__card { padding: 24px 26px; }
+.choose__card h2 { font-size: 19px; line-height: 1.25; letter-spacing: -0.018em; font-weight: 700; }
+.choose__card ul { margin: 12px 0 0; padding-left: 18px; display: grid; gap: 7px; color: var(--ink-soft); font-size: 15.5px; }
+.choose__card.is-us { background: color-mix(in oklch, var(--brand) 9%, var(--card)); }
+@media (max-width: 760px) { .choose { grid-template-columns: 1fr; } }
+
+/* A two-product table fits a phone, so it doesn't need the homepage table's minimum width. */
+.compare.compare--two table { min-width: 0; table-layout: fixed; }
+.compare.compare--two thead th:first-child { width: 40%; }
+.compare.compare--two td { padding-inline: 10px; }
+@media (max-width: 520px) {
+  .compare.compare--two table { font-size: 14px; }
+  .compare.compare--two th, .compare.compare--two td { padding: 11px 8px; }
+}
+.compare__more { color: var(--ink-soft); text-underline-offset: 3px; }
+
+/* Link cards for the hubs and "More comparisons". */
+.cards { margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); gap: 12px; }
+.lcard { display: block; padding: 20px 22px; text-decoration: none; transition: box-shadow var(--t-ui) var(--ease), translate var(--t-ui) var(--ease); }
+.lcard:hover { box-shadow: 0 0 0 1px var(--hair), var(--shadow-lift); translate: 0 -2px; }
+.lcard h3 { font-size: 17px; letter-spacing: -0.015em; }
+.lcard p { margin-top: 6px; font-size: 14.5px; line-height: 1.5; color: var(--muted); }
+.lcard[aria-current='page'] { box-shadow: 0 0 0 1.5px var(--brand), var(--shadow); }
+.group-title { margin-top: 40px; font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--brand-ink); }
+
+/* The FAQ on these pages: open, not folded, so every answer is on the page. */
+.qa { margin-top: 24px; display: grid; gap: 12px; max-width: 46rem; }
+.qa > div { padding: 20px 22px; }
+.qa h3 { font-size: 17px; letter-spacing: -0.012em; }
+.qa p { margin-top: 8px; color: var(--ink-soft); font-size: 15.5px; }
+
+/* Guides: one readable column. */
+.prose { margin-top: 40px; max-width: 44rem; font-size: 17.5px; line-height: 1.65; color: var(--ink-soft); }
+.prose > * + * { margin-top: 16px; }
+.prose h2 { margin-top: 48px; font-size: clamp(23px, 2.6vw, 28px); line-height: 1.2; letter-spacing: -0.026em; color: var(--ink); }
+.prose h3 { margin-top: 32px; font-size: 19px; letter-spacing: -0.015em; color: var(--ink); }
+.prose h2 + *, .prose h3 + * { margin-top: 10px; }
+.prose ul, .prose ol { padding-left: 22px; }
+.prose li + li { margin-top: 6px; }
+.prose a { color: var(--brand-ink); text-underline-offset: 3px; }
+.prose strong { color: var(--ink); font-weight: 600; }
+.prose code { font-family: var(--mono); font-size: 0.86em; padding: 2px 6px; border-radius: 6px; background: color-mix(in oklch, var(--ink) 6%, transparent); overflow-wrap: anywhere; }
+.prose pre { padding: 16px 18px; border-radius: 14px; background: rgb(14 16 20 / 0.88); color: #e6edf3; overflow-x: auto; font-size: 14px; line-height: 1.6; }
+.prose pre code { padding: 0; background: none; font-size: inherit; overflow-wrap: normal; }
+.prose blockquote { margin-inline: 0; padding: 14px 18px; border-radius: 14px; background: color-mix(in oklch, var(--brand) 8%, transparent); color: var(--ink-soft); }
+.prose blockquote p { margin: 0; }
+
+/* The download strip's "How to install" link. */
+.get__act small button { text-decoration: underline; text-underline-offset: 3px; color: var(--ink-soft); font-size: inherit; }
+
+/* The hub's tabs: a segmented control, like the install dialog's. */
+.seg { display: flex; flex-wrap: wrap; gap: 4px; width: fit-content; max-width: 100%; margin-top: 20px; padding: 4px; border-radius: 999px; background: color-mix(in oklch, var(--ink) 6%, transparent); }
+.seg button { height: 36px; padding: 0 16px; border-radius: 999px; font-size: 15px; font-weight: 500; color: var(--ink-soft); white-space: nowrap; transition: background var(--t-ui) var(--ease), color var(--t-ui) var(--ease); }
+.seg button span { margin-left: 4px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.seg button:hover { color: var(--ink); }
+.seg button[aria-selected='true'] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12), 0 0 0 0.5px rgb(0 0 0 / 0.04); }
+@media (max-width: 640px) { .seg { border-radius: 20px; } .seg button { padding: 0 12px; font-size: 14px; } }
+.cards [hidden] { display: none; }
+
+/* Cards with the tool's icon beside the words. */
+.lcard--icon { display: flex; gap: 16px; align-items: flex-start; }
+.lcard--icon > div { min-width: 0; }
+.lcard__kind { display: block; margin-top: 10px; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.tool-glyph { background: linear-gradient(#9aa6b2, #5c6875); --mono-shadow: #5c687566; }
+
+/* A compare page's heading: Slinky's icon and the other tool's, side by side. */
+.vs { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.vs img { width: 56px; height: 56px; border-radius: 23%; filter: drop-shadow(0 6px 12px var(--glow)); }
+.vs__and { font-size: 15px; font-weight: 600; color: var(--muted); }

@@ -1,0 +1,33 @@
+---
+// A guide, written in Markdown (src/pages/guides/*.md). Frontmatter: title (the H1), seo (the <title>),
+// description, lede, and faq ([question, answer] pairs, shown at the end and in the structured data).
+import Sub from './Sub.astro';
+import { guides } from '../data/guides';
+interface Props { frontmatter: { title: string; seo?: string; description: string; lede: string; faq?: [string, string][] }; url: string }
+const { frontmatter: fm, url } = Astro.props;
+const slug = Astro.url.pathname.split('/').filter(Boolean).pop() ?? '';
+const faq = fm.faq ?? [];
+const ld = [
+  { '@type': 'Article', headline: fm.title, description: fm.description, url: new URL(Astro.url.pathname, Astro.site).toString(), dateModified: '2026-10-23', author: { '@type': 'Organization', name: 'Testament Made, LLC', url: 'https://testamentmade.com' } },
+  ...(faq.length ? [{ '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }] : []),
+];
+const more = guides.filter((g) => g.slug !== slug);
+---
+<Sub title={fm.seo ?? `${fm.title} · Slinky`} description={fm.description} section="guides" track={`guide-${slug}`} crumbs={[{ name: 'Guides', href: '/guides/' }, { name: fm.title, href: `/guides/${slug}/` }]} ld={ld}>
+  <header class="page-head">
+    <h1>{fm.title}</h1>
+    <p class="lede">{fm.lede}</p>
+    <p class="asof">Updated October 2026.</p>
+  </header>
+  <article class="prose"><slot /></article>
+  {faq.length > 0 && (
+    <section class="block" aria-labelledby="qa-heading">
+      <h2 id="qa-heading">Questions</h2>
+      <div class="qa">{faq.map(([q, a]) => <div class="card-plain"><h3>{q}</h3><p>{a}</p></div>)}</div>
+    </section>
+  )}
+  <section class="block" aria-labelledby="more-heading">
+    <h2 id="more-heading">More guides</h2>
+    <div class="cards">{more.map((g) => <a class="lcard card-plain" href={`/guides/${g.slug}/`}><h3>{g.title}</h3><p>{g.blurb}</p></a>)}</div>
+  </section>
+</Sub>

@@ -2,15 +2,15 @@
 import '../styles/tokens.css';
 import '../styles/site.css';
 import release from '../release.json';
-interface Props { title: string; description: string }
-const { title, description } = Astro.props;
+// `ld`: more structured data for this page (a BreadcrumbList, an FAQPage), joined with the app's in one @graph.
+interface Props { title: string; description: string; ld?: object[] }
+const { title, description, ld: extra = [] } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
 const og = new URL('/og.png', Astro.site).toString();
-const ld = {
-  '@context': 'https://schema.org',
+const app = {
   '@type': 'SoftwareApplication',
   name: 'Slinky',
-  description,
+  description: 'A free, native Mac app for API keys, .env variables and recovery codes. Encrypted on your Mac and opened with Touch ID.',
   applicationCategory: 'DeveloperApplication',
   operatingSystem: release.minOS,
   softwareVersion: release.version,
@@ -20,6 +20,7 @@ const ld = {
   author: { '@type': 'Organization', name: 'Testament Made, LLC', url: 'https://testamentmade.com' },
   url: 'https://slinkyfiles.com',
 };
+const ld = extra.length ? { '@context': 'https://schema.org', '@graph': [app, ...extra] } : { '@context': 'https://schema.org', ...app };
 ---
 <!doctype html>
 <html lang="en">

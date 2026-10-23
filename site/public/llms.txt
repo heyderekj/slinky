@@ -28,6 +28,28 @@ Nothing about the person or their vault. Once a day Slinky asks GitHub for the l
 
 A Raycast extension, and sync through your own Postgres or S3-compatible storage (still encrypted before it leaves the Mac).
 
+## Compare
+
+- [All comparisons](https://slinkyfiles.com/compare/): the full table, as of October 2026.
+- [Slinky vs 1Password](https://slinkyfiles.com/compare/1password/)
+- [Slinky vs Apple Passwords](https://slinkyfiles.com/compare/apple-passwords/)
+- [Slinky vs Bitwarden](https://slinkyfiles.com/compare/bitwarden/)
+- [Slinky vs Doppler](https://slinkyfiles.com/compare/doppler/)
+- [Slinky vs Infisical](https://slinkyfiles.com/compare/infisical/)
+- [Slinky vs HashiCorp Vault](https://slinkyfiles.com/compare/hashicorp-vault/)
+- [Slinky vs .env files](https://slinkyfiles.com/compare/env-files/)
+- [Slinky vs dotenvx](https://slinkyfiles.com/compare/dotenvx/)
+- [Slinky vs direnv](https://slinkyfiles.com/compare/direnv/)
+- [Slinky vs Keychain Access](https://slinkyfiles.com/compare/keychain-access/)
+
+## Guides
+
+- [Where to keep API keys on a Mac](https://slinkyfiles.com/guides/store-api-keys-on-mac/)
+- [Keep .env files out of git](https://slinkyfiles.com/guides/keep-env-files-out-of-git/)
+- [Where to save two-factor backup codes](https://slinkyfiles.com/guides/save-2fa-backup-codes/)
+- [Let AI coding tools use your API keys without seeing them](https://slinkyfiles.com/guides/ai-agents-and-api-keys/)
+- [Keep your App Store Connect API key safe](https://slinkyfiles.com/guides/app-store-connect-api-key/)
+
 ## Download
 
 - Latest DMG: https://github.com/heyderekj/slinky/releases/latest

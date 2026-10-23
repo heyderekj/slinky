@@ -1,0 +1,12 @@
+---
+import Sub from '../../layouts/Sub.astro';
+import { guides } from '../../data/guides';
+const ld = [{ '@type': 'ItemList', itemListElement: guides.map((g, i) => ({ '@type': 'ListItem', position: i + 1, name: g.title, url: new URL(`/guides/${g.slug}/`, Astro.site).toString() })) }];
+---
+<Sub title="Guides to keeping developer secrets safe · Slinky" description="Plain guides to keeping developer secrets safe on a Mac: where to store API keys, keeping .env files out of git, saving 2FA backup codes, AI coding tools and App Store Connect keys." section="guides" track="guides" crumbs={[{ name: 'Guides', href: '/guides/' }]} ld={ld}>
+  <header class="page-head">
+    <h1>Guides</h1>
+    <p class="lede">Where to keep the things you’re told to keep safe: API keys, a project’s .env, backup codes and recovery keys. Each guide starts with the general answer, then shows how Slinky does it.</p>
+  </header>
+  <div class="cards">{guides.map((g) => <a class="lcard card-plain" href={`/guides/${g.slug}/`}><h3>{g.title}</h3><p>{g.blurb}</p></a>)}</div>
+</Sub>

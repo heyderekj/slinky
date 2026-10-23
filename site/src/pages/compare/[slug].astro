@@ -1,0 +1,51 @@
+---
+// One page per tool Slinky is compared with. Everything comes from src/data/competitors.ts.
+import Sub from '../../layouts/Sub.astro';
+import CompareCell from '../../components/CompareCell.astro';
+import Icon from '../../components/Icon.astro';
+import ToolIcon from '../../components/ToolIcon.astro';
+import { competitors, groups, type Competitor } from '../../data/competitors';
+export const getStaticPaths = () => competitors.map((c) => ({ params: { slug: c.slug }, props: { c } }));
+interface Props { c: Competitor }
+const { c } = Astro.props;
+const faq = [...c.faq, ['Is Slinky free?', 'Yes. Slinky is free and open source under the MIT License, made by Testament Made, LLC. It runs on Apple silicon Macs with macOS 15 Sequoia or later.']] as [string, string][];
+const ld = [{ '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }];
+const related = [...competitors.filter((o) => o.group === c.group && o.slug !== c.slug), ...competitors.filter((o) => o.group !== c.group)].slice(0, 6);
+---
+<Sub title={c.seo} description={c.description} section="compare" track={`compare-${c.slug}`} crumbs={[{ name: 'Compare', href: '/compare/' }, { name: `Slinky vs ${c.name}`, href: `/compare/${c.slug}/` }]} ld={ld} get={c.get}>
+  <header class="page-head">
+    <div class="vs" aria-hidden="true"><img src="/icons/slinky-320.webp" alt="" width="56" height="56" /><span class="vs__and">vs</span><ToolIcon name={c.name} glyph={c.glyph} size={56} /></div>
+    <p class="eyebrow">{groups[c.group]}</p>
+    <h1>Slinky vs {c.name}</h1>
+    <p class="lede" set:html={c.intro} />
+  </header>
+
+  <div class="choose">
+    <section class="choose__card card-plain"><h2>Choose {c.name} if</h2><ul>{c.chooseThem.map((t) => <li>{t}</li>)}</ul></section>
+    <section class="choose__card card-plain is-us"><h2>Choose Slinky if</h2><ul>{c.chooseSlinky.map((t) => <li>{t}</li>)}</ul></section>
+  </div>
+
+  <section class="block" aria-labelledby="table-heading">
+    <h2 id="table-heading">Side by side</h2>
+    <div class="compare compare--two card-plain">
+      <table>
+        <thead><tr><th></th><th class="us" scope="col">Slinky</th><th scope="col">{c.name}</th></tr></thead>
+        <tbody>{c.rows.map(([label, us, them]) => <tr><th scope="row">{label}</th><CompareCell v={us} us /><CompareCell v={them} /></tr>)}</tbody>
+      </table>
+    </div>
+    <p class="compare__note"><span class="compare__key"><span class="yes"><Icon name="checkc" /> Yes</span><span class="part"><Icon name="half" /> Partly</span><span class="no"><Icon name="dash" /> No</span></span> <span>As of October 2026, from <a class="compare__more" href={c.url} rel="noopener">{c.site}</a>. Features and prices change.</span></p>
+  </section>
+
+  <section class="block" aria-labelledby="qa-heading">
+    <h2 id="qa-heading">Questions</h2>
+    <div class="qa">{faq.map(([q, a]) => <div class="card-plain"><h3>{q}</h3><p>{a}</p></div>)}</div>
+  </section>
+
+  <section class="block" aria-labelledby="more-heading">
+    <h2 id="more-heading">More comparisons</h2>
+    <div class="cards">
+      {related.map((o) => <a class="lcard lcard--icon card-plain" href={`/compare/${o.slug}/`}><ToolIcon name={o.name} glyph={o.glyph} /><div><h3>Slinky vs {o.name}</h3><p>{o.blurb}</p></div></a>)}
+      <a class="lcard lcard--icon card-plain" href="/compare/"><span class="mono-tile tool-glyph" style="--s:40px" aria-hidden="true"><Icon name="grid" style="width:20px;height:20px;position:relative;z-index:1" /></span><div><h3>All comparisons</h3><p>Every tool side by side, in one table.</p></div></a>
+    </div>
+  </section>
+</Sub>

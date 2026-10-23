@@ -1,0 +1,10 @@
+---
+// One cell of a comparison table: a mark (check, half circle, dash) plus an optional short note, or plain text.
+// Shared by the homepage table and the compare pages. The words are there for screen readers.
+import Icon from './Icon.astro';
+import { mark } from '../data/compare';
+interface Props { v: string; us?: boolean }
+const { v, us } = Astro.props;
+const m = mark(v);
+---
+<td class={`${us ? 'us' : ''} ${m.cls}`}>{m.icon && <><Icon name={m.icon} /><span class="sr-only">{m.label}{m.note ? ': ' : ''}</span></>}{m.note && <span class="mk__note">{m.note}</span>}</td>

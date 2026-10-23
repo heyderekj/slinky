@@ -1,0 +1,54 @@
+---
+import Sub from '../../layouts/Sub.astro';
+import CompareCell from '../../components/CompareCell.astro';
+import Icon from '../../components/Icon.astro';
+import ToolIcon from '../../components/ToolIcon.astro';
+import { compare } from '../../data/compare';
+import { competitors, groups } from '../../data/competitors';
+const ld = [{ '@type': 'ItemList', itemListElement: competitors.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: `Slinky vs ${c.name}`, url: new URL(`/compare/${c.slug}/`, Astro.site).toString() })) }];
+const names = competitors.map((c) => c.name);
+---
+<Sub title="Compare Slinky with 1Password, Doppler and more" description={`How Slinky compares with ${names.slice(0, -1).join(', ')} and ${names.at(-1)} for API keys, .env variables and recovery codes on a Mac.`} section="compare" track="compare" crumbs={[{ name: 'Compare', href: '/compare/' }]} ld={ld}>
+  <header class="page-head">
+    <h1>Compare Slinky</h1>
+    <p class="lede">Slinky is a free Mac app for API keys, a project’s .env variables, and backup codes. Here’s how it compares with the tools people already use for them, including when another tool is the better choice.</p>
+  </header>
+
+  <section class="block" aria-labelledby="table-heading">
+    <h2 id="table-heading">At a glance</h2>
+    <div class="compare card-plain">
+      <table>
+        <thead><tr><th></th>{compare.cols.map((col, i) => <th class={i === 0 ? 'us' : ''} scope="col">{col}</th>)}</tr></thead>
+        <tbody>{compare.rows.map(([label, cells]) => <tr><th scope="row">{label}</th>{cells.map((v, i) => <CompareCell v={v} us={i === 0} />)}</tr>)}</tbody>
+      </table>
+    </div>
+    <p class="compare__note"><span class="compare__key"><span class="yes"><Icon name="checkc" /> Yes</span><span class="part"><Icon name="half" /> Partly</span><span class="no"><Icon name="dash" /> No</span></span> <span>As of October 2026.</span></p>
+  </section>
+
+  <section class="block" aria-labelledby="pages-heading">
+    <h2 id="pages-heading">Slinky compared with</h2>
+    {/* Tabs filter the cards by kind of tool. Without JavaScript every card shows. */}
+    <div class="seg" role="tablist" aria-label="Kind of tool" data-seg>
+      <button type="button" role="tab" aria-selected="true" data-group="all">All <span>{competitors.length}</span></button>
+      {Object.entries(groups).map(([key, title]) => <button type="button" role="tab" aria-selected="false" data-group={key}>{title} <span>{competitors.filter((c) => c.group === key).length}</span></button>)}
+    </div>
+    <div class="cards" data-seg-cards>
+      {competitors.map((c) => (
+        <a class="lcard lcard--icon card-plain" href={`/compare/${c.slug}/`} data-group={c.group}>
+          <ToolIcon name={c.name} glyph={c.glyph} />
+          <div><h3>Slinky vs {c.name}</h3><p>{c.blurb}</p><span class="lcard__kind">{groups[c.group]}</span></div>
+        </a>
+      ))}
+    </div>
+  </section>
+</Sub>
+
+<script>
+  const seg = document.querySelector<HTMLElement>('[data-seg]');
+  const cards = document.querySelectorAll<HTMLElement>('[data-seg-cards] [data-group]');
+  const show = (group: string) => {
+    seg?.querySelectorAll<HTMLButtonElement>('[role=tab]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.group === group)));
+    cards.forEach((c) => { c.hidden = group !== 'all' && c.dataset.group !== group; });
+  };
+  seg?.addEventListener('click', (e) => { const b = (e.target as Element).closest<HTMLButtonElement>('[role=tab]'); if (b) show(b.dataset.group!); });
+</script>

@@ -1,0 +1,16 @@
+---
+// The glass capsule nav on the compare and guide pages. Same look as the homepage's, always showing.
+import Icon from './Icon.astro';
+import release from '../release.json';
+interface Props { current?: 'compare' | 'guides'; track: string }
+const { current, track } = Astro.props;
+---
+<nav class="nav float-glass" aria-label="Slinky">
+  <a class="nav__home" href="/"><img src="/icons/slinky-320.webp" alt="" width="26" height="26" /> Slinky</a>
+  <a class="nav__link" href="/#features">Features</a>
+  <a class="nav__link" href="/compare/" aria-current={current === 'compare' ? 'page' : undefined}>Compare</a>
+  <a class="nav__link" href="/guides/" aria-current={current === 'guides' ? 'page' : undefined}>Guides</a>
+  <a class="nav__link" href="/#faq">FAQ</a>
+  <a class="btn btn--quiet btn--small" href="https://github.com/heyderekj/slinky" data-stars aria-label="Slinky on GitHub"><Icon name="github" /><span class="star-count" data-star-count></span></a>
+  <a class="btn btn--primary btn--small" href={release.dmg} data-download data-track={`Download macOS nav ${track}`}>Download</a>
+</nav>

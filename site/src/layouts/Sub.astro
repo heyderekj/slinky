@@ -1,0 +1,41 @@
+---
+// The compare and guide pages: the homepage's look without its demos. A nav that's always showing, a
+// breadcrumb (also in the structured data), the page, then the download strip, the Dock and the footer.
+import Layout from './Layout.astro';
+import SiteNav from '../components/SiteNav.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import FamilyTabs from '../components/FamilyTabs.astro';
+import InstallModals from '../components/InstallModals.astro';
+import Icon from '../components/Icon.astro';
+import release from '../release.json';
+import '../styles/pages.css';
+interface Crumb { name: string; href: string }
+interface Props { title: string; description: string; crumbs: Crumb[]; section: 'compare' | 'guides'; track: string; ld?: object[]; get?: { title: string; text: string } }
+const { title, description, crumbs, section, track, ld = [], get } = Astro.props;
+const all = [{ name: 'Slinky', href: '/' }, ...crumbs];
+const breadcrumbs = {
+  '@type': 'BreadcrumbList',
+  itemListElement: all.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: new URL(c.href, Astro.site).toString() })),
+};
+---
+<Layout title={title} description={description} ld={[breadcrumbs, ...ld]}>
+  <SiteNav current={section} track={track} />
+  <main id="top" class="sub wrap">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <ol>{all.map((c, i) => <li>{i === all.length - 1 ? <span aria-current="page">{c.name}</span> : <a href={c.href}>{c.name}</a>}</li>)}</ol>
+    </nav>
+    <slot />
+  </main>
+
+  <section class="get wrap" aria-labelledby="get-heading">
+    <div class="get__strip">
+      <img src="/icons/slinky-320.webp" alt="" width="64" height="64" />
+      <div class="get__copy"><h2 id="get-heading">{get?.title ?? 'Give your secrets a home.'}</h2><p>{get?.text ?? `Free, about ${release.sizeMB} MB, and nothing leaves your Mac.`}</p></div>
+      <div class="get__act"><a class="btn btn--primary" href={release.dmg} data-download data-track={`Download macOS ${track}`}><Icon name="apple" /> Download for Mac</a><small>v{release.version} · {release.minOS} · Apple silicon · <button type="button" class="version-install-link" data-open-install>How to install</button></small></div>
+    </div>
+  </section>
+
+  <FamilyTabs current="slinky" />
+  <SiteFooter />
+  <InstallModals />
+</Layout>
