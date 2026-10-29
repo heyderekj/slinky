@@ -41,7 +41,10 @@ public struct RecoveryKey: Sendable, Equatable {
     }
 
     /// "K7QX-2MPD-…" (8 groups of 4).
-    public var display: String {
+    public var display: String { Self.groups(bytes) }
+
+    /// Crockford base32 in groups of 4, as printed on the Recovery Key and shown for sharing cards.
+    static func groups(_ bytes: Data) -> String {
         var bits = 0, value = 0
         var chars: [Character] = []
         for byte in bytes {

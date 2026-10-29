@@ -124,6 +124,9 @@ struct ActivityView: View {
         case .notarized: return Text("\(who) saved a notarytool profile from ") + n
         case .rotated: return Text("\(who) replaced ") + n + Text(" with a new one")
         case .imported: return Text("\(who) imported ") + n
+        case .shared: return Text("\(who) shared ") + n + Text(e.detail.isEmpty ? "" : " with \(e.detail)")
+        case .received: return Text("\(who) shared ") + n + Text(" with you")
+        case .members: return Text("\(who) changed who's in ") + n
         case .other: return n
         }
     }
@@ -142,6 +145,9 @@ struct ActivityView: View {
         case .notarized: "checkmark.seal"
         case .rotated: "arrow.triangle.2.circlepath"
         case .imported: "square.and.arrow.down"
+        case .shared: "person.2"
+        case .received: "tray.and.arrow.down"
+        case .members: "person.2.badge.gearshape"
         case .other: "clock"
         }
     }

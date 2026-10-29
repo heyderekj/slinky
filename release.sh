@@ -54,6 +54,11 @@ xcodebuild -project Slinky.xcodeproj -scheme Slinky -configuration Release -dest
   -derivedDataPath build/release clean build | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
 codesign --verify --deep --strict "$APP"
 [ "$(lipo -archs "$APP/Contents/MacOS/Slinky")" = "arm64" ] || { echo "✘ Expected an Apple silicon-only build"; exit 1; }
+# The Lock control extension (macOS 26+) ships inside the app: same identity, Apple silicon only, sandbox and nothing more.
+CONTROLS="$APP/Contents/PlugIns/SlinkyControls.appex"
+[ "$(lipo -archs "$CONTROLS/Contents/MacOS/SlinkyControls")" = "arm64" ] || { echo "✘ Expected an Apple silicon-only Lock control"; exit 1; }
+[ "$(codesign -d --entitlements - --xml "$CONTROLS" 2>/dev/null | plutil -convert json -o - - | tr -d ' ')" = '{"com.apple.security.app-sandbox":true}' ] \
+  || { echo "✘ The Lock control should have the app sandbox entitlement and nothing else"; exit 1; }
 echo "→ Signed: $(codesign -dvv "$APP" 2>&1 | grep -E '^Authority=Apple Development' | head -1)"
 # Debug-only tools (fake vaults, snapshots) must never ship.
 if strings "$APP/Contents/MacOS/Slinky" | grep -q -e "--demo-data" -e "--render-snapshots" -e "DemoFixture"; then
@@ -74,6 +79,8 @@ case "$MIN_MACOS" in
   14) MIN_NAME="macOS 14 Sonoma"; MIN_CASK=":sonoma" ;;
   15) MIN_NAME="macOS 15 Sequoia"; MIN_CASK=":sequoia" ;;
   26) MIN_NAME="macOS 26 Tahoe"; MIN_CASK=":tahoe" ;;
+  # Check Homebrew's symbol for 27 before the first release that needs it (MacOS::SYMBOLS in brew).
+  27) MIN_NAME="macOS 27 Golden Gate"; MIN_CASK=":golden_gate" ;;
   *) echo "✘ Unknown minimum macOS $MIN_MACOS; add it to release.sh"; exit 1 ;;
 esac
 
@@ -94,7 +101,7 @@ cat > site/src/release.json <<JSON
   "minOS": "$MIN_NAME"
 }
 JSON
-sed -i '' -E "s/macOS [0-9]+ (Sonoma|Sequoia|Tahoe)/$MIN_NAME/g" site/public/llms.txt site/public/homepage.md
+sed -i '' -E "s/macOS [0-9]+ (Sonoma|Sequoia|Tahoe|Golden Gate)/$MIN_NAME/g" site/public/llms.txt site/public/homepage.md
 echo "→ site/src/release.json updated (v$VERSION, ${SIZE_MB} MB). Pushing main deploys the site."
 
 if [ "$PUBLISH" = false ]; then

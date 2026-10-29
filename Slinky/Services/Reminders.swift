@@ -1,3 +1,4 @@
+import AppIntents
 import Foundation
 import SlinkyCoreShared
 import UserNotifications
@@ -44,11 +45,31 @@ enum Reminders {
                     let content = UNMutableNotificationContent()
                     content.title = "\(key.name) expires \(when)"
                     content.body = "Make a new one, then replace it in Slinky."
+                    // macOS 27 links the notification to the item, by its id only (Shortcuts sees names, never values).
+                    if #available(macOS 27, *) {
+                        content.appEntityIdentifiers = [EntityIdentifier(for: SlinkyItemEntity.self, identifier: key.id.uuidString)]
+                    }
                     let request = UNNotificationRequest(identifier: "\(expiryPrefix)\(key.id).\(days)", content: content,
                                                         trigger: UNCalendarNotificationTrigger(dateMatching: parts, repeats: false))
                     try? await center.add(request)
                 }
             }
+        }
+    }
+
+    /// After sharing: a reminder, on the day the person picked, to make new keys for what they shared. Asked for
+    /// in the Share panel, so it doesn't wait for the general Reminders setting. Names only.
+    static func remindToReplace(_ names: [String], sharedWith who: String, on day: Date) {
+        Task {
+            guard await requestPermission() else { return }
+            var parts = Calendar.current.dateComponents([.year, .month, .day], from: day)
+            parts.hour = 9
+            let content = UNMutableNotificationContent()
+            content.title = names.count == 1 ? "Time to replace \(names[0])" : "Time to replace \(names.count) shared keys"
+            content.body = "You shared \(names.count == 1 ? "it" : "them") with \(who). Make new ones, then replace them in Slinky."
+            try? await UNUserNotificationCenter.current().add(UNNotificationRequest(
+                identifier: "slinky.shared.\(UUID().uuidString)", content: content,
+                trigger: UNCalendarNotificationTrigger(dateMatching: parts, repeats: false)))
         }
     }
 

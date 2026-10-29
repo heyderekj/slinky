@@ -45,7 +45,38 @@ enum SnapshotRunner {
             Shot(name: "one-health", fixture: .one) { m in m.selection = .attention },
             Shot(name: "one-project", fixture: .one) { m in m.selection = m.document.projects.first.map { .project($0.id) } },
             Shot(name: "thousand", fixture: .thousand) { _ in },
+            Shot(name: "share", fixture: .worst) { m in
+                m.document.people = demoPeople
+                m.sharing = ShareDraft(items: m.sharedItems(m.document.keys.prefix(3).map { .key($0.id) }))
+            },
+            Shot(name: "share-nobody", fixture: .worst) { m in
+                m.sharing = ShareDraft(items: m.sharedItems(m.document.keys.prefix(1).map { .key($0.id) }))
+            },
+            Shot(name: "receive-stranger", fixture: .worst) { m in
+                m.receiving = ReceivedShare(from: demoCard("Ana"), made: .now,
+                                            items: SharedItems(keys: Array(m.document.keys.prefix(2)),
+                                                               variables: m.document.projects.first?.variables.prefix(3).map { $0 } ?? [],
+                                                               projectName: m.document.projects.first?.name),
+                                            known: nil)
+            },
+            Shot(name: "receive-known", fixture: .worst) { m in
+                m.document.people = demoPeople
+                m.receiving = ReceivedShare(from: demoPeople[0].cards[0], made: .now,
+                                            items: SharedItems(keys: Array(m.document.keys.prefix(4))), known: demoPeople[0])
+            },
         ]
+    }
+
+    /// Made-up public keys, so the codes look real and mean nothing.
+    static func demoCard(_ name: String) -> PersonCard {
+        var bytes = Data([0x04]) + Data(name.utf8)
+        bytes += Data(repeating: 0x5A, count: 65 - bytes.count)
+        return PersonCard(id: UUID(), name: name, agreement: bytes, signing: Data(bytes.reversed()))
+    }
+
+    static var demoPeople: [Person] {
+        [Person(name: "Ana", cards: [demoCard("Ana")], checked: true),
+         Person(name: "Ben Okafor-Lindqvist", cards: [demoCard("Ben"), demoCard("Ben2")], checked: false)]
     }
 
     static func run(folder: String, only: String?) {

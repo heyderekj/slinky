@@ -89,12 +89,24 @@ struct MainView: View {
                 EditOverlay(target: target).transition(.opacity)
             } else if let result = model.importing {
                 ImportOverlay(result: result).transition(.opacity)
+            } else if let draft = model.sharing {
+                ShareOverlay(draft: draft).id(draft.id).transition(.opacity)
+            } else if let share = model.receiving {
+                ReceiveOverlay(share: share).id(share.id).transition(.opacity)
+            } else if let draft = model.addingPerson {
+                AddPersonOverlay(draft: draft).id(draft.id).transition(.opacity)
             }
         }
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.showTuck)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.review)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.editing)
         .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.importing != nil)
+        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.sharing)
+        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.receiving)
+        .animation(.spring(response: 0.34, dampingFraction: 0.88), value: model.addingPerson)
+        .sheet(item: Binding(get: { SharedProjects.shared.checklist }, set: { SharedProjects.shared.checklist = $0 })) {
+            RotationChecklistSheet(checklist: $0)
+        }
         .sheet(isPresented: $model.showRestore) { RestoreBackupView() }
         .sheet(isPresented: Binding(get: { model.choosingIcon != nil }, set: { if !$0 { model.choosingIcon = nil } })) {
             if let ref = model.choosingIcon { ChooseIconView(ref: ref) }
@@ -138,6 +150,8 @@ struct MainView: View {
             RecentlyDeletedView().shrinkable()
         case .activity?:
             ActivityView().shrinkable()
+        case .people?:
+            PeopleView().shrinkable()
         case nil:
             LibraryView(filter: .all)
         }
@@ -189,6 +203,15 @@ struct SidebarView: View {
             Text(project.name)
         } icon: {
             Monogram(text: project.name, size: 18)
+                .overlay(alignment: .bottomTrailing) {
+                    if project.sharing != nil {
+                        Image(systemName: "person.2.circle.fill")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.white, Color.accentColor)
+                            .offset(x: 4, y: 4)
+                            .accessibilityLabel("Shared")
+                    }
+                }
         }
         .badge(missing > 0 ? Text("\(missing) missing").foregroundStyle(Color.attention) : Text("\(project.variables.count)"))
         .tag(SidebarItem.project(project.id))
@@ -248,6 +271,18 @@ struct SidebarView: View {
             .help("New Project (⇧⌘N)")
             .disabled(model.panelOpen)
             Spacer()
+            // The people you share with: a quiet footer button like Activity's, cyan while showing.
+            Button {
+                model.selection = .people
+            } label: {
+                Label("People", systemImage: "person.2")
+                    .labelStyle(.iconOnly)
+            }
+            .buttonStyle(.borderless)
+            .foregroundStyle(model.selection == .people ? Color.accentColor : .secondary)
+            .help("People: share keys and projects with the people you work with")
+            .accessibilityAddTraits(model.selection == .people ? .isSelected : [])
+            .padding(.trailing, 6)
             // A history, not a kind of item or a place: a quiet button in the footer, like Notes' footer actions,
             // rather than a row or a tile. Cyan while it's showing.
             Button {
@@ -272,11 +307,13 @@ struct AddItemButton: View {
 
     var body: some View {
         Button {
-            if case let .project(id)? = model.selection { model.openAddItem(project: id) } else { model.openAddItem() }
+            if case let .project(id)? = model.selection { model.openAddItem(project: id) }
+            else if model.selection == .people { model.beginAddPerson() }
+            else { model.openAddItem() }
         } label: {
             Label("Add Item", systemImage: "plus")
         }
-        .help(isProject ? "Add a variable to this project (⌘N)" : "Add Item (⌘N)")
+        .help(isProject ? "Add a variable to this project (⌘N)" : model.selection == .people ? "Add someone's card" : "Add Item (⌘N)")
         .disabled(model.lockedChrome || model.panelOpen)
     }
 

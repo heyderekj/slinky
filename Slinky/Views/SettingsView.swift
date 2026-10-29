@@ -84,6 +84,16 @@ struct SettingsView: View {
         .navigationSplitViewStyle(.balanced)
         .toolbarBackgroundVisibility(.hidden, for: .windowToolbar)
         .frame(minWidth: 760, minHeight: 560)
+        .onAppear(perform: takeRequest)
+        .onChange(of: model.settingsRequest) { takeRequest() }
+    }
+
+    @Environment(AppModel.self) private var model
+
+    private func takeRequest() {
+        guard let request = model.settingsRequest, let pane = Pane(rawValue: request) else { return }
+        model.settingsRequest = nil
+        select(pane)
     }
 
     private func row(_ pane: Pane) -> some View {

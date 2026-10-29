@@ -37,6 +37,19 @@ Only after tests 1, 3, 4 and 6 pass. Build order:
 Dogfood for two weeks on harvous, Dinky and Binky, then decide on the Developer ID and the public 1.0.
 
 ## Not testable on this Mac
-- **macOS 27 behavior.** This Mac runs 26.5.2. Use a macOS 27 virtual machine (UTM or VirtualBuddy; Apple silicon runs them well) to test the install, Gatekeeper and first-run flows. VMs have no Touch ID or Secure Enclave, so the Touch ID tests stay on this Mac.
+- **macOS 15 and 26 behavior.** This Mac runs macOS 27 (Xcode 27.1) since 2026-10-29. Use macOS 15 and 26 virtual machines (UTM or VirtualBuddy) for the install, Gatekeeper and first-run flows, and for the 15–26 menu bar (`MenuBarExtra`). VMs have no Touch ID or Secure Enclave, so the Touch ID tests stay on this Mac.
 - **A fresh user's first run.** A second macOS user account on this Mac is the cheap stand-in.
 - **Macs without Touch ID.** Check that `.userPresence` falls back to the Mac password. A clamshell-closed MacBook simulates this.
+
+## Sharing, post-quantum and macOS 27 (1.6, 2026-10-29)
+`swift test` covers the crypto with software keys (suites "Post-quantum lock", "Sharing", "Shared projects"). These need a person and real hardware:
+
+| # | Test | Pass looks like |
+|---|---|---|
+| 1 | **Hybrid unlock.** Unlock a vault made before 1.6 on macOS 26 or later. | One Touch ID. `VaultStore.usesHybridLock` is true afterwards, and the next unlock is still one Touch ID. |
+| 2 | **Downgrade.** Open the migrated vault with Slinky 1.5. | Touch ID unlock fails plainly; the Recovery Key opens it and re-wraps it the classic way. Nothing is lost. |
+| 3 | **Two people, one Mac.** Two macOS user accounts (each has its own Secure Enclave keys), `/Users/Shared/slinky-team` as the team folder (give both accounts read and write). Exchange cards, compare codes, share a key, share a project, edit a variable on each side, remove one person. | Each side sees the other's change with "Changed by"; after removal the other side can't open the new key, and the checklist lists the project's secrets. |
+| 4 | **A file from a stranger.** Open a share made by a card not in People. | The review panel warns and shows the sender's code; nothing is saved until Save. |
+| 5 | **Menu bar on 27.** Control-F8, then the arrow keys to Slinky's item; Return opens it; Esc or a click elsewhere closes it. Open another menu and slide across to Slinky. | It opens and closes like the menus beside it. |
+| 6 | **Lock control (macOS 26+).** Control Center › Edit Controls › add Lock Slinky; press it while unlocked. | Slinky locks. Check it also appears in the menu bar control list. If it doesn't show up with the free signing identity, drop the extension (see `docs/plan.md`). |
+| 7 | **Shortcuts on 27.** Run Copy from Slinky while locked, then cancel Touch ID. | "Slinky is locked…" then a cancelled-confirmation error, in Slinky's words. |

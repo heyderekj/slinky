@@ -195,7 +195,7 @@ Slinky should be the pleasant, HIG-native fix: a real Mac app, plus a `slinky` C
 - **Later**
   - Tier 2 (Developer ID)
   - CloudKit sync
-  - Teams (thinking only; see `docs/teams.md`)
+  - ~~Teams~~ Built in 1.6, without CloudKit (see below and `docs/teams.md`)
   - Claude Code `sandbox.credentials` mask bridge
   - Opt-in FIFO `.env` mounting
   - TOTP (maybe; Passwords already does it well)
@@ -321,3 +321,34 @@ Roadmap after 1.1 (Derek, 2026-10-17):
 - Not now: sync between Macs (stays under Later).
 
 Next milestone (1.2, its own plan): the agents work (slinky CLI with masking, socket broker, approval cards, receipts, MCP, Connect for Claude Code), then Raycast.
+
+
+## 1.6: sharing, post-quantum, macOS 27 (built 2026-10-29)
+After [issue #1](https://github.com/heyderekj/slinky/issues/1) asked for sharing with a team. Plan approved by Derek 2026-10-29.
+- **Sharing:**
+  - a sharing card per Mac, in People (the sidebar footer, ⌘8);
+  - Share with… on items, selections and a project's environment (a `.slinkyshare` file sent any way);
+  - Share Project with Team… (a `.slinkyproject` file in a folder the team already syncs, with members, removal and a Make New Keys checklist).
+  - No server and no new request. Design and limits: `docs/teams.md`.
+- **Post-quantum:** on macOS 26+, hybrid P-256 + ML-KEM-768 envelopes for the vault key and for sharing, and ML-DSA-65 signatures alongside P-256. Old vaults move over on unlock.
+- **macOS 27:**
+  - the menu bar item uses AppKit's expanded-interface sessions, for keyboard navigation and menu tracking;
+  - Copy and Add run only in the app (`allowedExecutionTargets`), and Shortcuts errors map to the system's kinds;
+  - expiry notifications link to their item;
+  - vault key bytes are zeroed as the key is made (`SymmetricKey(copyingWithZeroing:)`). Plaintext JSON is zeroed after use on every macOS.
+- **Lock control (macOS 26+):** the `SlinkyControls` widget extension. It signs with the free identity and registers with pluginkit. Whether it shows in Control Center is still to check by hand (`docs/test-plan.md`); if it doesn't, remove the target.
+- **Xcode 27:** Shapes are marked `nonisolated` (Swift 6.4 rejects a main-actor `Shape` conformance).
+
+### Tested 2026-10-29 (two pretend people on one Mac, driven through the UI)
+Swapping cards, sharing a key, sharing a project, editing from both sides, removing someone and the Make New Keys
+checklist all work. Found and fixed on the way:
+- Sharing was hard to find in Settings: People moved into the main window (sidebar footer, ⌘8), with Add Person
+  (big code, It Matches) and a Share button in every item's details.
+- Unlocking started vault sync and shared projects before the app counted as unlocked, so the first pull after
+  every unlock was skipped. This was already in 1.5's vault sync; now fixed.
+- A vault made by the first save didn't get this Mac's sharing card until the next launch.
+- `FileWatcher` crashed the app (main-actor isolation) the moment a shared project was watched.
+- An accessibility loop crashed the app when VoiceOver or another reader read an item's details (already in 1.5):
+  `RevealField` labelled a group without making it one element. It also kept the revealed value readable to them.
+- Joining a project now names it and its size, a banner says when you've been removed or the key changed, and
+  shared variables say who changed them.

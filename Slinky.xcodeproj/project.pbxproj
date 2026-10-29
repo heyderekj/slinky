@@ -7,15 +7,46 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5117C0DE000000000000002A /* SlinkyControls.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5117C0DE0000000000000020 /* SlinkyControls.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5117C0DE000000000000000D /* SlinkyCoreShared in Frameworks */ = {isa = PBXBuildFile; productRef = 5117C0DE000000000000000B /* SlinkyCoreShared */; };
 		5117C0DE000000000000000E /* SlinkyCoreVault in Frameworks */ = {isa = PBXBuildFile; productRef = 5117C0DE000000000000000C /* SlinkyCoreVault */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		5117C0DE000000000000002B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 5117C0DE0000000000000001 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5117C0DE0000000000000022;
+			remoteInfo = SlinkyControls;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		5117C0DE000000000000002C /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5117C0DE000000000000002A /* SlinkyControls.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		5117C0DE0000000000000020 /* SlinkyControls.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = SlinkyControls.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5117C0DE0000000000000005 /* Slinky.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Slinky.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		5117C0DE0000000000000021 /* SlinkyControls */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = SlinkyControls;
+			sourceTree = "<group>";
+		};
 		5117C0DE0000000000000004 /* Slinky */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = Slinky;
@@ -24,6 +55,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5117C0DE0000000000000024 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5117C0DE0000000000000008 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -40,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				5117C0DE0000000000000004 /* Slinky */,
+				5117C0DE0000000000000021 /* SlinkyControls */,
 				5117C0DE0000000000000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -48,6 +87,7 @@
 			isa = PBXGroup;
 			children = (
 				5117C0DE0000000000000005 /* Slinky.app */,
+				5117C0DE0000000000000020 /* SlinkyControls.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -55,6 +95,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		5117C0DE0000000000000022 /* SlinkyControls */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5117C0DE0000000000000028 /* Build configuration list for PBXNativeTarget "SlinkyControls" */;
+			buildPhases = (
+				5117C0DE0000000000000023 /* Sources */,
+				5117C0DE0000000000000024 /* Frameworks */,
+				5117C0DE0000000000000025 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				5117C0DE0000000000000021 /* SlinkyControls */,
+			);
+			name = SlinkyControls;
+			productName = SlinkyControls;
+			productReference = 5117C0DE0000000000000020 /* SlinkyControls.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		5117C0DE0000000000000006 /* Slinky */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 5117C0DE0000000000000019 /* Build configuration list for PBXNativeTarget "Slinky" */;
@@ -62,10 +122,12 @@
 				5117C0DE0000000000000007 /* Sources */,
 				5117C0DE0000000000000008 /* Frameworks */,
 				5117C0DE0000000000000009 /* Resources */,
+				5117C0DE000000000000002C /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5117C0DE000000000000002D /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				5117C0DE0000000000000004 /* Slinky */,
@@ -92,6 +154,9 @@
 					5117C0DE0000000000000006 = {
 						CreatedOnToolsVersion = 26.0;
 					};
+					5117C0DE0000000000000022 = {
+						CreatedOnToolsVersion = 27.0;
+					};
 				};
 			};
 			buildConfigurationList = 5117C0DE0000000000000018 /* Build configuration list for PBXProject "Slinky" */;
@@ -112,11 +177,19 @@
 			projectRoot = "";
 			targets = (
 				5117C0DE0000000000000006 /* Slinky */,
+				5117C0DE0000000000000022 /* SlinkyControls */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		5117C0DE0000000000000025 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5117C0DE0000000000000009 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -127,6 +200,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5117C0DE0000000000000023 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		5117C0DE0000000000000007 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -136,7 +216,68 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		5117C0DE000000000000002D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5117C0DE0000000000000022 /* SlinkyControls */;
+			targetProxy = 5117C0DE000000000000002B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		5117C0DE0000000000000026 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/SlinkyControls.entitlements;
+				CODE_SIGN_IDENTITY = "1C79F5AFAA48ECA90E05A0A01B15E715BF1BBDEB";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = B3U6BXA8KP;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/SlinkyControls-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Slinky;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Testament Made, LLC";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.slinky.app.controls;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		5117C0DE0000000000000027 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = Config/SlinkyControls.entitlements;
+				CODE_SIGN_IDENTITY = "1C79F5AFAA48ECA90E05A0A01B15E715BF1BBDEB";
+				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_INJECT_BASE_ENTITLEMENTS = NO;
+				CURRENT_PROJECT_VERSION = 2;
+				DEVELOPMENT_TEAM = B3U6BXA8KP;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/SlinkyControls-Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = Slinky;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Testament Made, LLC";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @executable_path/../../../../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 26.0;
+				MARKETING_VERSION = 1.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.slinky.app.controls;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
 		5117C0DE0000000000000014 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -196,6 +337,7 @@
 				DEVELOPMENT_TEAM = B3U6BXA8KP;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/Slinky-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Slinky;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Testament Made, LLC";
@@ -222,6 +364,7 @@
 				DEVELOPMENT_TEAM = B3U6BXA8KP;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Config/Slinky-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Slinky;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2026 Testament Made, LLC";
@@ -240,6 +383,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		5117C0DE0000000000000028 /* Build configuration list for PBXNativeTarget "SlinkyControls" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5117C0DE0000000000000026 /* Debug */,
+				5117C0DE0000000000000027 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		5117C0DE0000000000000018 /* Build configuration list for PBXProject "Slinky" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -1,71 +1,85 @@
-# Slinky for teams (thinking, not planned)
+# Slinky for teams
 
-Written 2026-10-22. Teams isn't on the roadmap, and nothing here changes what Slinky does or promises today. Slinky is one person's vault on one Mac. This note is for the day a team asks to share it.
+First written 2026-10-22 as thinking. Built 2026-10-29 (1.6) after [issue #1](https://github.com/heyderekj/slinky/issues/1): "During development with a team it would be great to share stuff." This is the design as built.
 
-## The question
-A shared home for secrets lowers the chance of leaks: no keys pasted in chat, no `.env` files mailed around. What is hardest to make safe for a team: who can open what (access), copies kept in case something breaks (backups), or getting back in when someone loses their Mac or leaves (recovery)?
+## The short version
+- No server and no account. Each Mac has a **sharing card**: public keys whose private halves stay in that Mac's Secure Enclave.
+- **Share with a person:** a `.slinkyshare` file sealed to the cards you pick. You send it however you like.
+- **Shared projects:** one `.slinkyproject` file per project, in a folder the team already syncs (shared iCloud Drive, Dropbox, a NAS). Every member's Mac reads it, merges it variable by variable, and writes it back.
+- Slinky makes **no new network request**. As with vault sync, the person's own sync service moves the files.
 
-## The answer: recovery
-- **Access** is well understood. The one hard part is removing someone, because you can take away their access but not what they already saw.
-- **Backups** come almost free once everything is end-to-end encrypted. A backup is just ciphertext.
-- **Recovery** pulls against Slinky's main promise, that only you can open your vault. Every way of getting someone back in is also a way for someone else to get in. It's also used rarely, so it's rarely tested and quietly stops working.
+## Keys (`SlinkyCoreVault`)
+- **`SharingIdentity`** (`Sharing.swift`): four Secure Enclave keys per Mac, each in a login-keychain item only Slinky reads silently.
+  - P-256 key agreement and P-256 signing on every Mac.
+  - ML-KEM-768 and ML-DSA-65 on macOS 26 and later.
+  - Opening (agreement, KEM) needs Touch ID.
+  - Signing doesn't, because every save to a shared project is signed. The app asks for Touch ID first for everything a person does on purpose: sharing, and adding or removing people.
+- **`PersonCard`**: id (from the signing key), name, public keys, date.
+  - Text form: `slinky-card:v1:<base64url>`. File form: `.slinkycard`.
+  - The **code** is SHA-256 of the keys, 80 bits, shown as 4×4 Crockford characters with the same formatting as the Recovery Key. People compare it on a call or in person, in the Add Person panel ("It Matches" / "It Doesn't Match"); People shows "Code compared" or a Compare Code… button.
+- **Hybrid envelope** (`KeyWrapping.swift`, `Envelope`):
+  - Ephemeral P-256 ECDH plus ML-KEM-768 encapsulation. Both secrets go through HKDF-SHA256, bound to both ciphertexts and the recipient's public keys, then AES-GCM.
+  - Layout `0x48 'H' | 1 | ephemeral (65) | KEM ciphertext (1088) | box`.
+  - Classic envelopes start `0x04`, so old blobs still open.
+  - A recipient without an ML-KEM key (a Mac on macOS 15) gets a classic envelope.
+- **Signatures:** P-256 ECDSA, plus ML-DSA-65 when the card has an ML-DSA key. When it does, both are required, so the post-quantum one can't be stripped.
 
-Recovery has to be designed first. It decides the key model, the access rules follow from that, and backups follow from both.
+## The vault uses the same envelope
+On macOS 26 and later, `EnclaveWrapper` adds a Secure Enclave ML-KEM key and wraps the vault key hybrid.
+- An older vault moves to the hybrid lock the first time it's unlocked (`VaultStore.unlock(context:)`, `needsRewrap`).
+- Unwrapping evaluates the `LAContext` once (`askOnce`), so it's one Touch ID for two keys.
+- `VaultFile.version` stays 1. Backups and sync copies carry no Secure Enclave wrap.
+- Going back to an older Slinky means unlocking once with the Recovery Key.
+- The Recovery Key is symmetric (HKDF plus AES-GCM) and unchanged.
 
-## What Slinky does today
-`SlinkyCoreVault` keeps one vault key and locks it two ways (`VaultStore.swift`):
-- to this Mac's Secure Enclave key, opened with Touch ID (`enclaveWrappedKey`);
-- to the printed Recovery Key (`recoveryWrappedKey`, `RecoveryKey.swift`).
+## Share with a person
+- `ShareFile` holds:
+  - in the clear: the sender's card, the date, and `[{card id, sealed content key}]`;
+  - encrypted: the items (`SharedItems`) under the content key, with AES-GCM;
+  - the sender's signatures over the whole file.
+- The sender's own card is always a recipient, so they can open their copy.
+- Receiving: the file is checked, then opened with Touch ID, then shown in a review panel. Each item gets a new id. Variables go into a project.
+  - A card not in People, or one whose code hasn't been compared, gets a plain warning with the sender's code.
+- There's no expiry: Slinky couldn't enforce one honestly. The Share panel offers "Remind me to make new keys" on a date instead (a notification, names only).
 
-Locking a key to a Secure Enclave key is `Envelope.seal(_:to:)` in `KeyWrapping.swift`. It seals a secret to any P-256 public key, which is exactly the building block a team version needs.
+## Shared projects
+`SharedProjectFile` (`SharedProject.swift`) holds:
+- the project id;
+- `members: [{name, cards}]`;
+- the project key, sealed to every card;
+- an `epoch`;
+- a **members signature** by a member;
+- the payload (the project minus folders, AES-GCM with the project id as AAD);
+- a **writer signature** by whoever saved it last.
 
-## The key model
-- **Each member** makes a key pair in their own Mac's Secure Enclave. The private half never leaves that Mac. The public half is shared with the team.
-- **Each shared vault**, say one project's variables, has its own vault key. That key is sealed separately to every member who has access, with the same `Envelope.seal`.
-- **Whatever syncs the vaults** stores only ciphertext and sealed keys. It can never decrypt anything.
-- **At least two members** must hold every shared vault, so no secret depends on one Mac.
+**Checks** on every read (`check(against:)`):
+- both signatures are valid;
+- the writer is a member;
+- if the member list or epoch changed, it was signed by someone in the list this vault already knew, and the epoch didn't go backwards;
+- the copy isn't older than one already seen (a rollback or a slow sync). When it is, Slinky writes its own copy back.
+- When joining, the member list must be signed by one of its own members. Slinky shows who shared it and whether their code was compared.
 
-## Access
-- **Adding someone:** a member who already holds the vault key seals it to the new member's public key. No server can add people, only members who hold the key. 1Password works the same way.
-- **Removing someone:**
-  1. Make a new vault key and seal it to the members who remain.
-  2. Then the honest part: removal can't make anyone forget what they saw or copied. So removing a member opens a **"make new keys" checklist**: "Ana could see these 14 keys. Make new ones."
-  3. This reuses the rotation helper (`AppModel.startRotation`, `replaced(_:with:)`, `Service.tokenURL`). It opens each service's key page, the person pastes the new key, and every project using it updates.
-- **Agents:** `AgentPolicy` (Agents can use, Ask every time, Never leaves) stays per item and applies to every member. Live keys stay held back from agents, as they are now.
+**Keys and recovery:**
+- The project key (`ProjectSharing.key`) lives in each member's own vault.
+- Your Recovery Key and your own sync therefore recover your team access. There's no team recovery key and no 2-of-3 split, which the 10-22 draft proposed.
+- A new Mac of yours reads at once, because the key arrives through your own vault sync. Writing waits until a member adds its card ("Add Their Other Mac"). That approval happens in the app, never by email.
 
-## Recovery
-This is the core of the design.
+**Removing someone:**
+- A new key and `epoch + 1`, sealed only to the members who remain.
+- Members who read the new file see "Open with Touch ID" to take the new key.
+- Then a **Make New Keys** checklist (`RotationChecklistSheet`) lists the project's secrets, with each service's key page.
 
-**Team recovery key, split 2 of 3.**
-- One team recovery key is sealed to every shared vault, the way today's printed Recovery Key is.
-- It's split into three parts so that any two can rebuild it. Each part is printed and held by a different named person.
-- No single person can recover alone, and losing one part isn't fatal.
+**Other rules:**
+- **Merging:** `VaultMerge.mergeProject`, variable by variable, newer change wins. `Variable.updatedBy` shows "Changed by Ana".
+- **Files:** `SharedProjects` watches each file with `NSFilePresenter`, and reads and writes through `CoordinatedFile` (shared with `VaultSync`). It merges "conflicted copy" files and moves them to the Trash.
+- **Agents:** `AgentPolicy` stays per variable and applies to everyone. Sharing and People are not in the CLI or MCP.
 
-**Approval in the app, never an email link.**
-- To recover a member, another member approves the request in Slinky after seeing who's asking, from which Mac.
-- An email reset is how recovery gets hijacked. 1Password warns not to give recovery rights to whoever runs company email. Bitwarden makes sure a reset doesn't bypass two-step login. Slinky should not depend on email at all.
-
-**A regular check that recovery works.**
-- A reminder, say twice a year, to test that two parts still rebuild the key.
-- Recovery that's never tried quietly breaks. Infisical's self-hosting guidance warns that losing the root key makes every secret permanently unreadable.
-
-**The honest trade-off.** If two of the three holders work together, they can recover anyone's access. That is the price of not losing everything when one Mac dies. The copy has to say so plainly.
-
-## Backups
-- Encrypted backups can live anywhere: iCloud Drive, a shared drive, a USB stick.
-- The one catch: an old backup is still sealed to the members it had then. A removed member who kept a copy of an old backup can still open it. The answer is making new keys, not anything clever in the backups.
-
-## Sync
-- A team needs sync, and Slinky has none today. `docs/plan.md` already lists CloudKit sync, encrypted before it leaves the Mac, under Tier 2.
-- A team version would use CloudKit sharing (`CKShare`) and store only ciphertext and sealed keys. That needs a paid Developer ID.
-
-## What would change in Slinky's promises
-- **Site and Help:** "Encrypted on this Mac", "Stays on your Mac" and the comparison table (`site/src/data/compare.ts`, `llms.txt`, Help) would need honest team wording: encrypted on each member's Mac and synced as ciphertext Apple can't read.
-- **CLAUDE.md network rules:** these list every request Slinky makes. Sync would be a new one and needs Derek's OK.
-- **Copy:** must say what this does **not** protect against:
-  - a member who copies a value;
-  - two recovery holders working together;
-  - an old backup a former member kept.
+## What it doesn't protect against (say it plainly)
+- A member keeps what they saw or copied. Removal changes the key; it can't make anyone forget.
+- Anyone who can write to the team folder can delete the file or put an older copy back. Slinky refuses older copies it has already moved past, but can't stop a deletion. Keep backups.
+- An old share file or an old project file opens for whoever it was sealed to.
+- Signing keys don't ask for Touch ID on each use. Anything that can run as Slinky's signed code could sign. The same holds for every other key Slinky uses silently.
+- Members' names and public cards, the project id and dates are in the clear inside the file, and the file is named after the project. Values and variable names are not.
 
 ## How others do it (October 2026)
 | | Who can decrypt | How recovery works |
@@ -74,19 +88,15 @@ This is the core of the design.
 | **Bitwarden Enterprise** | Members' devices | Each enrolled member's key is sealed to the organization's public key. Admins can reset a member's master password without seeing the old one, without bypassing two-step login, and with every reset logged. |
 | **Doppler** | Doppler's service, with an optional customer-held key on enterprise plans | Server-side. Easy, because the service can decrypt. |
 | **Infisical** | Originally members' devices, with a printed backup key. It now also offers server-side encryption with one root key. | Depends on the mode. Lose the root key and everything is gone. |
+| **Slinky** | Members' Macs | Each member's own Recovery Key, because the project key is in their vault. Losing every member's vault and Recovery Key loses the project. |
 
 Sources:
 - [1Password business security practices](https://support.1password.com/business-security-practices/)
-- [1Password Community on account keys](https://1password.community/discussion/comment/355311)
 - [Bitwarden Account Recovery](https://bitwarden.com/help/account-recovery.md)
 - [Doppler security](https://www.doppler.com/security)
 - [Infisical security internals](https://infisical.com/docs/internals/security)
 
-Slinky's path is the device-held family, like 1Password and Bitwarden, with recovery that needs two people instead of trusted admins.
-
 ## Open questions for Derek
-- Is 2 of 3 the right split, or should the team choose it?
-- Who can create a team and add the first members?
-- Pricing: Slinky is free. Is a team version free too?
-- Does this wait for a Developer ID (Tier 2), since sync needs one?
-- Is it one team per vault, or one vault per project shared with chosen people?
+- Pricing: sharing is free in this build, like the rest of Slinky. `docs/research-personal-commercial.md` had "share with one person" under Pro.
+- Should a team be able to hold a project without the person who started it? Today any member can add and remove people.
+- Site copy: the comparison table row "Share with your team" and the "Unless you share it" note need your OK before `main`.

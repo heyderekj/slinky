@@ -46,6 +46,7 @@ struct SelectionCommands: Commands {
             place("Health", .attention, "5")
             place("Recently Deleted", .trash, "6")
             place("Activity", .activity, "7")
+            place("People", .people, "8")
             Divider()
         }
     }

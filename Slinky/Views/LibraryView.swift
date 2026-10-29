@@ -229,6 +229,8 @@ struct LibraryView: View {
             if refs.count == 1, let ref = refs.first {
                 ItemActions(ref: ref)
             } else if !refs.isEmpty {
+                Button("Share \(refs.count) Items with…") { model.beginShare(model.sharedItems(Array(refs))) }
+                Divider()
                 Button("Delete \(refs.count) Items", role: .destructive) { model.deleteItems(Array(refs)); several = [] }
             }
         } primaryAction: { refs in

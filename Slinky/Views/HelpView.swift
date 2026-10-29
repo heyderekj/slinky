@@ -91,7 +91,7 @@ struct HelpView: View {
             "Copy from Slinky asks for Touch ID every time and never hands the value to the shortcut.",
         ]),
         Topic(symbol: "internaldrive", title: "Where your things live", body: [
-            "In one encrypted file on this Mac. There's no account and nothing goes to a server.",
+            "In one encrypted file on this Mac. There's no account and nothing goes to a server. On macOS 26 and later, the key that opens it is locked with both a classic and a post-quantum Secure Enclave key.",
             "If you turn on sync (Settings › Sync), an encrypted copy also goes in a folder you choose, like one in iCloud Drive or Dropbox, and your sync service moves it between your Macs. It opens only with your Recovery Key or on a Mac you've set up, so the sync service can't read it. Slinky itself sends nothing.",
             "Slinky goes online for two things: a daily check with GitHub for a newer version, and, only if you turn on Load icons from websites, a request to each saved website for its icon. Both are in Settings › General. When you choose Send to Host, that host's own tool sends the values you picked to that service.",
             "Optional, in Settings › General: reminders as Mac notifications (names only), and an offer to save a key you copy in another app (Slinky checks its shape and keeps nothing unless you choose Save).",
@@ -103,6 +103,13 @@ struct HelpView: View {
             "On your other Mac, choose the same folder and enter your Recovery Key once. Anything already on that Mac is added to the synced vault, and from then on the synced vault's Recovery Key opens everything.",
             "Changes on either Mac come together item by item: the newer change to each item wins, and something deleted on one Mac stays deleted unless it was changed again later.",
             "The copy in the folder is also a backup: Restore from Backup… opens it with your Recovery Key.",
+        ]),
+        Topic(symbol: "person.2", title: "Share with people", body: [
+            "Each Mac has a sharing card in People (the people button at the bottom of the sidebar, ⌘8). It holds that Mac's public keys only, so it's safe to send anywhere. Send yours to the people you work with, add theirs, and on a call or in person check that the code each of you sees matches.",
+            "To share keys, choose Share with… on an item, a selection or a project's environment. Slinky makes a file only the people you picked can open, on the Macs whose cards you added. Send it however you like: AirDrop, Messages, Mail or a chat. Whoever carries it can't read it.",
+            "To keep a project in step with a team, choose Share › Share Project with Team… and pick a folder the team already shares, like a shared folder in iCloud Drive or Dropbox. Slinky keeps one encrypted file there, and changes anyone makes reach everyone. Slinky itself sends nothing; your sync service moves the file.",
+            "Every copy is signed, and only someone already in a project can change who's in it. Removing someone makes a new key for everyone else.",
+            "What sharing can't do: anyone you share with keeps what they saw, so after someone leaves, make new keys (Slinky lists them). Anyone who can change the shared folder can delete the file or put an older one back, so keep a backup of your vault. On macOS 26 and later the locks also use post-quantum keys; a Mac on macOS 15 uses the classic ones.",
         ]),
         Topic(symbol: "envelope", title: "Questions", body: [
             "Write to derek@testamentmade.com. Slinky is free and open source, made by Testament Made, LLC.",

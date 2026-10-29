@@ -112,7 +112,6 @@ final class VaultSync: NSObject, NSFilePresenter {
     /// Reads the copy, merges it in, and (when asked, or when this Mac has something the copy doesn't) writes it back.
     func pull(thenPush: Bool = false) {
         guard isOn, let model, model.isUnlocked, !model.isDemoMode, let url = copyURL else { return }
-        downloadIfNeeded(url)
         mergeConflictedCopies()
         // No copy yet (just turned on, or it was removed): write one.
         guard let data = read(url) else { push(now: true); return }
@@ -159,37 +158,9 @@ final class VaultSync: NSObject, NSFilePresenter {
         }
     }
 
-    private func read(_ url: URL) -> Data? {
-        guard FileManager.default.fileExists(atPath: url.path) else { return nil }
-        var out: Data?
-        var error: NSError?
-        NSFileCoordinator(filePresenter: self).coordinate(readingItemAt: url, options: [], error: &error) { url in
-            out = try? Data(contentsOf: url)
-        }
-        return out
-    }
+    private func read(_ url: URL) -> Data? { CoordinatedFile.read(url, presenter: self) }
 
-    private func write(_ data: Data, to url: URL) throws {
-        let fm = FileManager.default
-        try fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-        var failure: Error?
-        var error: NSError?
-        NSFileCoordinator(filePresenter: self).coordinate(writingItemAt: url, options: .forReplacing, error: &error) { url in
-            do {
-                try data.write(to: url, options: .atomic)
-                try fm.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
-            } catch { failure = error }
-        }
-        if let failure { throw failure }
-        if let error { throw error }
-    }
-
-    /// iCloud Drive may keep only a placeholder until asked.
-    private func downloadIfNeeded(_ url: URL) {
-        guard let values = try? url.resourceValues(forKeys: [.isUbiquitousItemKey, .ubiquitousItemDownloadingStatusKey]),
-              values.isUbiquitousItem == true, values.ubiquitousItemDownloadingStatus != .current else { return }
-        try? FileManager.default.startDownloadingUbiquitousItem(at: url)
-    }
+    private func write(_ data: Data, to url: URL) throws { try CoordinatedFile.write(data, to: url, presenter: self) }
 
     /// Dropbox and iCloud keep both versions when two Macs write at once ("vault (conflicted copy).slinky",
     /// "vault 2.slinky"). Ones that open with this vault's key are merged in, then moved to the Trash.
