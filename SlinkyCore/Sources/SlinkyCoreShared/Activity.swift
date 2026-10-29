@@ -4,6 +4,8 @@ import Foundation
 public struct ActivityEntry: Codable, Identifiable, Hashable, Sendable {
     public enum Action: String, Codable, Sendable {
         case copied, codeUsed, ran, exported, xcconfig, requested, guarded, leakFound, pushed, notarized, rotated, imported
+        /// Sharing (1.6): sent to people, received from someone, a shared project's members changed.
+        case shared, received, members
         /// Something a newer Slinky wrote that this one doesn't know: shown plainly instead of failing to open the vault.
         case other
 

@@ -48,8 +48,8 @@ struct MenuBarStack: View {
             VStack(spacing: 2) {
                 MenuRow(icon: "macwindow", title: "Open Slinky") { open() }
                 MenuRow(icon: "gearshape", title: "Settings…", shortcut: "⌘,") {
-                    openWindow(id: "settings")
-                    NSApp.activate()
+                    // The AppKit panel on macOS 27 has no scene to open windows from; the model's opener works in both.
+                    if let openSettings = model.openSettingsWindow { openSettings() } else { openWindow(id: "settings"); NSApp.activate() }
                 }
                 MenuRow(icon: "info.circle", title: "About Slinky") { AboutPanel.show() }
                 MenuRow(icon: "power", title: "Quit Slinky", shortcut: "⌘Q") { NSApp.terminate(nil) }
@@ -95,8 +95,7 @@ struct MenuBarStack: View {
     }
 
     private func open() {
-        openWindow(id: "main")
-        NSApp.activate()
+        if let openMain = model.openMainWindow { openMain() } else { openWindow(id: "main"); NSApp.activate() }
     }
 }
 

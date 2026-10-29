@@ -16,6 +16,7 @@ struct ProjectView: View {
     @AppStorage("projectInspector") private var showInspector = true
     @State private var dropTargeted = false
     @State private var pushing = false
+    @State private var teaming = false
 
     /// A row in the list: a saved variable, or a name .env.example expects.
     enum ProjectRow: Hashable { case variable(UUID), missing(String) }
@@ -25,6 +26,7 @@ struct ProjectView: View {
     var body: some View {
         if let project {
             VStack(spacing: 0) {
+                SharedStatusBanner(project: project)
                 if project.variables.isEmpty && project.missing.isEmpty {
                     emptyProject(project)
                 } else {
@@ -71,12 +73,25 @@ struct ProjectView: View {
                             Button("Save .env.example…") { saveExample(project) }
                                 .disabled(project.variables.isEmpty)
                             Divider()
+                            Button("Share \(env.title) with…") {
+                                let variables = project.variables.compactMap { v -> Variable? in
+                                    guard let value = v.value(in: env) else { return nil }
+                                    var copy = v
+                                    copy.values = [env.rawValue: value]
+                                    return copy
+                                }
+                                model.beginShare(SharedItems(variables: variables, projectName: project.name), projectName: project.name)
+                            }
+                            .disabled(!project.variables.contains { $0.value(in: env) != nil })
+                            Button(project.sharing == nil ? "Share Project with Team…" : "People in This Project…") { teaming = true }
+                                .disabled(project.variables.isEmpty && project.sharing == nil)
+                            Divider()
                             Button("Send to Host…") { pushing = true }
                                 .disabled(project.variables.isEmpty)
                         } label: {
                             Label("Share", systemImage: "square.and.arrow.up")
                         }
-                        .help("Copy this environment as .env lines, or save a .env.example with names only")
+                        .help("Share with people, keep the project in step with a team, or send it to a host")
                     }
                     AddItemButton()
                 }
@@ -88,6 +103,7 @@ struct ProjectView: View {
                 }
             }
             .sheet(isPresented: $pushing) { HostPushSheet(projectID: projectID) }
+            .sheet(isPresented: $teaming) { SharedProjectSheet(projectID: projectID) }
             .detailsPane(isPresented: $showInspector) {
                 inspector(project)
             }
@@ -115,6 +131,10 @@ struct ProjectView: View {
         // Short: a long subtitle widens the content column and squeezes the sidebar. The folder is in the bar.
         var parts = [counted(p.variables.count, "variable"), counted(secrets, "secret")]
         if !p.missing.isEmpty { parts.append("\(p.missing.count) missing") }
+        if let sharing = p.sharing {
+            let others = sharing.members.filter { m in !(model.myCard.map(m.has) ?? false) }.map(\.name)
+            parts.append(others.isEmpty ? "Shared" : "Shared with \(others.count == 1 ? others[0] : counted(others.count, "person"))")
+        }
         return parts.joined(separator: " · ")
     }
 
@@ -665,7 +685,9 @@ struct VariableInspector: View {
                 UsageSection(names: [variable.name], id: variable.id)
 
                 Section {
-                    LabeledContent("Updated", value: variable.updated.formatted(.relative(presentation: .named)))
+                    // In a shared project, who made the last change ("by Ana"); nil means you.
+                    LabeledContent("Updated", value: variable.updated.formatted(.relative(presentation: .named))
+                                   + (variable.updatedBy.map { " by \($0)" } ?? ""))
                     LabeledContent("Added", value: variable.created.formatted(date: .abbreviated, time: .omitted))
                 }
             }

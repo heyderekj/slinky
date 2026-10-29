@@ -30,9 +30,11 @@ public enum VaultMerge {
         }
         out.kept = list(local.kept, remote.kept, stamp: { $0.modified ?? $0.created })
         out.secretFiles = list(local.secretFiles, remote.secretFiles, stamp: \.updated)
-        out.projects = list(local.projects, remote.projects, stamp: { $0.modified ?? $0.created }) { winner, other in
+        out.projects = list(local.projects, remote.projects, stamp: { $0.modified ?? $0.created }, combine: combineProjects)
+        out.people = list(local.people, remote.people, stamp: { $0.modified ?? $0.added }) { winner, other in
+            // Every Mac's card stays, whichever copy changed the name last.
             var merged = winner
-            merged.variables = list(winner.variables, other.variables, stamp: \.updated)
+            merged.cards = list(winner.cards, other.cards, stamp: \.made)
             return merged
         }
 
@@ -49,6 +51,7 @@ public enum VaultMerge {
         out.secretFiles.removeAll { gone($0.id, $0.updated) }
         out.projects.removeAll { gone($0.id, $0.modified ?? $0.created) }
         for i in out.projects.indices { out.projects[i].variables.removeAll { gone($0.id, $0.updated) } }
+        out.people.removeAll { gone($0.id, $0.modified ?? $0.added) }
         // Entries for things deleted for good leave Recently Deleted too.
         out.trashed = trash.values.filter { removed[$0.item.itemID] == nil }.sorted { $0.deletedAt > $1.deletedAt }
 
@@ -60,6 +63,19 @@ public enum VaultMerge {
         for (domain, png) in local.siteIcons ?? [:] { icons[domain] = png }
         out.siteIcons = icons.isEmpty ? nil : icons
         return out
+    }
+
+    /// Two copies of one project (this vault's and a synced or shared one): the newer name, folders and expected
+    /// names, and each variable's newer change.
+    public static func mergeProject(_ local: Project, _ remote: Project) -> Project {
+        let remoteNewer = (remote.modified ?? remote.created) > (local.modified ?? local.created)
+        return combineProjects(remoteNewer ? remote : local, remoteNewer ? local : remote)
+    }
+
+    static func combineProjects(_ winner: Project, _ other: Project) -> Project {
+        var merged = winner
+        merged.variables = list(winner.variables, other.variables, stamp: \.updated)
+        return merged
     }
 
     /// Both lists, matched by id. The newer one of a pair wins (`combine` can fold in the other); items only the
@@ -96,14 +112,18 @@ extension VaultDocument {
         stamp(&keys, before.keys) { $0.updated = now }
         stamp(&codeSets, before.codeSets) { $0.modified = now }
         stamp(&kept, before.kept) { $0.modified = now }
+        var everyone = people
+        stamp(&everyone, before.people) { $0.modified = now }
+        people = everyone
         var files = secretFiles
         stamp(&files, before.secretFiles) { $0.updated = now }
         secretFiles = files
         let oldProjects = Dictionary(uniqueKeysWithValues: before.projects.map { ($0.id, $0) })
         for p in projects.indices {
             let old = oldProjects[projects[p].id]
-            stamp(&projects[p].variables, old?.variables ?? []) { $0.updated = now }
-            if old == nil || old!.name != projects[p].name || old!.folders != projects[p].folders || old!.expected != projects[p].expected {
+            stamp(&projects[p].variables, old?.variables ?? []) { $0.updated = now; $0.updatedBy = nil }
+            if old == nil || old!.name != projects[p].name || old!.folders != projects[p].folders || old!.expected != projects[p].expected
+                || old!.sharing?.members != projects[p].sharing?.members || old!.sharing?.epoch != projects[p].sharing?.epoch {
                 projects[p].modified = now
             }
         }
@@ -118,7 +138,7 @@ extension VaultDocument {
 
     /// Every item and variable id, in the vault or in Recently Deleted.
     var allIDs: Set<UUID> {
-        var ids = Set(keys.map(\.id) + codeSets.map(\.id) + kept.map(\.id) + secretFiles.map(\.id) + projects.map(\.id))
+        var ids = Set(keys.map(\.id) + codeSets.map(\.id) + kept.map(\.id) + secretFiles.map(\.id) + projects.map(\.id) + people.map(\.id))
         for p in projects { ids.formUnion(p.variables.map(\.id)) }
         for entry in trashed {
             ids.insert(entry.item.itemID)

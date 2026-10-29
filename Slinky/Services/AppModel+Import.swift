@@ -1,5 +1,6 @@
 import AppKit
 import SlinkyCoreShared
+import SlinkyCoreVault
 import SwiftUI
 
 /// What the folder review is reading and for which project. The review itself (and every value it reads)
@@ -45,7 +46,12 @@ extension AppModel {
             return fm.fileExists(atPath: url.path, isDirectory: &isDir) && isDir.boolValue
         }
         let folders = urls.filter(isFolder)
-        let files = urls.filter { !isFolder($0) }
+        var files = urls.filter { !isFolder($0) }
+        // Sharing: a card adds a person, a share opens for review, a shared project joins.
+        if let share = files.first(where: { $0.pathExtension.lowercased() == ShareFile.fileExtension }) { openShare(share); return }
+        if let project = files.first(where: { $0.pathExtension.lowercased() == SharedProjectFile.fileExtension }) { openSharedProject(project); return }
+        let cards = files.filter { $0.pathExtension.lowercased() == "slinkycard" }
+        if !cards.isEmpty { cards.forEach(openCard); files.removeAll { cards.contains($0) }; if files.isEmpty && folders.isEmpty { return } }
         let envFiles = files.filter { ProjectScan.isEnvFile($0.lastPathComponent) }
         let exports = files.filter { !ProjectScan.isEnvFile($0.lastPathComponent) && ["1pux", "csv", "txt"].contains($0.pathExtension.lowercased()) }
         let keyFiles = files.filter { !envFiles.contains($0) && !exports.contains($0) }

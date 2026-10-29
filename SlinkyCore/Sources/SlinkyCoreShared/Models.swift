@@ -59,6 +59,8 @@ public struct Variable: Codable, Identifiable, Hashable, Sendable {
     public var service: String?
     public var created: Date
     public var updated: Date
+    /// Who made the last change, in a shared project: the name on their card. nil for your own changes.
+    public var updatedBy: String?
 
     public init(name: String, values: [AppEnvironment: String], isPlain: Bool = false, provider: String? = nil,
                 agentPolicy: AgentPolicy = .agentsCanUse, note: String? = nil, now: Date = .now) {
@@ -91,6 +93,8 @@ public struct Project: Codable, Identifiable, Hashable, Sendable {
     public var created: Date
     /// When the project itself (name, folders, expected names) last changed, for sync. nil means never since 1.5.
     public var modified: Date?
+    /// Set when the project is shared with other people through a team folder (1.6).
+    public var sharing: ProjectSharing?
 
     public init(name: String, folders: [String] = [], variables: [Variable] = [], expected: [String] = [], now: Date = .now) {
         self.id = UUID()
@@ -292,6 +296,9 @@ public struct VaultDocument: Codable, Sendable, Equatable {
     // Added in 1.5.
     /// Ids of things deleted for good, and when, so syncing never brings them back. Ids only, nothing else.
     public var removed: [UUID: Date]?
+    // Added in 1.6.
+    /// People you share with, and your own Macs' sharing cards. Public keys only.
+    public var contacts: [Person]?
 
     public init() {}
 

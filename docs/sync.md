@@ -17,7 +17,9 @@ seeing a value.
 - **Keeping in step** (`VaultSync`). Every save on this Mac writes the copy a moment later (a burst of edits goes
   out once), reading and merging first. Unlocking, bringing Slinky forward and `NSFilePresenter` change notices
   read it. All file access goes through `NSFileCoordinator`. iCloud placeholders are downloaded first.
-  "Conflicted copy" files that open with the vault key are merged in, then moved to the Trash.
+  "Conflicted copy" files that open with the vault key are merged in, then moved to the Trash. The coordinated read,
+  write and iCloud download live in `CoordinatedFile`, which shared projects (`SharedProjects`, see `docs/teams.md`)
+  use too.
 - **Merging** (`VaultMerge`, pure and tested). Item by item, matched by id:
   - the newer change wins (edits are dated in `AppModel.change` by `stampChanges`; projects merge their
     variables one by one);

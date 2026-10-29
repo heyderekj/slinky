@@ -55,8 +55,22 @@ enum SlinkyIntentError: Error, CustomLocalizedStringResourceConvertible {
     }
 }
 
+/// macOS 27: Shortcuts shows these as its own kinds of error (a cancelled confirmation reads as one), with our words.
+@available(macOS 27, *)
+extension SlinkyIntentError: CustomAppIntentErrorConvertible {
+    var appIntentError: AppIntentError {
+        switch self {
+        case .notConfirmed: AppIntentError(predefinedError: AppIntentError.UserActionRequired.confirmation, description: localizedStringResource)
+        case .locked, .notFound: AppIntentError(description: localizedStringResource)
+        }
+    }
+}
+
 struct CopyFromSlinkyIntent: AppIntent {
     static let title: LocalizedStringResource = "Copy from Slinky"
+    /// macOS 27: only ever in Slinky itself, never in an extension (it touches values and the clipboard).
+    @available(macOS 27, *)
+    static var allowedExecutionTargets: IntentExecutionTargets { .main }
     static let description = IntentDescription("Copies an item to the clipboard after you confirm with Touch ID. The clipboard clears in 60 seconds.")
 
     @Parameter(title: "Item") var item: SlinkyItemEntity
@@ -85,6 +99,8 @@ struct CopyFromSlinkyIntent: AppIntent {
 
 struct AddToSlinkyIntent: AppIntent {
     static let title: LocalizedStringResource = "Add to Slinky"
+    @available(macOS 27, *)
+    static var allowedExecutionTargets: IntentExecutionTargets { .main }
     static let description = IntentDescription("Opens Add Item with the text filled in, so you can check where it goes and save it. Try it with Get Clipboard.")
     static let openAppWhenRun = true
 

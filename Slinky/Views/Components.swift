@@ -144,6 +144,9 @@ struct RevealField: View {
         .focusable()
         .focused($focused)
         .onKeyPress(.return) { showAll = true; return .handled }
+        // One element, read by its label below. A label on the group alone sent SwiftUI's accessibility into an
+        // endless loop (a crash when VoiceOver or another reader asked), and it kept the revealed value readable.
+        .accessibilityElement(children: .ignore)
         .accessibilityAction(named: "Show the whole value") { showAll = true }
         .popover(isPresented: $showAll, arrowEdge: .bottom) {
             ScrollView {
@@ -247,7 +250,7 @@ struct KeyholeMark: View {
     }
 }
 
-struct AsteriskShape: Shape {
+nonisolated struct AsteriskShape: Shape {
     func path(in rect: CGRect) -> Path {
         var p = Path()
         let c = CGPoint(x: rect.midX, y: rect.midY)

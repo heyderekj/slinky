@@ -188,6 +188,8 @@ struct ItemActions: View {
             }
         }
         Divider()
+        Button("Share with…") { model.beginShare(model.sharedItems([ref])) }
+        Divider()
         Button("Edit…") { model.editing = ref.editTarget }
         Button("Choose Icon…") { model.choosingIcon = ref }
         Button("Delete", role: .destructive) {
@@ -437,6 +439,10 @@ private struct DetailScaffold<Content: View>: View {
                 .foregroundStyle(.red)
                 .help("Move to Recently Deleted")
                 Spacer()
+                Button { model.beginShare(model.sharedItems([ref])) } label: { Label("Share", systemImage: "person.2") }
+                    .glassButton()
+                    .controlSize(.large)
+                    .help("Share with people you work with")
                 Button { model.editing = ref.editTarget } label: { Label("Edit", systemImage: "pencil") }
                     .glassButton()
                     .controlSize(.large)
@@ -686,6 +692,9 @@ struct UsageSection: View {
         case .notarized: return "used for notarizing by \(who)"
         case .rotated: return "replaced by \(who)"
         case .imported: return "imported"
+        case .shared: return "shared by \(who)" + (e.detail.isEmpty ? "" : " with \(e.detail)")
+        case .received: return "shared with you by \(who)"
+        case .members: return "sharing changed by \(who)"
         case .other: return "used"
         }
     }

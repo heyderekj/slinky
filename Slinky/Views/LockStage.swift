@@ -149,7 +149,7 @@ struct CipherRing: View {
 
 /// The keyhole from the app icon, grown by `progress` (0 = exactly the icon's keyhole, 1 = past every corner
 /// of the window, below 0 = smaller, down to a point). Growth is exponential, so it starts as a peek and ends in a rush.
-struct KeyholeHole: Shape {
+nonisolated struct KeyholeHole: Shape {
     var progress: CGFloat
     var top: CGFloat = 0
 

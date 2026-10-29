@@ -1,4 +1,5 @@
 import AppKit
+import notify
 import SwiftUI
 import LocalAuthentication
 import Observation
@@ -35,6 +36,7 @@ enum SidebarItem: Hashable {
     case project(UUID)
     case trash
     case activity
+    case people
 }
 
 enum EditTarget: Hashable {
@@ -151,6 +153,14 @@ final class AppModel {
     /// What an import file contained, while the import panel is open.
     var importing: Importer.Result?
     var importSource: URL?
+    /// Items about to be shared, while the Share panel is open. Copies with values: memory only, cleared on lock.
+    var sharing: ShareDraft?
+    /// A share opened on this Mac, while it's being reviewed. Values in memory only, cleared on lock.
+    var receiving: ReceivedShare?
+    /// The Add Person panel (a card to add, or a code to compare).
+    var addingPerson: AddPersonDraft?
+    /// Files opened (from Finder, AirDrop) while Slinky was locked, to open once it's unlocked.
+    @ObservationIgnored var pendingOpen: [URL] = []
     /// A folder to start New Project with (from a drop on the sidebar).
     var tuckPrefill = ""
     var tuckProject: UUID?
@@ -167,6 +177,9 @@ final class AppModel {
     /// The last few things copied, for the menu bar. Memory only; cleared on lock.
     var recent: [RecentItem] = []
     @ObservationIgnored var openMainWindow: (() -> Void)?
+    @ObservationIgnored var openSettingsWindow: (() -> Void)?
+    /// A Settings pane to show next time Settings appears.
+    var settingsRequest: String?
 
     @ObservationIgnored private var session: VaultSession?
     #if DEBUG
@@ -199,6 +212,7 @@ final class AppModel {
         #endif
         hasVault = store.exists
         ClipboardWatcher.shared.start()
+        listenForLockControl()
         if broker == nil {
             broker = BrokerServer { request, peer in await AppModel.shared.handle(request, peer: peer) }
             broker?.start()
@@ -220,8 +234,21 @@ final class AppModel {
             unlockedAt = .now
             recoveryKeyToShow = recovery.display
             startIdleTimer()
+            // A vault made by the first save is unlocked from here on: sharing gets this Mac's card now, not after
+            // the next launch.
+            SharedProjects.shared.unlocked(self)
+            DispatchQueue.main.async { self.updateMyCard() }
         } catch {
             errorMessage = Self.friendly(error)
+        }
+    }
+
+    /// The Lock Slinky control (Control Center, the menu bar; macOS 26 and later) runs in a small extension that
+    /// knows nothing about the vault. It sends this signal; anything could, and all it does is lock.
+    private func listenForLockControl() {
+        var token: Int32 = 0
+        notify_register_dispatch("com.slinky.app.lock", &token, .main) { _ in
+            MainActor.assumeIsolated { AppModel.shared.lockAnimated() }
         }
     }
 
@@ -282,10 +309,13 @@ final class AppModel {
         errorMessage = nil
         // Recently Deleted keeps things for 30 days.
         if document.purgeTrash() > 0 { persist() }
-        // Catch up with the sync folder, if there is one.
-        VaultSync.shared.unlocked(self)
         // Look for leaks once a day, quietly, after unlocking.
         if Date.now.timeIntervalSince(Preferences.shared.lastLeakCheck) > 86_400 { Task { await checkForLeaks() } }
+        if !pendingOpen.isEmpty {
+            let urls = pendingOpen
+            pendingOpen = []
+            Task { @MainActor in open(urls, on: .window) }
+        }
         if let value = pendingSave {
             pendingSave = nil
             Task { @MainActor in
@@ -297,6 +327,12 @@ final class AppModel {
         if !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion { curtain = .opening }
         Sounds.play(.unlocked)
         phase = .unlocked
+        // These check `phase`, so they come after it (before, the first pull after unlocking was skipped).
+        // Catch up with the sync folder and shared projects, if there are any.
+        VaultSync.shared.unlocked(self)
+        SharedProjects.shared.unlocked(self)
+        // This Mac's sharing card joins your own card list (public keys only; no Touch ID to read them).
+        updateMyCard()
         startIdleTimer()
     }
 
@@ -452,6 +488,7 @@ final class AppModel {
         recent = []
         searchText = ""
         VaultSync.shared.locked()
+        SharedProjects.shared.locked()
         setUndo(nil)
         // A message from while it was open would otherwise sit on the lock screen and hold up Touch ID.
         errorMessage = nil
@@ -460,6 +497,10 @@ final class AppModel {
         editing = nil
         importing = nil
         importSource = nil
+        sharing = nil
+        receiving = nil
+        addingPerson = nil
+        pendingOpen = []
         // Prefill can hold a pasted secret (Shortcuts, a drop, ⌘V); it never outlives the unlock.
         tuckPrefill = ""
         tuckProject = nil
@@ -671,14 +712,16 @@ final class AppModel {
     }
 
     /// Add Item, Edit, New Project or Import is open. Only one at a time: opening another over Edit lost its changes.
-    var panelOpen: Bool { showTuck || review != nil || editing != nil || importing != nil }
+    var panelOpen: Bool { showTuck || review != nil || editing != nil || importing != nil || sharing != nil || receiving != nil || addingPerson != nil }
 
     /// Opens Add Item. `prefill` is something handed in (a paste, a drop, Shortcuts); `project` aims it at a project.
     /// Every way in goes through here, so nothing from an earlier time can linger.
     func openAddItem(prefill: String = "", project: UUID? = nil) {
         guard isUnlocked else { return }
+        // A sharing card isn't a secret: it goes to People.
+        if let card = PersonCard(text: prefill) { selection = .people; beginAddPerson(card); return }
         // From the menu bar, Quick Access, a shortcut or the clipboard: don't replace something half done.
-        guard review == nil, editing == nil, importing == nil else {
+        guard review == nil, editing == nil, importing == nil, sharing == nil, receiving == nil, addingPerson == nil else {
             show("Finish or cancel what's open first.", style: .info)
             return
         }
@@ -1208,6 +1251,7 @@ final class AppModel {
         }
         Reminders.schedule(document)
         VaultSync.shared.saved()
+        SharedProjects.shared.saved()
         return true
     }
 
@@ -1307,6 +1351,7 @@ final class AppModel {
             }
         }
         if let vault = error as? VaultError { return vault.description }
+        if let sharing = error as? SharingError { return sharing.description }
         let ns = error as NSError
         if ns.domain == "CryptoTokenKit" || ns.code == -2 { return "Unlock was cancelled." }
         return error.localizedDescription

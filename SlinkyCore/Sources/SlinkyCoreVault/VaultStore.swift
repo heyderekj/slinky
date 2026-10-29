@@ -45,25 +45,49 @@ public final class VaultStore: @unchecked Sendable {
     public func create(_ document: VaultDocument = VaultDocument()) throws -> (VaultSession, RecoveryKey) {
         let vaultKey = SymmetricKey(size: .bits256)
         let recovery = RecoveryKey.generate()
-        let raw = vaultKey.withUnsafeBytes { Data($0) }
+        var raw = vaultKey.withUnsafeBytes { Data($0) }
+        defer { raw.resetBytes(in: 0..<raw.count) }
         let file = VaultFile(enclaveWrappedKey: try enclave.wrap(raw), recoveryWrappedKey: try recovery.wrap(raw),
                              payload: try seal(document, with: vaultKey), saved: .now, recoverySet: .now)
         try write(file)
         return (VaultSession(vaultKey: vaultKey, document: document), recovery)
     }
 
-    /// Touch ID (or password) unlock on this Mac.
+    /// Touch ID (or password) unlock on this Mac. A vault locked the classic way on a Mac that can do the
+    /// post-quantum lock gets wrapped again with it, here, while the key is in hand.
     public func unlock(context: LAContext?) throws -> VaultSession {
-        let file = try read()
-        let vaultKey = SymmetricKey(data: try enclave.unwrap(file.enclaveWrappedKey, context: context))
-        return VaultSession(vaultKey: vaultKey, document: try open(file.payload, with: vaultKey))
+        var file = try read()
+        var raw = try enclave.unwrap(file.enclaveWrappedKey, context: context)
+        defer { raw.resetBytes(in: 0..<raw.count) }
+        let vaultKey = Self.key(from: &raw)
+        let document = try open(file.payload, with: vaultKey)
+        if enclave.needsRewrap(file.enclaveWrappedKey), let rewrapped = try? vaultKey.withUnsafeBytes({ try enclave.wrap(Data($0)) }) {
+            file.enclaveWrappedKey = rewrapped
+            try write(file)
+        }
+        return VaultSession(vaultKey: vaultKey, document: document)
+    }
+
+    /// Whether this Mac's copy of the vault key is under the post-quantum lock.
+    public var usesHybridLock: Bool { (try? read()).map { Envelope.isHybrid($0.enclaveWrappedKey) } ?? false }
+
+    /// A SymmetricKey from raw bytes, zeroing the bytes it came from (macOS 27 does both in one step).
+    static func key(from raw: inout Data) -> SymmetricKey {
+        if #available(macOS 27, *) {
+            var span = raw.mutableBytes
+            return SymmetricKey(copyingWithZeroing: &span)
+        }
+        let key = SymmetricKey(data: raw)
+        raw.resetBytes(in: 0..<raw.count)
+        return key
     }
 
     /// Recovery Key unlock: a new Mac, a restored backup, or a reset Secure Enclave.
     /// Re-wraps the vault key for this Mac's enclave so Touch ID works from now on.
     public func unlock(recovery: RecoveryKey) throws -> VaultSession {
         var file = try read()
-        let raw = try recovery.unwrap(file.recoveryWrappedKey)
+        var raw = try recovery.unwrap(file.recoveryWrappedKey)
+        defer { raw.resetBytes(in: 0..<raw.count) }
         let vaultKey = SymmetricKey(data: raw)
         let document = try open(file.payload, with: vaultKey)
         file.enclaveWrappedKey = try enclave.wrap(raw)
@@ -76,7 +100,8 @@ public final class VaultStore: @unchecked Sendable {
     public func replaceRecoveryKey(for session: VaultSession) throws -> RecoveryKey {
         var file = try read()
         let recovery = RecoveryKey.generate()
-        let raw = session.vaultKey.withUnsafeBytes { Data($0) }
+        var raw = session.vaultKey.withUnsafeBytes { Data($0) }
+        defer { raw.resetBytes(in: 0..<raw.count) }
         file.recoveryWrappedKey = try recovery.wrap(raw)
         file.saved = .now
         file.recoverySet = .now
@@ -182,15 +207,19 @@ public final class VaultStore: @unchecked Sendable {
 
     // MARK: file I/O
 
+    /// The plaintext JSON is zeroed once it's sealed or decoded. Fewer copies of values in memory, not none:
+    /// the document itself holds them while unlocked.
     private func seal(_ document: VaultDocument, with key: SymmetricKey) throws -> Data {
-        let json = try JSONEncoder.vault.encode(document)
+        var json = try JSONEncoder.vault.encode(document)
+        defer { json.resetBytes(in: 0..<json.count) }
         return try AES.GCM.seal(json, using: key, authenticating: Self.aad).combined!
     }
 
     private func open(_ payload: Data, with key: SymmetricKey) throws -> VaultDocument {
-        let json: Data
+        var json: Data
         do { json = try AES.GCM.open(AES.GCM.SealedBox(combined: payload), using: key, authenticating: Self.aad) }
         catch { throw VaultError.badFormat("payload didn't decrypt") }
+        defer { json.resetBytes(in: 0..<json.count) }
         return try JSONDecoder.vault.decode(VaultDocument.self, from: json)
     }
 

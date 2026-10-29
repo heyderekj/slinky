@@ -22,7 +22,24 @@ enum Entry {
     }
 }
 
+/// Files opened from Finder, AirDrop or Mail: shares, cards and shared projects. Held until Slinky is unlocked.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func application(_ application: NSApplication, open urls: [URL]) {
+        MainActor.assumeIsolated {
+            let model = AppModel.shared
+            model.openMainWindow?()
+            if model.isUnlocked {
+                model.open(urls, on: .window)
+            } else {
+                model.pendingOpen += urls
+            }
+        }
+    }
+}
+
 struct SlinkyApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+    static var expandedStatusItem: Bool { if #available(macOS 27, *) { true } else { false } }
     @State private var model = AppModel.shared
     @State private var prefs = Preferences.shared
 
@@ -37,6 +54,7 @@ struct SlinkyApp: App {
                     guard !model.isDemoMode else { return }
                     QuickAccess.shared.configure(model)
                     Updater.shared.checkOnLaunch()
+                    if #available(macOS 27, *) { StatusItemController.shared.start(model: model, prefs: prefs) }
                 }
                 .background(WindowOpenerBridge())
                 .background(TransparentTitlebar())
@@ -132,7 +150,9 @@ struct SlinkyApp: App {
         .windowResizability(.contentSize)
         .restorationBehavior(.disabled)
 
-        MenuBarExtra(isInserted: $prefs.showInMenuBar) {
+        // On macOS 27 the AppKit status item takes over (StatusItemController), for menu bar keyboard navigation.
+        MenuBarExtra(isInserted: Binding(get: { prefs.showInMenuBar && !Self.expandedStatusItem },
+                                         set: { prefs.showInMenuBar = $0 })) {
             MenuBarStack().symbolVariant(.fill).environment(model)
         } label: {
             Image(nsImage: MenuBarIcon.image)
@@ -193,6 +213,10 @@ struct WindowOpenerBridge: View {
         Color.clear.onAppear {
             model.openMainWindow = {
                 openWindow(id: "main")
+                NSApp.activate()
+            }
+            model.openSettingsWindow = {
+                openWindow(id: "settings")
                 NSApp.activate()
             }
         }
