@@ -1,6 +1,6 @@
 cask "slinky" do
-  version "1.1.0"
-  sha256 "69367b7f56be5a91f6082d7a822d1dd9e66668d4453b0be29c6867a39f960dd8"
+  version "2.0.0"
+  sha256 "4f4b0a8f757d12dfc3da4f0d5820fdbcb1a7284cbff88f1f38853b984aef633d"
 
   url "https://github.com/heyderekj/slinky/releases/download/v#{version}/Slinky-#{version}.zip"
   name "Slinky"
