@@ -208,6 +208,7 @@ export const competitors: Competitor[] = [
   },
   {
     slug: 'doppler',
+    icon: '/icons/doppler-160.webp',
     name: 'Doppler',
     site: 'doppler.com',
     url: 'https://www.doppler.com/pricing',
@@ -249,6 +250,7 @@ export const competitors: Competitor[] = [
   },
   {
     slug: 'infisical',
+    icon: '/icons/infisical-160.webp',
     name: 'Infisical',
     site: 'infisical.com',
     url: 'https://infisical.com/pricing',
@@ -329,6 +331,7 @@ export const competitors: Competitor[] = [
   },
   {
     slug: 'env-files',
+    glyph: 'file',
     name: '.env files',
     site: 'blog.gitguardian.com',
     url: 'https://blog.gitguardian.com/the-state-of-secrets-sprawl-2026/',
@@ -368,6 +371,7 @@ export const competitors: Competitor[] = [
   },
   {
     slug: 'dotenvx',
+    icon: '/icons/dotenvx-160.webp',
     name: 'dotenvx',
     site: 'dotenvx.com',
     url: 'https://dotenvx.com',
@@ -408,7 +412,7 @@ export const competitors: Competitor[] = [
   },
   {
     slug: 'direnv',
-    glyph: 'terminal',
+    icon: '/icons/direnv-160.webp',
     name: 'direnv',
     site: 'direnv.net',
     url: 'https://direnv.net',
