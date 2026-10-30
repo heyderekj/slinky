@@ -10,8 +10,8 @@ import Icon from '../components/Icon.astro';
 import release from '../release.json';
 import '../styles/pages.css';
 interface Crumb { name: string; href: string }
-interface Props { title: string; description: string; crumbs: Crumb[]; section: 'compare' | 'guides'; track: string; ld?: object[]; get?: { title: string; text: string } }
-const { title, description, crumbs, section, track, ld = [], get } = Astro.props;
+interface Props { title: string; description: string; crumbs: Crumb[]; section: 'compare' | 'guides'; track: string; ld?: object[]; get?: { title: string; text: string }; narrow?: boolean }
+const { title, description, crumbs, section, track, ld = [], get, narrow = false } = Astro.props;
 const all = [{ name: 'Slinky', href: '/' }, ...crumbs];
 const breadcrumbs = {
   '@type': 'BreadcrumbList',
@@ -20,7 +20,7 @@ const breadcrumbs = {
 ---
 <Layout title={title} description={description} ld={[breadcrumbs, ...ld]}>
   <SiteNav current={section} track={track} />
-  <main id="top" class="sub wrap">
+  <main id="top" class:list={['sub', 'wrap', { 'sub--narrow': narrow }]}>
     <nav class="crumbs" aria-label="Breadcrumb">
       <ol>{all.map((c, i) => <li>{i === all.length - 1 ? <span aria-current="page">{c.name}</span> : <a href={c.href}>{c.name}</a>}</li>)}</ol>
     </nav>

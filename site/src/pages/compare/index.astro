@@ -1,7 +1,7 @@
 ---
 import Sub from '../../layouts/Sub.astro';
 import CompareCell from '../../components/CompareCell.astro';
-import Icon from '../../components/Icon.astro';
+import Icon from '../../components/SiteIcon.astro';
 import ToolIcon from '../../components/ToolIcon.astro';
 import { compare } from '../../data/compare';
 import { competitors, groups } from '../../data/competitors';
@@ -35,7 +35,7 @@ const names = competitors.map((c) => c.name);
     <div class="cards" data-seg-cards>
       {competitors.map((c) => (
         <a class="lcard lcard--icon card-plain" href={`/compare/${c.slug}/`} data-group={c.group}>
-          <ToolIcon name={c.name} glyph={c.glyph} />
+          <ToolIcon name={c.name} glyph={c.glyph} icon={c.icon} />
           <div><h3>Slinky vs {c.name}</h3><p>{c.blurb}</p><span class="lcard__kind">{groups[c.group]}</span></div>
         </a>
       ))}

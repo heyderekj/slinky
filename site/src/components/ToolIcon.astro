@@ -2,10 +2,12 @@
 // A compared tool's tile: its logo (src/data/logos.ts) or the app's monogram, or a plain glyph for things
 // that aren't a product with a logo, like a .env file or the keychain.
 import Monogram from './Monogram.astro';
-import Icon from './Icon.astro';
-interface Props { name: string; glyph?: string; size?: number }
-const { name, glyph, size = 40 } = Astro.props;
+import Icon from './SiteIcon.astro';
+interface Props { name: string; glyph?: string; icon?: string; size?: number }
+const { name, glyph, icon, size = 40 } = Astro.props;
 ---
-{glyph
+{icon
+  ? <img class="tool-img" src={icon} alt="" width={size} height={size} style={`--s:${size}px`} />
+  : glyph
   ? <span class="mono-tile tool-glyph" style={`--s:${size}px`} aria-hidden="true"><Icon name={glyph} style={`width:${(size * 0.5).toFixed(1)}px;height:${(size * 0.5).toFixed(1)}px;position:relative;z-index:1`} /></span>
   : <Monogram text={name} size={size} />}

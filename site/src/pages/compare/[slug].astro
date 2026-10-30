@@ -2,7 +2,7 @@
 // One page per tool Slinky is compared with. Everything comes from src/data/competitors.ts.
 import Sub from '../../layouts/Sub.astro';
 import CompareCell from '../../components/CompareCell.astro';
-import Icon from '../../components/Icon.astro';
+import Icon from '../../components/SiteIcon.astro';
 import ToolIcon from '../../components/ToolIcon.astro';
 import { competitors, groups, type Competitor } from '../../data/competitors';
 export const getStaticPaths = () => competitors.map((c) => ({ params: { slug: c.slug }, props: { c } }));
@@ -12,9 +12,9 @@ const faq = [...c.faq, ['Is Slinky free?', 'Yes. Slinky is free and open source 
 const ld = [{ '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) }];
 const related = [...competitors.filter((o) => o.group === c.group && o.slug !== c.slug), ...competitors.filter((o) => o.group !== c.group)].slice(0, 6);
 ---
-<Sub title={c.seo} description={c.description} section="compare" track={`compare-${c.slug}`} crumbs={[{ name: 'Compare', href: '/compare/' }, { name: `Slinky vs ${c.name}`, href: `/compare/${c.slug}/` }]} ld={ld} get={c.get}>
+<Sub narrow title={c.seo} description={c.description} section="compare" track={`compare-${c.slug}`} crumbs={[{ name: 'Compare', href: '/compare/' }, { name: `Slinky vs ${c.name}`, href: `/compare/${c.slug}/` }]} ld={ld} get={c.get}>
   <header class="page-head">
-    <div class="vs" aria-hidden="true"><img src="/icons/slinky-320.webp" alt="" width="56" height="56" /><span class="vs__and">vs</span><ToolIcon name={c.name} glyph={c.glyph} size={56} /></div>
+    <div class="vs" aria-hidden="true"><img src="/icons/slinky-320.webp" alt="" width="56" height="56" /><span class="vs__and">vs</span><ToolIcon name={c.name} glyph={c.glyph} icon={c.icon} size={56} /></div>
     <p class="eyebrow">{groups[c.group]}</p>
     <h1>Slinky vs {c.name}</h1>
     <p class="lede" set:html={c.intro} />
@@ -44,7 +44,7 @@ const related = [...competitors.filter((o) => o.group === c.group && o.slug !== 
   <section class="block" aria-labelledby="more-heading">
     <h2 id="more-heading">More comparisons</h2>
     <div class="cards">
-      {related.map((o) => <a class="lcard lcard--icon card-plain" href={`/compare/${o.slug}/`}><ToolIcon name={o.name} glyph={o.glyph} /><div><h3>Slinky vs {o.name}</h3><p>{o.blurb}</p></div></a>)}
+      {related.map((o) => <a class="lcard lcard--icon card-plain" href={`/compare/${o.slug}/`}><ToolIcon name={o.name} glyph={o.glyph} icon={o.icon} /><div><h3>Slinky vs {o.name}</h3><p>{o.blurb}</p></div></a>)}
       <a class="lcard lcard--icon card-plain" href="/compare/"><span class="mono-tile tool-glyph" style="--s:40px" aria-hidden="true"><Icon name="grid" style="width:20px;height:20px;position:relative;z-index:1" /></span><div><h3>All comparisons</h3><p>Every tool side by side, in one table.</p></div></a>
     </div>
   </section>

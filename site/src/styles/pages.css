@@ -96,3 +96,22 @@
 .vs { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
 .vs img { width: 56px; height: 56px; border-radius: 23%; filter: drop-shadow(0 6px 12px var(--glow)); }
 .vs__and { font-size: 15px; font-weight: 600; color: var(--muted); }
+
+/* A tool's compare page: one centered column, 800px like Dinky's, with a calm centered heading and the two
+   "Choose…" cards as a single panel split by a hairline. The hub keeps the full width for its six-column table. */
+.sub--narrow { width: min(800px, 100% - 2 * var(--gutter)); }
+.sub--narrow .crumbs ol { justify-content: center; }
+.sub--narrow .page-head { max-width: none; margin-top: 36px; text-align: center; }
+.sub--narrow .vs { justify-content: center; margin-bottom: 22px; }
+.sub--narrow .page-head h1 { font-size: clamp(34px, 6vw, 52px); }
+.sub--narrow .page-head .lede { max-width: 600px; margin: 18px auto 0; font-size: 17px; line-height: 1.6; text-wrap: pretty; }
+.sub--narrow .choose { margin-top: 40px; gap: 1px; border-radius: 20px; overflow: hidden; background: var(--hair); box-shadow: 0 0 0 1px var(--hair); }
+.sub--narrow .choose__card { padding: 28px 30px; border-radius: 0; box-shadow: none; }
+.sub--narrow .choose__card h2 { font-size: 17px; }
+.sub--narrow .choose__card ul { font-size: 15px; }
+.sub--narrow .block { margin-top: 56px; }
+.sub--narrow .block > h2 { font-size: clamp(22px, 2.6vw, 26px); }
+.sub--narrow .qa { max-width: none; }
+.sub--narrow .cards { grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); }
+.sub--narrow .page-head .eyebrow { margin-bottom: 10px; }
+.tool-img { flex: none; display: block; width: var(--s, 40px); height: var(--s, 40px); border-radius: 22.5%; box-shadow: 0 5px 12px -4px rgb(0 0 0 / 0.35); }
