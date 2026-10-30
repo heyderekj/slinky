@@ -3,6 +3,7 @@
 // same palette and initials rule as Monogram in Slinky/Views/Components.swift.
 // `shared`: a project shared with a team gets the sidebar's person.2.circle.fill badge at its bottom right.
 import { logos } from '../data/logos';
+import { toolLogos } from '../data/toolLogos';
 interface Props { text: string; size?: number; shared?: boolean }
 const { text, size = 30, shared = false } = Astro.props;
 const palette: [string, string][] = [
@@ -18,7 +19,7 @@ const palette: [string, string][] = [
 const trimmed = text.trim();
 const lower = trimmed.toLowerCase();
 // Longest name first, so "Apple Passwords" gets its own tile and not Apple's logo.
-const logo = Object.entries(logos).sort((a, b) => b[0].length - a[0].length).find(([name]) => lower === name || lower.startsWith(name + ' '))?.[1];
+const logo = Object.entries({ ...logos, ...toolLogos } as Record<string, { color: string; dark: boolean; fg?: string; viewBox: string; d: string[] }>).sort((a, b) => b[0].length - a[0].length).find(([name]) => lower === name || lower.startsWith(name + ' '))?.[1];
 const words = trimmed.split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 const initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : (trimmed[0] ?? '').toUpperCase();
 let sum = 0;
@@ -33,6 +34,6 @@ const font = initials.length > 1 ? 0.38 : 0.48;
   </span>
 ) : logo ? (
   <span class="mono-tile mono-tile--logo" style={`--s:${size}px;background:${logo.color};--mono-shadow:${logo.color}66`} aria-hidden="true">
-    <svg viewBox={logo.viewBox} fill={logo.dark ? 'rgb(0 0 0 / 0.82)' : '#fff'} style={`width:${(size * 0.56).toFixed(1)}px;height:${(size * 0.56).toFixed(1)}px;position:relative;z-index:1`}>{logo.d.map((d) => <path d={d} />)}</svg>
+    <svg viewBox={logo.viewBox} fill={logo.fg ?? (logo.dark ? 'rgb(0 0 0 / 0.82)' : '#fff')} style={`width:${(size * 0.56).toFixed(1)}px;height:${(size * 0.56).toFixed(1)}px;position:relative;z-index:1`}>{logo.d.map((d) => <path d={d} />)}</svg>
   </span>
 ) : <span class="mono-tile" style={`--s:${size}px;background:linear-gradient(${top},${bottom});--mono-shadow:${bottom}66;font-size:${(size * font).toFixed(1)}px`} aria-hidden="true">{initials}</span>

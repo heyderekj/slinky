@@ -40,6 +40,8 @@ export interface Competitor {
   get?: { title: string; text: string };
   /** A plain glyph tile for things without a logo of their own (a file, the keychain). Otherwise the logo or monogram. */
   glyph?: string;
+  /** The app's own icon (an image in /public/icons), for a tool that is an app on this Mac. */
+  icon?: string;
 }
 
 const SLINKY = {
@@ -327,7 +329,6 @@ export const competitors: Competitor[] = [
   },
   {
     slug: 'env-files',
-    glyph: 'file',
     name: '.env files',
     site: 'blog.gitguardian.com',
     url: 'https://blog.gitguardian.com/the-state-of-secrets-sprawl-2026/',
@@ -447,7 +448,7 @@ export const competitors: Competitor[] = [
   },
   {
     slug: 'keychain-access',
-    glyph: 'key',
+    icon: '/icons/keychain-access-160.webp',
     name: 'Keychain Access',
     site: 'support.apple.com',
     url: 'https://support.apple.com/guide/keychain-access/welcome/mac',
