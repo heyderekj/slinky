@@ -32,7 +32,7 @@ Whatever you use, look for these:
 4. **Careful copying.** When you do copy a key, clipboard history apps shouldn’t keep it, and the clipboard should clear itself.
 5. **A backup you control**, so a lost Mac isn’t a lost set of keys.
 
-A team that shares keys across many machines and servers usually wants a hosted secret manager such as Doppler, Infisical or HashiCorp Vault. One person, or a small team where each person has their own keys, often doesn’t need a server at all. Our [comparisons](/compare/) go through the trade-offs.
+A team that shares keys across many machines and servers usually wants a hosted secret manager such as Doppler, Infisical or HashiCorp Vault. One person, or a small team, often doesn’t need a server at all: Slinky shares keys with the people you choose as encrypted files, or through a folder your team already syncs. Our [comparisons](/compare/) go through the trade-offs.
 
 ## How Slinky does it
 
