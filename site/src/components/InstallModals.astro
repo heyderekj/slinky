@@ -28,8 +28,9 @@ import release from '../release.json';
       <div data-panel="dmg">
         <ol>
           <li>Open <b>Slinky-{release.version}.dmg</b> and drag Slinky into Applications. <span class="modal__fallback">Download didn’t start? <a href={release.dmg} data-track="Download macOS install-fallback">Download again</a>.</span></li>
-          <li>Open Slinky. Since it isn’t notarized yet, macOS stops it once: open <b>System Settings › Privacy &amp; Security</b>, scroll down to <b>Security</b> and click <b>Open Anyway</b>, then confirm with Touch ID or your password.<OpenAnyway /></li>
+          <li>Open Slinky. Since it isn’t notarized yet, macOS stops it once: open <b>System Settings › Privacy &amp; Security</b>, scroll down to <b>Security</b> and click <b>Open Anyway</b>, then confirm with Touch ID or your password.</li>
         </ol>
+        <OpenAnyway />
         <p class="modal__note">Still blocked? Paste this into Terminal:</p>
         <div class="cmd"><code>xattr -dr com.apple.quarantine /Applications/Slinky.app</code><button type="button" data-copy-cmd>Copy</button></div>
       </div>
