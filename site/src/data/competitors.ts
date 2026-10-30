@@ -82,6 +82,7 @@ const rows = (them: Them): [string, string, string][] =>
 export const competitors: Competitor[] = [
   {
     slug: '1password',
+    icon: '/icons/1password-160.webp',
     name: '1Password',
     site: '1password.com',
     url: 'https://1password.com/pricing/password-manager',
@@ -125,6 +126,7 @@ export const competitors: Competitor[] = [
   },
   {
     slug: 'apple-passwords',
+    icon: '/icons/apple-passwords-160.webp',
     name: 'Apple Passwords',
     site: 'support.apple.com',
     url: 'https://support.apple.com/guide/passwords/welcome/mac',
@@ -167,6 +169,7 @@ export const competitors: Competitor[] = [
   },
   {
     slug: 'bitwarden',
+    icon: '/icons/bitwarden-160.webp',
     name: 'Bitwarden',
     site: 'bitwarden.com',
     url: 'https://bitwarden.com/pricing/',

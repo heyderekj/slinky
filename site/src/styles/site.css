@@ -474,6 +474,8 @@ footer a:hover { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Monograms: little app-icon tiles, same palette as the app */
 .mono-tile { --s: 30px; width: var(--s); height: var(--s); flex: none; border-radius: calc(var(--s) * 0.26); display: grid; place-items: center; color: #fff; font-family: ui-rounded, var(--app-font); font-weight: 700; font-size: calc(var(--s) * 0.42); position: relative; overflow: hidden; box-shadow: 0 calc(var(--s) * 0.02) calc(var(--s) * 0.06) rgb(0 0 0 / 0.12); text-shadow: 0 1px 1px rgb(0 0 0 / 0.15); }
+/* A real app's icon (public/icons), used in place of a tile. */
+.tool-img { flex: none; display: block; width: var(--s, 40px); height: var(--s, 40px); border-radius: 22.5%; box-shadow: 0 5px 12px -4px rgb(0 0 0 / 0.35); }
 .mono-tile::after { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(to bottom, rgb(255 255 255 / 0.32), transparent 50%); box-shadow: inset 0 0.5px 0 rgb(255 255 255 / 0.45); }
 
 /* Toast, like the app's */
