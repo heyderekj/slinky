@@ -275,8 +275,8 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
         <div class="b-tile b-tile--wide card-plain">
           <div><Icon name="import" class="feature-icon" /><h3>Import</h3><p>Bring keys from 1Password, Apple Passwords, Bitwarden, LastPass, KeePass or a CSV, even ones in notes. Rename them first, and Undo takes it all back. Passwords stay behind.</p></div>
           <div class="b-art b-import" aria-hidden="true">
-            {[['1Password', '24 keys'], ['Apple Passwords', '9 keys'], ['Bitwarden', '12 keys'], ['LastPass', '7 keys'], ['KeePass', '5 keys']].map(([n, c], i) => (
-              <div class="b-src"><Monogram text={n} size={24} /><b>{n}</b><small>{c}</small></div>
+            {[['1Password', '24 keys', '1password'], ['Apple Passwords', '9 keys', 'apple-passwords'], ['Bitwarden', '12 keys', 'bitwarden'], ['LastPass', '7 keys', 'lastpass'], ['KeePass', '5 keys', 'keepass']].map(([n, c, f]) => (
+              <div class="b-src"><img class="tool-img" src={`/icons/${f}-160.webp`} alt="" width="24" height="24" style="--s:24px" /><b>{n}</b><small>{c}</small></div>
             ))}
             <p class="b-note">31 passwords left behind</p>
           </div>
