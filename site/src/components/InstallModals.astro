@@ -2,47 +2,43 @@
 // The two install dialogs: "How to install" and "macOS blocked Slinky". On every page with a Download button,
 // since the first launch needs Open Anyway until Slinky is notarized.
 import Icon from './Icon.astro';
+import OpenAnyway from './OpenAnyway.astro';
 import release from '../release.json';
 ---
   <div class="modal" data-help role="dialog" aria-modal="true" aria-labelledby="help-title">
     <div class="modal__box">
       <button class="modal__close" type="button" data-close-help aria-label="Close">×</button>
       <h3 id="help-title">macOS blocked Slinky</h3>
-      <p class="modal__lead">Slinky isn’t notarized by Apple yet, so macOS stops its first launch. You only do this once; updates install without asking again.</p>
-      <ol>
-        <li>Open <b>System Settings › Privacy &amp; Security</b>.</li>
-        <li>Scroll down to the message about Slinky and click <b>Open Anyway</b>, then confirm with Touch ID or your password.</li>
-      </ol>
-      <p class="modal__note">No Open Anyway button? Open <b>Terminal</b> and paste this command. It clears the download flag:</p>
+      <p class="modal__lead">Slinky isn’t notarized yet, so macOS stops the first launch. Open <b>System Settings › Privacy &amp; Security</b>, scroll down to <b>Security</b> and click <b>Open Anyway</b>, then confirm with Touch ID or your password. You only do this once.</p>
+      <OpenAnyway />
+      <p class="modal__note">No Open Anyway button? Paste this into Terminal:</p>
       <div class="cmd"><code>xattr -dr com.apple.quarantine /Applications/Slinky.app</code><button type="button" data-copy-cmd>Copy</button></div>
-      <p class="modal__note">If Slinky’s icon in Applications has a <b>slash through it</b>, this Mac can’t run it. Slinky needs an Apple silicon Mac, and this fix doesn’t change that.</p>
+      <p class="modal__note">A slash through the icon means this Mac can’t run Slinky. It needs Apple silicon.</p>
     </div>
   </div>
   <div class="modal" data-install role="dialog" aria-modal="true" aria-labelledby="install-title">
     <div class="modal__box">
       <button class="modal__close" type="button" data-close-install aria-label="Close">×</button>
       <h3 id="install-title">How to install Slinky</h3>
-      <p class="modal__lead">Pick the path that fits you. Both put Slinky in Applications. Slinky needs an <b>Apple silicon (M-series) Mac</b> running {release.minOS} or later. Intel Macs aren’t supported.</p>
+      <p class="modal__lead">Both put Slinky in Applications. Needs an <b>Apple silicon</b> Mac with {release.minOS} or later.</p>
       <div class="tabs" role="tablist" aria-label="Install method">
         <button role="tab" aria-selected="true" data-tab="dmg" type="button">Download &amp; install</button>
         <button role="tab" aria-selected="false" data-tab="brew" type="button">Homebrew</button>
       </div>
       <div data-panel="dmg">
-        <p class="modal__note">If Slinky’s icon in Applications has a <b>slash through it</b>, macOS can’t run this build on your Mac, because it’s Apple silicon only. Otherwise, macOS may say it can’t check Slinky. That’s because Slinky isn’t notarized by Apple yet, and it’s open source, so you can read what it does. Opening it once takes under a minute.</p>
         <ol>
-          <li>Open <b>Slinky-{release.version}.dmg</b> from your Downloads, then drag Slinky into Applications. <span class="modal__fallback">Download didn’t start? <a href={release.dmg} data-track="Download macOS install-fallback">Download again</a>.</span></li>
-          <li>Open Slinky. macOS says it can’t check it, because Slinky isn’t notarized yet.</li>
-          <li>Open <b>System Settings › Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>. Once is enough; updates install without asking again.</li>
+          <li>Open <b>Slinky-{release.version}.dmg</b> and drag Slinky into Applications. <span class="modal__fallback">Download didn’t start? <a href={release.dmg} data-track="Download macOS install-fallback">Download again</a>.</span></li>
+          <li>Open Slinky. Since it isn’t notarized yet, macOS stops it once: open <b>System Settings › Privacy &amp; Security</b>, scroll down to <b>Security</b> and click <b>Open Anyway</b>, then confirm with Touch ID or your password.<OpenAnyway /></li>
         </ol>
-        <p class="modal__note">Still blocked? Open <b>Terminal</b> and paste this command. It clears the download flag:</p>
+        <p class="modal__note">Still blocked? Paste this into Terminal:</p>
         <div class="cmd"><code>xattr -dr com.apple.quarantine /Applications/Slinky.app</code><button type="button" data-copy-cmd>Copy</button></div>
       </div>
       <div data-panel="brew" hidden>
-        <p class="modal__note">Requires an <b>Apple silicon</b> Mac, <a href="https://brew.sh" target="_blank" rel="noopener noreferrer">Homebrew</a>, and {release.minOS} or later. In Terminal, run once to add this repo as a tap, then install the app:</p>
+        <p class="modal__note">With <a href="https://brew.sh" target="_blank" rel="noopener noreferrer">Homebrew</a>, add the tap once, then install:</p>
         <div class="cmd"><code>brew tap heyderekj/slinky https://github.com/heyderekj/slinky</code><button type="button" data-copy-cmd>Copy</button></div>
         <div class="cmd"><code>brew install --cask slinky</code><button type="button" data-copy-cmd>Copy</button></div>
-        <p class="modal__note"><b>Upgrading Slinky:</b> in Terminal, run <code>brew update &amp;&amp; brew upgrade --cask slinky</code> when you want a newer release. <b>If macOS blocks the first launch,</b> switch to the <b>Download &amp; install</b> tab and follow step 3.</p>
+        <p class="modal__note">Upgrade later with <code>brew upgrade --cask slinky</code>. If macOS blocks the first launch, use <b>Open Anyway</b> as in step 2 of Download &amp; install.</p>
       </div>
-      <div class="modal__callout"><Icon name="update" /><p><b>Updates in place</b>: once you’re set up, one click checks for new releases, and only installs an update signed by Slinky’s developer. You can turn the check off in Settings.</p></div>
+      <div class="modal__callout"><Icon name="update" /><p><b>Updates in place.</b> One click checks for new releases, and only installs ones signed by Slinky’s developer.</p></div>
     </div>
   </div>
