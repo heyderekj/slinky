@@ -684,7 +684,11 @@ button.replay:active { transform: scale(0.97); }
 .tabs { display: inline-flex; margin: 16px 0 6px; padding: 3px; border-radius: 999px; background: color-mix(in oklch, var(--ink) 7%, transparent); }
 .tabs button { height: 32px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
 .tabs button[aria-selected='true'] { background: var(--card); color: var(--ink); box-shadow: 0 1px 3px rgb(0 0 0 / 0.12); }
-.modal ol { padding-left: 20px; display: grid; gap: 10px; color: var(--ink-soft); font-size: 15.5px; }
+.modal ol { list-style: none; padding: 0; counter-reset: steps; display: grid; gap: 14px; color: var(--ink-soft); font-size: 15.5px; line-height: 1.5; }
+/* Numbered circles, like Dinky's and Binky's install steps. */
+.modal ol > li { counter-increment: steps; position: relative; padding-left: 36px; }
+.modal ol > li::before { content: counter(steps); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--brand); color: #fff; font-size: 12.5px; font-weight: 700; line-height: 1; }
 /* A command to copy: it wraps rather than scrolling, so the Copy button always stays in view. */
 .cmd { display: flex; align-items: center; gap: 10px; margin: 8px 0; padding: 10px 10px 10px 14px; border-radius: 12px; background: color-mix(in oklch, var(--ink) 6%, transparent); font-family: var(--mono); font-size: 13px; }
 .cmd code { flex: 1; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; }
@@ -724,7 +728,6 @@ button.replay:active { transform: scale(0.97); }
 .oa__btn::after { content: ''; position: absolute; inset: -4px; border-radius: inherit; border: 2px solid var(--brand); animation: oa-ring 1.6s ease-in-out infinite; }
 @keyframes oa-ring { 50% { inset: -7px; opacity: 0.35; } }
 @media (prefers-reduced-motion: reduce) { .oa__btn::after { animation: none; } }
-li > .oa { margin-top: 12px; }
 /* Narrow dialogs (phones, small windows) drop the sidebar and the quiet row, so nothing runs off the edge. */
 .modal__box:has(.oa) { container-type: inline-size; }
 @container (max-width: 460px) { .oa__side, .oa__row--quiet { display: none; } .oa__row + .oa__row { border-top: 0; } }
