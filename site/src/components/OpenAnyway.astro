@@ -1,0 +1,28 @@
+---
+// System Settings › Privacy & Security as macOS shows it after a blocked first launch: where to look and what to click.
+// Drawn, not a screenshot. Shared by both install dialogs.
+interface Props { app?: string }
+const { app = 'Slinky' } = Astro.props;
+const hand = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 12V6.5a1.2 1.2 0 0 1 2.4 0V11M11.4 10.5V5a1.2 1.2 0 0 1 2.4 0v5.5M13.8 10.5V6.2a1.2 1.2 0 0 1 2.4 0V14a5.5 5.5 0 0 1-5.5 5.5h-.4a5 5 0 0 1-4-2l-2.6-3.6a1.2 1.2 0 0 1 1.9-1.4L9 14"/></svg>';
+---
+<div class="oa" role="img" aria-label={`System Settings, Privacy & Security. Under Security: “${app}” was blocked to protect your Mac, with an Open Anyway button beside it.`}>
+  <div class="oa__side" aria-hidden="true">
+    <span class="oa__lights"><i></i><i></i><i></i></span>
+    <span class="oa__item"><i class="oa__tile oa__tile--gray"></i>Screen Time</span>
+    <span class="oa__item"><i class="oa__tile oa__tile--gray"></i>Lock Screen</span>
+    <span class="oa__item is-on"><i class="oa__tile" set:html={hand}></i>Privacy &amp; Security</span>
+    <span class="oa__item"><i class="oa__tile oa__tile--gray"></i>Touch ID &amp; Password</span>
+    <span class="oa__item"><i class="oa__tile oa__tile--gray"></i>Users &amp; Groups</span>
+  </div>
+  <div class="oa__main" aria-hidden="true">
+    <b class="oa__title">Privacy &amp; Security</b>
+    <span class="oa__sec">Security</span>
+    <div class="oa__group">
+      <div class="oa__row oa__row--quiet"><span>Allow applications from</span><span class="oa__pop">App Store &amp; Known Developers</span></div>
+      <div class="oa__row">
+        <span>“{app}” was blocked to protect your Mac.</span>
+        <span class="oa__btn">Open Anyway</span>
+      </div>
+    </div>
+  </div>
+</div>

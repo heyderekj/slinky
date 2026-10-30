@@ -678,7 +678,7 @@ button.replay:active { transform: scale(0.97); }
 /* ---------- Install modal ---------- */
 .modal { position: fixed; inset: 0; z-index: 1100; display: grid; place-items: center; padding: 20px; background: rgb(10 14 20 / 0.32); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity 0.25s var(--ease); }
 .modal.is-open { opacity: 1; pointer-events: auto; }
-.modal__box { width: min(520px, 100%); max-height: calc(100vh - 40px); overflow: auto; border-radius: 26px; padding: 26px; background: var(--card); box-shadow: var(--shadow-lift); translate: 0 12px; transition: translate 0.35s var(--ease); }
+.modal__box { width: min(580px, 100%); max-height: calc(100vh - 40px); overflow: auto; border-radius: 26px; padding: 26px; background: var(--card); box-shadow: var(--shadow-lift); translate: 0 12px; transition: translate 0.35s var(--ease); }
 .modal.is-open .modal__box { translate: 0 0; }
 .modal h3 { font-size: 22px; letter-spacing: -0.02em; }
 .tabs { display: inline-flex; margin: 16px 0 6px; padding: 3px; border-radius: 999px; background: color-mix(in oklch, var(--ink) 7%, transparent); }
@@ -694,6 +694,40 @@ button.replay:active { transform: scale(0.97); }
 .modal__note code { font-family: var(--mono); font-size: 12.5px; padding: 2px 6px; border-radius: 5px; background: color-mix(in oklch, var(--ink) 6%, transparent); }
 .modal__note a, .modal__fallback a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .modal__fallback { display: block; margin-top: 4px; font-size: 14px; color: var(--muted); }
+/* Open Anyway: System Settings › Privacy & Security, drawn at a readable size, with the button to click ringed. */
+.oa { --oa-bg: #f5f5f7; --oa-side: #ebebed; --oa-ink: #1d1d1f; --oa-dim: rgb(60 60 67 / 0.6); --oa-row: #fff; --oa-line: rgb(0 0 0 / 0.08);
+  display: flex; margin: 14px 0 6px; border-radius: 16px; overflow: hidden; background: var(--oa-bg); color: var(--oa-ink);
+  box-shadow: 0 0 0 1px var(--oa-line), 0 12px 28px -14px rgb(0 0 0 / 0.4); font: 13px/1.35 -apple-system, BlinkMacSystemFont, system-ui, sans-serif; text-align: left; }
+@media (prefers-color-scheme: dark) { .oa { --oa-bg: #1f1f21; --oa-side: #2a2a2d; --oa-ink: #f5f5f7; --oa-dim: rgb(235 235 245 / 0.55); --oa-row: #2c2c2f; --oa-line: rgb(255 255 255 / 0.1); } }
+.oa__side { flex: none; width: 192px; min-width: 0; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 3px; padding: 14px 10px 16px; background: var(--oa-side); }
+.oa__lights { display: flex; gap: 7px; padding: 0 6px 12px; }
+.oa__lights i { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; }
+.oa__lights i + i { background: #febc2e; } .oa__lights i + i + i { background: #28c840; }
+.oa__item { min-width: 0; display: flex; align-items: center; gap: 7px; padding: 5px 8px; font-size: 12.5px; border-radius: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--oa-dim); }
+.oa__item.is-on { color: #fff; font-weight: 500; background: #0a7aff; }
+.oa__tile { flex: none; width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: #0a7aff; }
+.oa__item.is-on .oa__tile { box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.55); }
+.oa__tile--gray { background: color-mix(in oklch, var(--oa-dim) 40%, transparent); }
+.oa__tile svg { width: 14px; height: 14px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.oa__main { flex: 1; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: 8px; padding: 18px 22px 22px 18px; }
+.oa__title { font-size: 15px; font-weight: 700; padding-bottom: 6px; }
+.oa__sec { font-size: 12px; font-weight: 600; color: var(--oa-dim); }
+.oa__group { min-width: 0; display: grid; border-radius: 11px; background: var(--oa-row); box-shadow: 0 0 0 1px var(--oa-line); }
+.oa__row > span:first-child { flex: 1; min-width: 0; }
+.oa__row { min-width: 0; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 16px; }
+.oa__row + .oa__row { border-top: 1px solid var(--oa-line); }
+.oa__row--quiet { color: var(--oa-dim); font-size: 12px; }
+.oa__row--quiet > span:first-child { flex: none; white-space: nowrap; }
+.oa__pop { flex: 1 1 auto; min-width: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.oa__pop::after { content: ' ⌃'; display: inline-block; rotate: 180deg; margin-left: 4px; font-size: 10px; }
+.oa__btn { flex: none; position: relative; padding: 5px 12px; border-radius: 999px; font-weight: 600; white-space: nowrap; color: var(--oa-ink); background: color-mix(in oklch, var(--oa-dim) 22%, transparent); }
+.oa__btn::after { content: ''; position: absolute; inset: -4px; border-radius: inherit; border: 2px solid var(--brand); animation: oa-ring 1.6s ease-in-out infinite; }
+@keyframes oa-ring { 50% { inset: -7px; opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) { .oa__btn::after { animation: none; } }
+li > .oa { margin-top: 12px; }
+/* Narrow dialogs (phones, small windows) drop the sidebar and the quiet row, so nothing runs off the edge. */
+.modal__box:has(.oa) { container-type: inline-size; }
+@container (max-width: 460px) { .oa__side, .oa__row--quiet { display: none; } .oa__row + .oa__row { border-top: 0; } }
 .modal__callout { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 12px 14px; border-radius: 14px; background: color-mix(in oklch, var(--ink) 5%, transparent); font-size: 14px; line-height: 1.5; color: var(--ink-soft); }
 .modal__callout .icon { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--brand); }
 .modal__callout p { margin: 0; }
