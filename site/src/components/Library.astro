@@ -1,6 +1,7 @@
 ---
 // All Items as the app has it now: a compact list with group titles, and the floating glass details panel on
-// the right for the selected row. Click a row to see its details. Values are fake.
+// the right for the selected row. Click a row to see its details. Values are fake. Share jumps to the
+// sharing demo further down the page.
 import Icon from './Icon.astro';
 import Monogram from './Monogram.astro';
 
@@ -80,6 +81,12 @@ const first = items[0].id;
           {i.rows.map(([k, v]) => <div class="pane__row"><span>{k}</span><b>{v}</b></div>)}
         </div>
         {i.make && <div class="pane__make">Make New {i.make} on {i.service}…</div>}
+        {/* The pane's footer, as in the app: Delete on the left; Share (2.0) and Edit as glass buttons on the right. */}
+        <div class="pane__foot">
+          <span class="pane__delete">Delete</span>
+          <button class="pane__btn" type="button" data-share-jump title="Share with people you work with"><Icon name="people" /> Share</button>
+          <span class="pane__btn"><Icon name="pencil" /> Edit</span>
+        </div>
       </div>
     ))}
   </aside>

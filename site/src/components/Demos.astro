@@ -3,7 +3,7 @@
 import Icon from './Icon.astro';
 import Monogram from './Monogram.astro';
 import MacWindow from './MacWindow.astro';
-interface Props { which: 'additem' | 'env' | 'quick' | 'lock' }
+interface Props { which: 'additem' | 'env' | 'quick' | 'lock' | 'share' | 'people' | 'team' }
 const { which } = Astro.props;
 const envRows = [
   { k: 'DATABASE_URL', on: [1, 1, 1] },
@@ -14,6 +14,19 @@ const envRows = [
   { k: 'POSTHOG_KEY', missing: true },
   { k: 'SENTRY_DSN', missing: true },
 ];
+// The people in the sharing demos (2.0). Codes are made up, in the app's 4×4 format.
+const sharePeople = [
+  { name: 'Ana Ruiz', checked: true },
+  { name: 'Ben Okafor', macs: '2 Macs', checked: true },
+  { name: 'Maya Chen', checked: false },
+];
+const rotate = [
+  { k: 'STRIPE_SECRET_KEY', page: true },
+  { k: 'RESEND_API_KEY', page: true },
+  { k: 'OPENAI_API_KEY', page: true },
+  { k: 'DATABASE_URL', page: false },
+];
+const localNames = envRows.filter((r) => !r.missing && r.on?.[0]).map((r) => r.k);
 const quick = [
   { name: 'STRIPE_SECRET_KEY', sub: 'Stripe · live', mono: true, by: 'Stripe' },
   { name: 'GITHUB_TOKEN', sub: 'GitHub', mono: true, by: 'GitHub' },
@@ -46,10 +59,24 @@ const quick = [
 )}
 
 {which === 'env' && (
-  <MacWindow title="harbor-app" subtitle="12 variables · 2 missing" selected="harbor-app" class="mac--env" sidebar={false}>
+  <MacWindow title="harbor-app" subtitle="12 variables · 2 missing · Shared with 2 people" selected="harbor-app" class="mac--env" sidebar={false}>
     <div class="envbar">
       <div class="envtabs" data-glass="capsule"><span class="on">Local <i>5</i></span><span>Preview <i>4</i></span><span>Production <i>4</i><b class="envdot"></b></span></div>
       <span class="envfolder" data-glass="capsule"><Icon name="folder" /> harbor-app <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2.5 4 5 6.5 7.5 4" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+      {/* The project's Share menu (2.0), with the app's items. harbor-app is shared, so it offers People in This Project…
+          (an unshared project says Share Project with Team…). */}
+      <span class="envshare-wrap" data-envshare>
+        <button class="envshare" data-glass="capsule" type="button" aria-label="Share" aria-haspopup="menu" aria-expanded="false" title="Share with people, keep the project in step with a team, or send it to a host"><Icon name="share" /></button>
+        <div class="envmenu" data-glass="panel" role="menu" hidden>
+          <button type="button" role="menuitem">Copy Local as .env</button>
+          <button type="button" role="menuitem">Save .env.example…</button>
+          <hr />
+          <button type="button" role="menuitem" data-share-jump="0" data-share-what="5 items from harbor-app" data-share-names={localNames.join(', ')}>Share Local with…</button>
+          <button type="button" role="menuitem" data-share-jump="2">People in This Project…</button>
+          <hr />
+          <button type="button" role="menuitem">Send to Host…</button>
+        </div>
+      </span>
     </div>
     <div class="env__banner"><Icon name="attention" style="width:14px;height:14px;color:var(--app-amber)" /> <span><b>.env.example</b> lists 2 variables that aren't saved in Slinky yet.</span></div>
     <div class="env">
@@ -106,6 +133,93 @@ const quick = [
       </div>
     </MacWindow>
     <p class="replay float-glass"><Icon name="lock" /> Try the lock switch at the top right</p>
+  </div>
+)}
+
+{which === 'share' && (
+  <div class="additem sharep" data-glass="panel" data-sharedemo>
+    <div class="sharep__head">
+      <span class="sharep__icon"><Icon name="people" /></span>
+      <div class="sharep__title"><b>Share</b><small data-share-what>STRIPE_SECRET_KEY</small></div>
+      <span class="xclose" aria-hidden="true">✕</span>
+    </div>
+    <div class="sharep__step" data-share-pick>
+      <p class="sharep__label">With</p>
+      <div class="sharep__people">
+        {sharePeople.map((p) => (
+          <label class="sharep__person"><input type="checkbox" value={p.name} data-share-person /><b>{p.name}</b>{p.macs && <span class="sharep__macs">{p.macs}</span>}{!p.checked && <span class="chip chip--warn">Code not compared</span>}</label>
+        ))}
+      </div>
+      <p class="sharep__names" data-share-names hidden></p>
+      <label class="sharep__remind"><input type="checkbox" /> Remind me to make new keys</label>
+      <p class="sharep__note">Only the people you pick can open the file. They keep what you send, so when they no longer need it, make new keys.</p>
+      <div class="sharep__foot"><span class="sharep__btn">Cancel</span><button class="sharep__btn sharep__btn--go" type="button" data-share-go disabled>Share…</button></div>
+    </div>
+    <div class="sharep__step" data-share-ready hidden>
+      <p class="sharep__done"><Icon name="checkc" /><span>Ready. Only <span data-share-who>Ana Ruiz</span> can open it, on a Mac whose card you added.</span></p>
+      <div class="sharep__file"><svg viewBox="0 0 22 26" width="18" height="22" aria-hidden="true"><path d="M2.5 1h11.5l5.5 5.5v17a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 1 23.5v-21A1.5 1.5 0 0 1 2.5 1z" fill="var(--app-paper)" stroke="var(--app-sep)" /><circle cx="10.5" cy="15.5" r="5" fill="var(--brand)" /></svg><span data-share-file>From Alex Rivera for Ana Ruiz.slinkyshare</span></div>
+      <p class="sharep__note">Send it any way you like: AirDrop, Messages, Mail, a chat. The file is encrypted, so whoever carries it can’t read it. When it’s sent, delete it.</p>
+      <div class="sharep__foot"><span class="sharep__btn sharep__left">Show in Finder</span><button class="sharep__btn" type="button" data-share-done>Done</button><span class="sharep__btn sharep__btn--go">Send…</span></div>
+    </div>
+  </div>
+)}
+
+{which === 'people' && (
+  <div class="people" data-peopledemo>
+    <div class="additem people__card" data-glass="panel">
+      <div class="people__me"><Monogram text="Alex Rivera" size={40} /><div><b>Alex Rivera</b><small>Your card · this Mac</small></div></div>
+      <div><p class="people__label">Your code</p><p class="people__code"><span>7KQ2</span><span>M9XP</span><span>4TRB</span><span>6WZD</span></p></div>
+      <p class="sharep__note">Send your card to the people you work with. It holds this Mac’s public keys only, so it can’t open anything.</p>
+      <div class="sharep__foot sharep__foot--start"><span class="sharep__btn sharep__btn--go"><Icon name="share" /> Send Your Card…</span><span class="sharep__btn">Copy as Text</span></div>
+    </div>
+    <div class="additem people__panel" data-glass="panel">
+      <div class="sharep__step" data-person-compare>
+        <div class="additem__top">Add Ana Ruiz <span class="xclose" aria-hidden="true">✕</span></div>
+        <p class="people__label">Ana Ruiz’s code</p>
+        <p class="people__code people__code--big"><span>H3N8</span><span>Q2VC</span><span>9JXT</span><span>5KFD</span></p>
+        <p class="sharep__note">On a call or in person, ask Ana Ruiz to read you the code under Your Card in their People. It should match exactly. If it doesn’t, someone else’s card may have been sent in their name.</p>
+        <div class="sharep__foot"><span class="sharep__link sharep__left">Add Without Comparing</span><button class="sharep__btn" type="button" data-person-answer="no">It Doesn’t Match</button><button class="sharep__btn sharep__btn--go" type="button" data-person-answer="yes">It Matches</button></div>
+      </div>
+      <div class="sharep__step" data-person-list hidden>
+        <div class="additem__top">People <small class="people__count" data-person-count>3 people</small></div>
+        <div class="sharep__people">
+          <div class="people__row"><Monogram text="Ben Okafor" size={32} /><div><b>Ben Okafor</b><small>2 Macs</small></div><span class="chip chip--new">Code compared</span></div>
+          <div class="people__row"><Monogram text="Maya Chen" size={32} /><div><b>Maya Chen</b><small>1 Mac</small></div><span class="sharep__btn sharep__btn--sm">Compare Code…</span></div>
+          <div class="people__row" data-person-ana><Monogram text="Ana Ruiz" size={32} /><div><b>Ana Ruiz</b><small>1 Mac</small></div><span class="chip chip--new">Code compared</span></div>
+        </div>
+        <p class="sharep__note" data-person-msg>Added Ana Ruiz to People.</p>
+      </div>
+    </div>
+  </div>
+)}
+
+{which === 'team' && (
+  <div class="team" data-teamdemo>
+    <div class="team__bar" data-glass="capsule"><Monogram text="harbor-app" size={26} shared /><div><b>harbor-app</b><small data-team-sub>12 variables · Shared with 2 people</small></div></div>
+    <div class="additem team__sheet" data-glass="panel">
+      <div class="sharep__step" data-team-members>
+        <p class="team__title">People in harbor-app</p>
+        <div class="sharep__people">
+          <div class="team__member"><b>Alex Rivera (you)</b></div>
+          <div class="team__member" data-member="Ana Ruiz"><b>Ana Ruiz</b><span class="team__end"><button class="sharep__btn sharep__btn--sm sharep__danger" type="button" data-team-remove>Remove</button></span></div>
+          <div class="team__member" data-member="Ben Okafor"><b>Ben Okafor</b><span class="sharep__macs">2 Macs</span><span class="team__end"><button class="sharep__btn sharep__btn--sm sharep__danger" type="button" data-team-remove>Remove</button></span></div>
+        </div>
+        <div class="pane__rows"><div class="pane__row"><span>Team folder</span><span class="sharep__btn sharep__btn--sm">Show in Finder</span></div></div>
+        <p class="sharep__note">Up to date 2 minutes ago.</p>
+        <p class="sharep__note">Removing someone makes a new key for everyone else. They keep what they already saw, so Slinky lists the keys to replace.</p>
+        <div class="sharep__foot"><span class="sharep__link sharep__danger sharep__left">Stop Following on This Mac</span><span class="sharep__btn">Add People…</span><span class="sharep__btn sharep__btn--go">Done</span></div>
+      </div>
+      <div class="sharep__step" data-team-rotate hidden>
+        <p class="team__title">Make New Keys</p>
+        <p class="sharep__note"><span data-team-who>Ben Okafor</span> could see these {rotate.length} keys in harbor-app. Removing them can’t make anyone forget what they saw, so make new ones on each service and paste them in. Everyone in the project gets the new values.</p>
+        <div class="sharep__people">
+          {rotate.map((r) => (
+            <div class="team__member"><label class="team__key"><input type="checkbox" data-team-key /> {r.k}</label><span class="team__end">{r.page && <span class="sharep__btn sharep__btn--sm team__page">Open Key Page</span>}<span class="sharep__btn sharep__btn--sm">Paste New Value</span></span></div>
+          ))}
+        </div>
+        <div class="sharep__foot"><span class="sharep__count sharep__left" data-team-count>0 of {rotate.length} done</span><button class="sharep__btn sharep__btn--go" type="button" data-team-later>Later</button></div>
+      </div>
+    </div>
   </div>
 )}
 

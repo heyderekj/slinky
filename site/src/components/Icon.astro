@@ -41,6 +41,11 @@ const paths: Record<string, string> = {
   clock: '<path d="M12 2a10 10 0 1 1-9.4 13.4l2-.7A7.9 7.9 0 1 0 12 4.1a7.9 7.9 0 0 0-6.6 3.6H8v2H2V3.7h2v2.6A10 10 0 0 1 12 2Zm-1 5h2v4.6l3.2 3.2-1.4 1.4L11 12.4V7Z"/>',
   number: '<path d="M9.2 3h2l-.7 5h3.9l.7-5h2l-.7 5H20v2h-3.9l-.6 4H19v2h-3.8l-.7 5h-2l.7-5H9.3l-.7 5h-2l.7-5H4v-2h3.6l.6-4H5V8h3.5l.7-5Zm1 7-.6 4h3.9l.6-4h-3.9Z"/>',
   sort: '<path d="M3 6h18v2H3V6Zm3 5h12v2H6v-2Zm3 5h6v2H9v-2Z"/>',
+  // person.2: the People button and Share (front person, and one behind).
+  people: '<circle cx="9" cy="7.6" r="3.6"/><path d="M2 19.2c0-3.4 3.1-5.7 7-5.7s7 2.3 7 5.7v.8H2v-.8Z"/><circle cx="16.6" cy="7.2" r="3"/><path d="M15 13.3c.5-.1 1-.1 1.6-.1 3.2 0 5.4 1.9 5.4 4.9V20h-4.2v-.8c0-2.4-1-4.4-2.8-5.9Z"/>',
+  // square.and.arrow.up: a project's Share menu.
+  share: '<path d="M12 2.4 7.4 7l1.4 1.4L11 6.2V15h2V6.2l2.2 2.2L16.6 7 12 2.4ZM6.5 10H9v2H6.5a.5.5 0 0 0-.5.5v7c0 .3.2.5.5.5h11c.3 0 .5-.2.5-.5v-7a.5.5 0 0 0-.5-.5H15v-2h2.5a2.5 2.5 0 0 1 2.5 2.5v7a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 4 19.5v-7A2.5 2.5 0 0 1 6.5 10Z"/>',
+  pencil: '<path d="M16.3 3.3a2.2 2.2 0 0 1 3.1 0l1.3 1.3a2.2 2.2 0 0 1 0 3.1L9.4 19 4 20.4l1.4-5.4L16.3 3.3Z"/>',
   shield: '<path d="M12 2 4 5v6c0 5.2 3.4 9.4 8 11 4.6-1.6 8-5.8 8-11V5l-8-3Zm0 5a3 3 0 0 1 3 3v1h.3c.4 0 .7.3.7.7v4.6c0 .4-.3.7-.7.7H8.7a.7.7 0 0 1-.7-.7v-4.6c0-.4.3-.7.7-.7H9v-1a3 3 0 0 1 3-3Zm0 1.6c-.8 0-1.4.6-1.4 1.4v1h2.8v-1c0-.8-.6-1.4-1.4-1.4Z"/>',
 };
 const body = paths[name] ?? '';
