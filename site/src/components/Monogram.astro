@@ -1,9 +1,10 @@
 ---
 // The app's monogram tiles: a squircle with a vibrant gradient and white initials,
 // same palette and initials rule as Monogram in Slinky/Views/Components.swift.
+// `shared`: a project shared with a team gets the sidebar's person.2.circle.fill badge at its bottom right.
 import { logos } from '../data/logos';
-interface Props { text: string; size?: number }
-const { text, size = 30 } = Astro.props;
+interface Props { text: string; size?: number; shared?: boolean }
+const { text, size = 30, shared = false } = Astro.props;
 const palette: [string, string][] = [
   ['#80e3f2', '#0a8fa8'], // glacier cyan
   ['#8cc2fa', '#296bd6'], // sky
@@ -25,7 +26,12 @@ for (const ch of trimmed.toLowerCase()) sum = (Math.imul(sum, 31) + ch.codePoint
 const [top, bottom] = initials ? palette[sum % palette.length] : palette[0];
 const font = initials.length > 1 ? 0.38 : 0.48;
 ---
-{logo ? (
+{shared ? (
+  <span class="mono-wrap" style={`--s:${size}px`} aria-hidden="true">
+    <span class="mono-tile" style={`--s:${size}px;background:linear-gradient(${top},${bottom});--mono-shadow:${bottom}66;font-size:${(size * font).toFixed(1)}px`}>{initials}</span>
+    <svg class="mono-badge" viewBox="0 0 20 20"><circle cx="10" cy="10" r="10" fill="var(--brand)" /><g fill="#fff"><circle cx="7.9" cy="7.5" r="2.3" /><path d="M3.7 14.3c0-2.2 1.9-3.6 4.2-3.6s4.2 1.4 4.2 3.6v.5H3.7v-.5Z" /><circle cx="13" cy="7.3" r="1.9" /><path d="M12.6 10.8h.4c2 0 3.4 1.2 3.4 3v1h-3.4v-.5c0-1.4-.1-2.5-.4-3.5Z" /></g></svg>
+  </span>
+) : logo ? (
   <span class="mono-tile mono-tile--logo" style={`--s:${size}px;background:${logo.color};--mono-shadow:${logo.color}66`} aria-hidden="true">
     <svg viewBox={logo.viewBox} fill={logo.dark ? 'rgb(0 0 0 / 0.82)' : '#fff'} style={`width:${(size * 0.56).toFixed(1)}px;height:${(size * 0.56).toFixed(1)}px;position:relative;z-index:1`}>{logo.d.map((d) => <path d={d} />)}</svg>
   </span>

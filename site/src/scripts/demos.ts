@@ -541,6 +541,143 @@ function menubarActions() {
   });
 }
 
+/**
+ * Sharing (2.0): the Share panel (pick people, then the file is ready), adding someone by comparing codes, and a
+ * shared project's people, where removing someone lists the keys to replace. Each resets when its scene opens.
+ * With Reduce Motion nothing advances on its own; the controls still work.
+ */
+function sharing() {
+  const names = (n: string[]) => (n.length < 2 ? n.join('') : `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}`);
+
+  for (const panel of $$('[data-sharedemo]')) {
+    const pick = $('[data-share-pick]', panel)!;
+    const ready = $('[data-share-ready]', panel)!;
+    const boxes = $$<HTMLInputElement>('[data-share-person]', panel);
+    const go = $<HTMLButtonElement>('[data-share-go]', panel)!;
+    let run = 0;
+    const sync = () => { go.disabled = !boxes.some((b) => b.checked); };
+    const show = (done: boolean) => { pick.hidden = done; ready.hidden = !done; };
+    const make = () => {
+      const who = names(boxes.filter((b) => b.checked).map((b) => b.value));
+      $('[data-share-who]', panel)!.textContent = who;
+      // The file says who it's from and for, never what's in it.
+      $('[data-share-file]', panel)!.textContent = `From Alex Rivera for ${who}.slinkyshare`;
+      show(true);
+    };
+    const reset = () => { boxes.forEach((b) => { b.checked = false; }); sync(); show(false); };
+    async function play() {
+      const me = ++run;
+      reset();
+      await sleep(900);
+      if (me !== run) return;
+      boxes[0].checked = true;
+      sync();
+      if (still()) return;
+      await sleep(1300);
+      if (me !== run) return;
+      make();
+    }
+    // Someone trying it takes over from the autoplay.
+    for (const type of ['pointerdown', 'keydown']) panel.addEventListener(type, () => { run++; });
+    boxes.forEach((b) => b.addEventListener('change', sync));
+    go.addEventListener('click', make);
+    $('[data-share-done]', panel)?.addEventListener('click', reset);
+    onVisible(panel, play);
+    panel.closest('[data-scene]')?.addEventListener('scene:show', play);
+  }
+
+  for (const demo of $$('[data-peopledemo]')) {
+    const compare = $('[data-person-compare]', demo)!;
+    const list = $('[data-person-list]', demo)!;
+    const ana = $('[data-person-ana]', demo)!;
+    const count = $('[data-person-count]', demo)!;
+    const msg = $('[data-person-msg]', demo)!;
+    const reset = () => { compare.hidden = false; list.hidden = true; };
+    for (const b of $$<HTMLButtonElement>('[data-person-answer]', demo)) {
+      b.addEventListener('click', () => {
+        // It Matches adds them with the code compared; It Doesn't Match adds nothing.
+        const yes = b.dataset.personAnswer === 'yes';
+        ana.hidden = !yes;
+        msg.hidden = !yes;
+        count.textContent = yes ? '3 people' : '2 people';
+        compare.hidden = true;
+        list.hidden = false;
+      });
+    }
+    demo.closest('[data-scene]')?.addEventListener('scene:show', reset);
+  }
+
+  for (const demo of $$('[data-teamdemo]')) {
+    const members = $('[data-team-members]', demo)!;
+    const rotate = $('[data-team-rotate]', demo)!;
+    const sub = $('[data-team-sub]', demo)!;
+    const keys = $$<HTMLInputElement>('[data-team-key]', demo);
+    const count = $('[data-team-count]', demo)!;
+    const later = $('[data-team-later]', demo)!;
+    const rows = $$('[data-member]', demo);
+    const tally = () => {
+      const n = keys.filter((k) => k.checked).length;
+      count.textContent = `${n} of ${keys.length} done`;
+      later.textContent = n === keys.length ? 'Done' : 'Later';
+    };
+    const subtitle = () => {
+      const left = rows.filter((r) => !r.hidden).map((r) => r.dataset.member ?? '');
+      sub.textContent = `12 variables · Shared with ${left.length === 1 ? left[0] : `${left.length} people`}`;
+    };
+    const reset = () => {
+      rows.forEach((r) => { r.hidden = false; });
+      keys.forEach((k) => { k.checked = false; });
+      members.hidden = false;
+      rotate.hidden = true;
+      tally();
+      subtitle();
+    };
+    for (const b of $$('[data-team-remove]', demo)) {
+      b.addEventListener('click', () => {
+        const row = b.closest<HTMLElement>('[data-member]')!;
+        row.hidden = true;
+        $('[data-team-who]', demo)!.textContent = row.dataset.member ?? '';
+        subtitle();
+        members.hidden = true;
+        rotate.hidden = false;
+      });
+    }
+    keys.forEach((k) => k.addEventListener('change', tally));
+    later.addEventListener('click', () => { members.hidden = false; rotate.hidden = true; keys.forEach((k) => { k.checked = false; }); tally(); });
+    demo.closest('[data-scene]')?.addEventListener('scene:show', reset);
+  }
+
+  // A project's Share menu: opens under its button, closes on a choice, a click elsewhere or Escape.
+  for (const wrap of $$('[data-envshare]')) {
+    const button = $<HTMLButtonElement>('.envshare', wrap)!;
+    const menu = $('.envmenu', wrap)!;
+    const set = (open: boolean) => { menu.hidden = !open; button.setAttribute('aria-expanded', String(open)); };
+    button.addEventListener('click', (e) => { e.stopPropagation(); set(menu.hidden); });
+    menu.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('button')) set(false); });
+    document.addEventListener('click', (e) => { if (!wrap.contains(e.target as Node)) set(false); });
+    addEventListener('keydown', (e) => { if (e.key === 'Escape') set(false); });
+    wrap.closest('[data-scene]')?.addEventListener('scene:show', () => set(false));
+  }
+
+  // Share buttons elsewhere on the page (the hero's details pane, the project's Share menu) open the sharing row
+  // at the right step, with what's being shared as the Share panel's subtitle.
+  for (const el of $$('[data-share-jump]')) {
+    el.addEventListener('click', () => {
+      const panel = $('[data-sharedemo]');
+      const what = el.dataset.shareWhat ?? el.closest('[data-lib-pane]')?.querySelector('.pane__name')?.textContent;
+      if (panel && what) {
+        $('[data-share-what]', panel)!.textContent = what;
+        const list = $('[data-share-names]', panel)!;
+        list.textContent = el.dataset.shareNames ?? '';
+        list.hidden = !el.dataset.shareNames;
+      }
+      const tab = document.getElementById(`share-tab-${el.dataset.shareJump || 0}`);
+      tab?.closest('[data-guided]')?.scrollIntoView({ behavior: still() ? 'auto' : 'smooth', block: 'center' });
+      tab?.click();
+    });
+  }
+}
+
 /** On touch screens there's no hover: "Tap to show", and a tap shows or hides the example value. */
 function tapToShow() {
   if (matchMedia('(hover: hover)').matches) return;
@@ -573,5 +710,6 @@ export function startDemos() {
   clocks();
   navReveal();
   menubarActions();
+  sharing();
   tapToShow();
 }

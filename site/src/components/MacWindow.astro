@@ -14,9 +14,10 @@ const tiles = [
   { id: 'health', icon: 'heart', label: 'Health', count: 1, c: 'pink', needs: true },
   { id: 'deleted', icon: 'trash', label: 'Deleted', count: 2, c: 'slate' },
 ];
+// harbor-app is shared with a team (the sharing demo), so its monogram carries the sidebar's shared badge (2.0).
 const projects = [
   { name: 'Slinky', count: '12' },
-  { name: 'harbor-app', warn: '2 missing' },
+  { name: 'harbor-app', warn: '2 missing', shared: true },
   { name: 'Portfolio', count: '5' },
 ];
 ---
@@ -36,9 +37,10 @@ const projects = [
       </div>
       <div class="mac__heading">Projects</div>
       {projects.map((p) => (
-        <div class={`mac__row ${selected === p.name ? 'is-on' : ''}`}><Monogram text={p.name} size={18} />{p.name}{p.warn ? <span class="warn">{p.warn}</span> : <span class="count">{p.count}</span>}</div>
+        <div class={`mac__row ${selected === p.name ? 'is-on' : ''}`}><Monogram text={p.name} size={18} shared={p.shared} />{p.name}{p.warn ? <span class="warn">{p.warn}</span> : <span class="count">{p.count}</span>}</div>
       ))}
-      <div class="mac__foot"><Icon name="plusc" /> New Project<span class="mac__activity" title="Activity"><Icon name="clock" /></span></div>
+      {/* Footer: New Project, then People (⌘8, new in 2.0) beside Activity, quiet until one is showing. */}
+      <div class="mac__foot"><Icon name="plusc" /> New Project<span class:list={['mac__people', { 'is-on': selected === 'people' }]} title="People"><Icon name="people" /></span><span class="mac__activity" title="Activity"><Icon name="clock" /></span></div>
     </aside>
   )}
   <div class="mac__main">

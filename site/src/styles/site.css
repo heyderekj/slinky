@@ -852,3 +852,102 @@ a.b-pill--gh:focus-visible { outline: 2px solid var(--brand); outline-offset: 2p
 .kkey.is-down { background: var(--brand); color: #fff; box-shadow: 0 0 0 0.5px var(--brand); transform: translateY(1px); }
 /* Phone width: the panels' footers keep just the button. */
 @media (max-width: 560px) { .review .encnote, .sync .encnote { display: none; } }
+
+/* ---------- Sharing (2.0) ---------- */
+/* A shared project's monogram carries person.2.circle.fill at its bottom right, nudged out past the corner as in the app. */
+.mono-wrap { --s: 30px; position: relative; display: inline-grid; flex: none; width: var(--s); height: var(--s); }
+.mono-wrap > .mono-badge { position: absolute; right: calc(var(--s) * -0.22); bottom: calc(var(--s) * -0.22); width: calc(var(--s) * 0.6); height: calc(var(--s) * 0.6); filter: drop-shadow(0 0.5px 1px rgb(0 0 0 / 0.25)); }
+/* The sidebar footer: People beside Activity, both quiet, cyan while showing. */
+.mac__people { margin-left: auto; margin-right: 6px; display: grid; place-items: center; }
+.mac__people + .mac__activity { margin-left: 0; }
+.mac__people.is-on { color: var(--brand); }
+/* A long subtitle ends in an ellipsis rather than pushing the lock switch. */
+.mac__title { min-width: 0; }
+.mac__title span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The details pane's footer: Delete on the left, Share and Edit as glass buttons on the right. */
+.pane__foot { margin-top: auto; display: flex; align-items: center; gap: 8px; }
+.pane__delete { margin-right: auto; font-size: 12.5px; font-weight: 500; color: var(--red); }
+.pane__btn { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 13px; border-radius: 999px; font: 500 12.5px var(--app-font); color: var(--app-text); background: color-mix(in oklch, var(--app-text) 7%, transparent); box-shadow: inset 0 0 0 0.5px var(--app-sep); white-space: nowrap; }
+.pane__btn svg { width: 13px; height: 13px; }
+button.pane__btn:hover { background: color-mix(in oklch, var(--app-text) 11%, transparent); }
+/* A project's Share menu, beside the folder. */
+.envshare-wrap { position: relative; flex: none; }
+.envshare { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: var(--app-text); }
+.envshare svg { width: 14px; height: 14px; }
+.envshare[aria-expanded='true'] { background: color-mix(in oklch, var(--app-text) 12%, transparent); }
+.envmenu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 6; width: 236px; padding: 5px; border-radius: 12px; display: grid; font-family: var(--app-font); font-size: 13px; text-align: left; }
+.envmenu[hidden] { display: none; }
+.envmenu button { text-align: left; padding: 4px 10px; border-radius: 7px; color: var(--app-text); }
+.envmenu button:hover, .envmenu button:focus-visible { background: var(--brand); color: #fff; outline: none; }
+.envmenu hr { border: 0; height: 0.5px; margin: 4px 10px; background: var(--app-sep); }
+/* Phone width: the folder steps aside and the tabs drop their counts, so the Share button stays in the bar. */
+@media (max-width: 560px) { .envfolder { display: none; } .envshare-wrap { margin-left: auto; } .envtabs span { padding: 4px 9px; } .envtabs span i { display: none; } }
+/* The Share panel, People and a shared project: glass panels with values and names on paper. */
+.sharep { max-width: 460px; display: grid; gap: 12px; padding: 16px 18px; border-radius: 24px; }
+.sharep__head { display: flex; align-items: center; gap: 12px; }
+.sharep__icon { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 10px; color: var(--brand); background: color-mix(in oklch, var(--brand) 14%, transparent); }
+.sharep__icon svg { width: 17px; height: 17px; }
+.sharep__title { min-width: 0; display: grid; gap: 1px; line-height: 1.25; }
+.sharep__title b { font-size: 14px; font-weight: 650; }
+.sharep__title small { font-size: 12px; color: var(--app-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sharep__step { display: grid; gap: 12px; }
+.sharep__step[hidden] { display: none; }
+.sharep__label { font-size: 12.5px; font-weight: 600; margin-bottom: -6px; }
+.sharep__people { border-radius: 16px; background: var(--app-paper); box-shadow: inset 0 0 0 0.5px var(--app-sep); overflow: hidden; }
+.sharep__person { display: flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 14px; font-size: 13px; cursor: pointer; }
+.sharep__person + .sharep__person { border-top: 0.5px solid var(--app-sep); }
+.sharep__person b { font-weight: 500; }
+.sharep__macs { color: var(--app-secondary); font-size: 12.5px; }
+.sharep input[type='checkbox'], .team input[type='checkbox'] { width: 14px; height: 14px; margin: 0; flex: none; accent-color: var(--brand); cursor: pointer; }
+.sharep__remind { display: flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; }
+.sharep__names { font-family: var(--mono); font-size: 11.5px; line-height: 1.5; color: var(--app-secondary); overflow-wrap: anywhere; }
+.sharep__names[hidden] { display: none; }
+.sharep__note { font-size: 12px; line-height: 1.5; color: var(--app-secondary); }
+.sharep__foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.sharep__foot--start { justify-content: flex-start; }
+.sharep__left { margin-right: auto; }
+.sharep__btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 32px; padding: 0 15px; border-radius: 999px; font: 500 13px var(--app-font); color: var(--app-text); background: color-mix(in oklch, var(--app-text) 7%, transparent); box-shadow: inset 0 0 0 0.5px var(--app-sep); white-space: nowrap; transition: opacity var(--t-ui), background var(--t-ui); }
+.sharep__btn svg { width: 13px; height: 13px; }
+.sharep__btn--go { background: var(--brand); color: #fff; font-weight: 600; box-shadow: none; }
+.sharep__btn--sm { height: 24px; padding: 0 10px; font-size: 12px; }
+.sharep__btn:disabled { opacity: 0.45; cursor: default; }
+.sharep__danger { color: var(--red); }
+.sharep__link { font-size: 13px; color: var(--brand); white-space: nowrap; }
+.sharep__count { font-size: 12.5px; color: var(--app-secondary); }
+.sharep__done { display: flex; gap: 8px; align-items: flex-start; font-size: 13.5px; line-height: 1.4; }
+.sharep__done svg { width: 16px; height: 16px; flex: none; margin-top: 1px; color: var(--brand); }
+.sharep__file { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 10px 12px; border-radius: 12px; background: var(--app-paper); box-shadow: inset 0 0 0 0.5px var(--app-sep); font-size: 12.5px; font-weight: 500; }
+.sharep__file svg { flex: none; }
+.sharep__file span { min-width: 0; overflow-wrap: anywhere; }
+@media (prefers-color-scheme: dark) { .sharep__link { color: color-mix(in oklch, var(--brand) 55%, white); } }
+.sharep__link.sharep__danger { color: var(--red); }
+.people, .team { display: grid; gap: 14px; width: min(460px, 100%); }
+.people .additem, .team .additem { width: 100%; padding: 16px 18px; border-radius: 22px; }
+.people__card { display: grid; gap: 12px; }
+.people__me { display: flex; align-items: center; gap: 12px; }
+.people__me b { display: block; font-size: 16px; font-weight: 650; }
+.people__me small, .people__row small { display: block; font-size: 12px; color: var(--app-secondary); }
+.people__label { font-size: 11px; font-weight: 600; color: var(--app-secondary); }
+.people__code { display: flex; flex-wrap: wrap; gap: 0.6em; margin-top: 3px; font: 600 19px var(--mono); }
+.people__code--big { margin-top: -6px; padding: 14px 16px; border-radius: 16px; background: var(--app-paper); font-size: 22px; }
+.people__count { font-size: 12px; font-weight: 500; color: var(--app-secondary); margin-right: auto; margin-left: 8px; }
+.people__row { display: flex; align-items: center; gap: 12px; padding: 8px 12px; }
+.people__row > div { flex: 1; min-width: 0; }
+.people__row b { font-size: 13px; font-weight: 600; }
+.people__row + .people__row { border-top: 0.5px solid var(--app-sep); }
+.people__row[hidden] { display: none; }
+.team { justify-items: center; }
+.team__bar { display: flex; align-items: center; gap: 12px; padding: 7px 18px 7px 9px; border-radius: 999px; font-family: var(--app-font); line-height: 1.2; }
+.team__bar b { display: block; font-size: 13.5px; font-weight: 650; }
+.team__bar small { display: block; font-size: 11.5px; color: var(--app-secondary); }
+.team__title { font-size: 16px; font-weight: 650; }
+.team__member { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 4px 12px; font-size: 13px; }
+.team__member + .team__member { border-top: 0.5px solid var(--app-sep); }
+.team__member[hidden] { display: none; }
+.team__member b { font-weight: 500; }
+.team__end { margin-left: auto; display: flex; gap: 6px; }
+.team__key { display: flex; align-items: center; gap: 8px; min-width: 0; font-family: var(--mono); font-size: 12px; cursor: pointer; }
+.team .pane__row { align-items: center; }
+@media (max-width: 560px) { .team__page { display: none; } .people__code--big { font-size: 19px; } }
+/* macOS 27, across the whole bento. */
+.b-tile--full { grid-column: 1 / -1; }

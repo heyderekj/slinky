@@ -96,7 +96,7 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
 
       <Guided id="projects" eyebrow="Projects" title="Every project’s .env,<br />in one place." flip features={[
         { icon: 'folder', title: 'Drop the project folder', text: 'Slinky reads its .env files, apps inside it too, and shows what’s new, changed or the same in each environment. Only what you check is saved, and Undo takes it back.' },
-        { icon: 'check', title: 'Every environment at a glance', text: 'Local, Preview and Production side by side, with what .env.example needs and Slinky doesn’t have yet. Copy an environment as .env lines when your host asks.' },
+        { icon: 'check', title: 'Every environment at a glance', text: 'Local, Preview and Production side by side, with what .env.example needs and Slinky doesn’t have yet. The Share menu copies an environment as .env lines, shares it with people, or sends it to your host.' },
         { icon: 'attention', title: 'Checks .gitignore', text: 'Files git could commit get a warning before they end up in your repo. Slinky never changes your files unless you ask.' },
       ]}>
         <div slot="s0" class="additem review is-ready" data-glass="panel">
@@ -188,8 +188,8 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
       </Editorial>
 
       <Guided id="lock" eyebrow="Locking" title="Locked unless<br />you’re using it." features={[
-        { icon: 'touchid', title: 'Opens with Touch ID', text: 'Your vault is one encrypted file on your Mac, opened by the Secure Enclave.' },
-        { icon: 'lock', title: 'Locks itself', text: 'When your screen locks, when your Mac sleeps, when you’re away, and after 12 hours. Or flip the switch, top right.' },
+        { icon: 'touchid', title: 'Opens with Touch ID', text: 'Your vault is one encrypted file on your Mac, opened by the Secure Enclave. On macOS 26 and later, the key that opens it is locked with both a classic and a post-quantum key.' },
+        { icon: 'lock', title: 'Locks itself', text: 'When your screen locks, when your Mac sleeps, when you’re away, and after 12 hours. Or flip the switch, top right, or use Lock Slinky in Control Center.' },
         { icon: 'shield', title: 'A Recovery Key, on paper', text: 'Opens your vault on any Mac if Touch ID can’t. Slinky never keeps a copy.' },
       ]}>
         <div slot="s0" class="touch" data-glass="panel">
@@ -238,7 +238,17 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
         </div>
       </Guided>
 
-      <Editorial eyebrow="AI agents" title="Agents use your keys.<br />They never see them." features={[
+      <Guided id="share" eyebrow="Sharing · New in 2.0" title="Share keys with your team.<br />No server in between." features={[
+        { icon: 'people', title: 'Share with…', text: 'Pick the people, and Slinky makes a .slinkyshare file only their Macs can open. Send it any way you like: AirDrop, Messages, Mail or a chat.' },
+        { icon: 'check', title: 'Compare codes once', text: 'Each Mac has a sharing card in People (⌘8). Add someone’s card, then read your codes to each other on a call or in person. They should match exactly.' },
+        { icon: 'folder', title: 'Shared projects', text: 'Share › Share Project with Team… keeps one signed, encrypted .slinkyproject file in a folder your team already syncs. Remove someone, and Slinky makes a new key and lists the keys to replace.' },
+      ]}>
+        <Fragment slot="s0"><Demos which="share" /></Fragment>
+        <Fragment slot="s1"><Demos which="people" /></Fragment>
+        <Fragment slot="s2"><Demos which="team" /></Fragment>
+      </Guided>
+
+      <Editorial eyebrow="AI agents" title="Agents use your keys.<br />They never see them." flip features={[
         { icon: 'terminal', title: 'slinky run', text: 'Claude Code, Cursor and Codex start your app through slinky run. You approve each command with Touch ID, and the keys never reach the chat.' },
         { icon: 'sparkle', title: 'Names, never values', text: 'Connected agents can list names and ask for what’s missing. Live keys stay out, and so do shells and tools that send things off your Mac.' },
         { icon: 'plusc', title: 'Paste it here, not in the chat', text: 'When an agent needs a key Slinky doesn’t have, Slinky opens with the name filled in, for you to paste.' },
@@ -295,11 +305,15 @@ $ slinky lock</pre>
         <div class="b-tile card-plain"><Icon name="file" class="feature-icon" /><h3>Apple developer files</h3><p>App Store Connect .p8 keys, certificates and service accounts, in the vault. Save a notarytool profile without the .p8 lying around.</p></div>
         <div class="b-tile card-plain"><Icon name="clock" class="feature-icon" /><h3>Activity</h3><p>What was copied or run, when, and by whom. Names only, kept in your vault.</p>
           <div class="b-art b-settings b-log" aria-hidden="true"><div><span><b>Claude Code</b> ran npm run dev</span><small>2 min ago</small></div><div><span><b>You</b> copied STRIPE_SECRET_KEY</span><small>1 hr ago</small></div></div></div>
-        <div class="b-tile card-plain"><Icon name="grid" class="feature-icon" /><h3>Made for the keyboard</h3><p>⌘1 to ⌘7 for each place, ⌘E to edit, ⇧⌘C to copy as NAME=value. Select several to change them together.</p>
+        <div class="b-tile card-plain"><Icon name="grid" class="feature-icon" /><h3>Made for the keyboard</h3><p>⌘1 to ⌘8 for each place, ⌘E to edit, ⇧⌘C to copy as NAME=value. Select several to change them together.</p>
           <div class="b-art b-kb" aria-hidden="true">
             <span class="kkey kkey--wide">⌘</span>
-            {['1', '2', '3', '4', '5', '6', '7'].map((k, i) => <span class:list={['kkey', { 'is-down': i === 0 }]}>{k}</span>)}
+            {['1', '2', '3', '4', '5', '6', '7', '8'].map((k, i) => <span class:list={['kkey', { 'is-down': i === 0 }]}>{k}</span>)}
           </div>
+        </div>
+        <div class="b-tile b-tile--wide b-tile--full card-plain">
+          <div><Icon name="apple" class="feature-icon" /><h3>New in 2.0: ready for macOS 27</h3><p>Slinky’s menu bar menu works like the menus beside it, from the keyboard too. Lock Slinky from Control Center or the menu bar (macOS 26 and later). In Shortcuts, Copy from Slinky and Add to Slinky run only in Slinky itself.</p></div>
+          <div class="b-art b-settings" aria-hidden="true"><div><span>Control-F8, then the arrow keys</span><b>Slinky’s menu</b></div><div><span>Lock Slinky</span><b>Control Center</b></div><div><span>Copy from Slinky</span><b>Runs in Slinky</b></div></div>
         </div>
         <div class="b-tile b-tile--row card-plain"><Icon name="github" class="feature-icon" /><div><h3>Free and open source</h3><p>MIT licensed, made by Testament Made. Read every line on GitHub.</p></div><a class="b-pill b-pill--gh" href="https://github.com/heyderekj/slinky"><Icon name="github" /> heyderekj/slinky <span class="star-count" data-star-count></span></a></div>
       </div>
@@ -332,8 +346,8 @@ $ slinky lock</pre>
     <section class="section wrap" id="privacy" aria-labelledby="privacy-heading">
       <div class="section-head"><p class="eyebrow">Privacy</p><h2 class="section-title" id="privacy-heading">Your things, in plain English</h2></div>
       <div class="plain">
-        <div class="tile"><Icon name="shield" /><h3>Where they live</h3><ul><li>One encrypted file on your Mac.</li><li>Opened by your Mac’s Secure Enclave with Touch ID, or your printed Recovery Key.</li><li>Locked means the key isn’t in memory at all.</li><li>Optional sync: an encrypted copy in a folder you choose, moved by your own sync service.</li></ul></div>
-        <div class="tile"><Icon name="update" /><h3>What leaves your Mac</h3><ul><li>Nothing about you or your vault.</li><li>Once a day, a check with GitHub for a newer version. You can turn it off.</li><li>Only if you turn it on, a request to each saved website for its icon.</li><li>When you choose Send to Host, the values you pick go to that host, through its own tool.</li><li>No account, no analytics in the app, no server.</li></ul></div>
+        <div class="tile"><Icon name="shield" /><h3>Where they live</h3><ul><li>One encrypted file on your Mac.</li><li>Opened by your Mac’s Secure Enclave with Touch ID, or your printed Recovery Key.</li><li>On macOS 26 and later, the key that opens it is locked twice: with a classic key and a post-quantum one (P-256 and ML-KEM-768). An older vault moves over the next time you unlock it.</li><li>Locked means the key isn’t in memory at all.</li><li>Optional sync: an encrypted copy in a folder you choose, moved by your own sync service.</li></ul></div>
+        <div class="tile"><Icon name="update" /><h3>What leaves your Mac</h3><ul><li>Nothing about you or your vault.</li><li>Once a day, a check with GitHub for a newer version. You can turn it off.</li><li>Only if you turn it on, a request to each saved website for its icon.</li><li>When you choose Send to Host, the values you pick go to that host, through its own tool.</li><li>When you share, Slinky makes a signed, encrypted file only the people you pick can open (on macOS 26 and later, with the same post-quantum lock and ML-DSA-65 signatures). You send it, or your team’s own sync service moves it. Slinky makes no request for it.</li><li>No account, no analytics in the app, no server.</li></ul></div>
       </div>
     </section>
 
