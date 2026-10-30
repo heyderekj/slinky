@@ -2,7 +2,7 @@
 // One page per tool Slinky is compared with. Everything comes from src/data/competitors.ts.
 import Sub from '../../layouts/Sub.astro';
 import CompareCell from '../../components/CompareCell.astro';
-import Icon from '../../components/Icon.astro';
+import Icon from '../../components/SiteIcon.astro';
 import ToolIcon from '../../components/ToolIcon.astro';
 import { competitors, groups, type Competitor } from '../../data/competitors';
 export const getStaticPaths = () => competitors.map((c) => ({ params: { slug: c.slug }, props: { c } }));

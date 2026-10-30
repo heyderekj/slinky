@@ -3,7 +3,7 @@
 // with the open step. Steps advance on their own while the row is on screen (not with Reduce Motion).
 // Scenes go in the named slots s0, s1 and s2. Behaviour lives in scripts/demos.ts (guided).
 import Desktop from './Desktop.astro';
-import Icon from './Icon.astro';
+import Icon from './SiteIcon.astro';
 interface Feature { icon: string; title: string; text: string }
 interface Props { id: string; eyebrow: string; title: string; features: Feature[]; flip?: boolean }
 const { id, eyebrow, title, features, flip = false } = Astro.props;

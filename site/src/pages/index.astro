@@ -4,7 +4,8 @@ import Layout from '../layouts/Layout.astro';
 import MacWindow from '../components/MacWindow.astro';
 import Library from '../components/Library.astro';
 import Demos from '../components/Demos.astro';
-import Icon from '../components/Icon.astro';
+import Icon from '../components/SiteIcon.astro';
+import AppIcon from '../components/Icon.astro';
 import FamilyTabs from '../components/FamilyTabs.astro';
 import Desktop from '../components/Desktop.astro';
 import Guided from '../components/Guided.astro';
@@ -53,12 +54,12 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
         <div class="lockdemo" data-lockdemo data-mb-window>
           <MacWindow title="All Items" subtitle="7 items" selected="all" id="hero-window">
             <Library />
-            <div slot="over" class="toast float-glass" data-toast><Icon name="checkc" /><span data-toast-text>Copied.</span></div>
+            <div slot="over" class="toast float-glass" data-toast><AppIcon name="checkc" /><span data-toast-text>Copied.</span></div>
             <div slot="over" class="curtain" aria-hidden="true">
               <div class="curtain__inner">
-                <span class="curtain__lock" data-curtain-icon><Icon name="lock" /></span>
+                <span class="curtain__lock" data-curtain-icon><AppIcon name="lock" /></span>
                 <h4>Slinky is locked</h4>
-                <button class="touchid" data-unlock type="button"><Icon name="touchid" /> Unlock with Touch ID</button>
+                <button class="touchid" data-unlock type="button"><AppIcon name="touchid" /> Unlock with Touch ID</button>
               </div>
             </div>
           </MacWindow>
@@ -81,16 +82,16 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
         <div slot="s1" class="additem is-ready" data-glass="panel">
           <div class="additem__top">Add Item <span class="xclose" aria-hidden="true">✕</span></div>
           <div class="slab"><div style="display:flex;gap:13px;align-items:flex-start"><Monogram text="Stripe" size={38} /><div><div class="slab__name">STRIPE_SECRET_KEY</div><div class="slab__value">sk_live_••••••••••••4f2a</div></div></div></div>
-          <div class="detect"><Icon name="sparkle" style="width:14px;height:14px" /> Looks like a Stripe secret key, live mode.</div>
-          <div class="chips"><span class="pchip"><Icon name="key" /> Key or Token <i class="caret">⌄</i></span><span class="chips__extras"><span><Icon name="calendar" /> Expiry</span><span>Link</span><span>Note</span></span></div>
-          <div class="additem__foot"><span class="encnote"><Icon name="lock" /> Encrypted on this Mac</span> <span class="save">Save to Keys &amp; Tokens ↵</span></div>
+          <div class="detect"><AppIcon name="sparkle" style="width:14px;height:14px" /> Looks like a Stripe secret key, live mode.</div>
+          <div class="chips"><span class="pchip"><AppIcon name="key" /> Key or Token <i class="caret">⌄</i></span><span class="chips__extras"><span><AppIcon name="calendar" /> Expiry</span><span>Link</span><span>Note</span></span></div>
+          <div class="additem__foot"><span class="encnote"><AppIcon name="lock" /> Encrypted on this Mac</span> <span class="save">Save to Keys &amp; Tokens ↵</span></div>
         </div>
         <div slot="s2" class="additem is-ready" data-glass="panel">
           <div class="additem__top">Add Item <span class="xclose" aria-hidden="true">✕</span></div>
           <div class="slab"><div style="display:flex;gap:13px;align-items:flex-start"><Monogram text="GitHub" size={38} /><div><div class="slab__name">GITHUB_TOKEN</div><div class="slab__value">ghp_••••••••••••8c1d</div></div></div></div>
-          <div class="detect" style="color:var(--app-amber)"><Icon name="attention" style="width:14px;height:14px" /> Already saved in Keys &amp; Tokens, as GITHUB_TOKEN.</div>
-          <div class="chips"><span class="pchip"><Icon name="key" /> Key or Token <i class="caret">⌄</i></span></div>
-          <div class="additem__foot"><span class="encnote"><Icon name="lock" /> Encrypted on this Mac</span> <span class="save">Save to Keys &amp; Tokens ↵</span></div>
+          <div class="detect" style="color:var(--app-amber)"><AppIcon name="attention" style="width:14px;height:14px" /> Already saved in Keys &amp; Tokens, as GITHUB_TOKEN.</div>
+          <div class="chips"><span class="pchip"><AppIcon name="key" /> Key or Token <i class="caret">⌄</i></span></div>
+          <div class="additem__foot"><span class="encnote"><AppIcon name="lock" /> Encrypted on this Mac</span> <span class="save">Save to Keys &amp; Tokens ↵</span></div>
         </div>
       </Guided>
 
@@ -104,23 +105,23 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
           <div class="slab rv__head"><Monogram text="harbor-app" size={38} /><div><div class="rv__title">harbor-app</div><div class="rv__path">~/Developer/harbor-app <span class="chip chip--plain">git</span></div></div></div>
           <div class="rv__sec"><b>Local</b> · from .env, .env.local · 3 new, 1 changed</div>
           <div class="rv__rows">
-            <div class="rv__row"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">RESEND_API_KEY</span><span class="chip chip--new">New</span><span class="rv__peek">re_••••7d0e</span></div>
-            <div class="rv__row"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">STRIPE_SECRET_KEY</span><span class="chip chip--warn">Changed</span><span class="rv__peek">sk_test_••••4f2a → ••••9b1c</span></div>
-            <div class="rv__row"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">POSTHOG_KEY</span><span class="chip chip--new">New</span><span class="rv__peek">phc_••••0aa1</span></div>
+            <div class="rv__row"><span class="rv__box is-on"><AppIcon name="check" /></span><span class="rv__name">RESEND_API_KEY</span><span class="chip chip--new">New</span><span class="rv__peek">re_••••7d0e</span></div>
+            <div class="rv__row"><span class="rv__box is-on"><AppIcon name="check" /></span><span class="rv__name">STRIPE_SECRET_KEY</span><span class="chip chip--warn">Changed</span><span class="rv__peek">sk_test_••••4f2a → ••••9b1c</span></div>
+            <div class="rv__row"><span class="rv__box is-on"><AppIcon name="check" /></span><span class="rv__name">POSTHOG_KEY</span><span class="chip chip--new">New</span><span class="rv__peek">phc_••••0aa1</span></div>
             <div class="rv__row is-off"><span class="rv__box"></span><span class="rv__name">UPSTASH_TOKEN</span><span class="rv__note">Empty in .env.local</span></div>
           </div>
           <div class="rv__quiet">5 unchanged · 2 only in Slinky. They stay as they are.</div>
-          <div class="additem__foot"><span class="encnote"><Icon name="lock" /> Encrypted on this Mac</span> <span class="save">Update 3 Variables ↵</span></div>
+          <div class="additem__foot"><span class="encnote"><AppIcon name="lock" /> Encrypted on this Mac</span> <span class="save">Update 3 Variables ↵</span></div>
         </div>
         <Fragment slot="s1"><Demos which="env" /></Fragment>
         <div slot="s2" class="additem review is-ready" data-glass="panel">
           <div class="additem__top">Files</div>
           <div class="rv__rows">
-            <div class="rv__row rv__row--file"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">.env</span><span class="rv__note">4 new, 1 changed</span><span class="pchip pchip--sm">Local <i class="caret">⌄</i></span></div>
-            <div class="rv__row rv__row--file"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">.env.production <span class="chip chip--warn">Not in .gitignore</span></span><span class="rv__note">2 new</span><span class="pchip pchip--sm">Production <i class="caret">⌄</i></span></div>
-            <div class="rv__row rv__row--file"><span class="rv__box is-on"><Icon name="check" /></span><span class="rv__name">apps/web/.env.local</span><span class="rv__note">2 new</span><span class="pchip pchip--sm">Local <i class="caret">⌄</i></span></div>
+            <div class="rv__row rv__row--file"><span class="rv__box is-on"><AppIcon name="check" /></span><span class="rv__name">.env</span><span class="rv__note">4 new, 1 changed</span><span class="pchip pchip--sm">Local <i class="caret">⌄</i></span></div>
+            <div class="rv__row rv__row--file"><span class="rv__box is-on"><AppIcon name="check" /></span><span class="rv__name">.env.production <span class="chip chip--warn">Not in .gitignore</span></span><span class="rv__note">2 new</span><span class="pchip pchip--sm">Production <i class="caret">⌄</i></span></div>
+            <div class="rv__row rv__row--file"><span class="rv__box is-on"><AppIcon name="check" /></span><span class="rv__name">apps/web/.env.local</span><span class="rv__note">2 new</span><span class="pchip pchip--sm">Local <i class="caret">⌄</i></span></div>
           </div>
-          <div class="detect" style="color:var(--app-amber)"><Icon name="attention" style="width:14px;height:14px" /> Git could commit .env.production. Slinky won’t change your files; add it to .gitignore.</div>
+          <div class="detect" style="color:var(--app-amber)"><AppIcon name="attention" style="width:14px;height:14px" /> Git could commit .env.production. Slinky won’t change your files; add it to .gitignore.</div>
         </div>
       </Guided>
 
@@ -139,10 +140,10 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
               </div>
               <div class="codes">
                 {['b8x2k-4mq9t', 'n3v7p-1zr5w', 'c6h4d-8yt2e', 'p9k1s-5qx7m'].map((c) => <button class="code" data-code>{c}</button>)}
-                {['t2w6r-9bn3j', 'f5m8c-2kd4x'].map((c) => <span class="code is-used">{c}<Icon name="check" class="tick" /></span>)}
+                {['t2w6r-9bn3j', 'f5m8c-2kd4x'].map((c) => <span class="code is-used">{c}<AppIcon name="check" class="tick" /></span>)}
               </div>
             </div>
-            <p class="detect" style="margin-top:12px"><Icon name="attention" style="width:14px;height:14px;color:var(--app-amber)" /> Only 4 codes left. Click one to copy it.</p>
+            <p class="detect" style="margin-top:12px"><AppIcon name="attention" style="width:14px;height:14px;color:var(--app-amber)" /> Only 4 codes left. Click one to copy it.</p>
           </div>
         </Fragment>
         <div slot="s1" class="additem health" data-glass="panel" style="max-width:440px">
@@ -158,23 +159,23 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
             <div><b>2 things to look at</b><small>Checked just now, on this Mac.</small></div>
           </div>
           <div class="health__tiles">
-            <div class="health__tile"><Icon name="folder" /><b>Project files</b><span class="ok">Clear</span></div>
-            <div class="health__tile"><Icon name="layers" /><b>AI conversations</b><span class="ok">Clear</span></div>
-            <div class="health__tile"><Icon name="terminal" /><b>Shell history</b><span class="ok">Clear</span></div>
-            <div class="health__tile is-found"><Icon name="calendar" /><b>Expiring keys</b><span class="found">1 found</span></div>
-            <div class="health__tile is-found"><Icon name="hash" /><b>Recovery codes</b><span class="found">1 found</span></div>
-            <div class="health__tile"><Icon name="life" /><b>Printed copies</b><span class="ok">Clear</span></div>
+            <div class="health__tile"><AppIcon name="folder" /><b>Project files</b><span class="ok">Clear</span></div>
+            <div class="health__tile"><AppIcon name="layers" /><b>AI conversations</b><span class="ok">Clear</span></div>
+            <div class="health__tile"><AppIcon name="terminal" /><b>Shell history</b><span class="ok">Clear</span></div>
+            <div class="health__tile is-found"><AppIcon name="calendar" /><b>Expiring keys</b><span class="found">1 found</span></div>
+            <div class="health__tile is-found"><AppIcon name="hash" /><b>Recovery codes</b><span class="found">1 found</span></div>
+            <div class="health__tile"><AppIcon name="life" /><b>Printed copies</b><span class="ok">Clear</span></div>
           </div>
           <div class="att">
-            <div class="att__row"><Icon name="hash" /><div><b>Only 4 Vercel codes left</b><small>Make new recovery codes on Vercel, then add them here.</small></div></div>
-            <div class="att__row"><Icon name="calendar" /><div><b>GITHUB_TOKEN expires in 5 days</b><small>Make a new one on GitHub, then replace it here.</small></div></div>
+            <div class="att__row"><AppIcon name="hash" /><div><b>Only 4 Vercel codes left</b><small>Make new recovery codes on Vercel, then add them here.</small></div></div>
+            <div class="att__row"><AppIcon name="calendar" /><div><b>GITHUB_TOKEN expires in 5 days</b><small>Make a new one on GitHub, then replace it here.</small></div></div>
           </div>
         </div>
         <div slot="s2" class="additem" data-glass="panel" style="max-width:400px">
           <div class="card">
             <div class="card__head"><Monogram text="Apple Account" /><div><div class="card__kind">Recovery key</div><div class="card__name">Apple Account recovery key</div><div class="card__sub">From Apple</div></div></div>
             <div class="card__value"><span>R7KQ-••••-••••-••••</span></div>
-            <div class="card__foot"><span class="chip">Printed</span><span style="margin-left:auto;display:flex;gap:6px"><span class="copy">Print</span><span class="copy"><Icon name="copy" /> Copy</span></span></div>
+            <div class="card__foot"><span class="chip">Printed</span><span style="margin-left:auto;display:flex;gap:6px"><span class="copy">Print</span><span class="copy"><AppIcon name="copy" /> Copy</span></span></div>
           </div>
         </div>
       </Guided>
@@ -193,7 +194,7 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
         { icon: 'shield', title: 'A Recovery Key, on paper', text: 'Opens your vault on any Mac if Touch ID can’t. Slinky never keeps a copy.' },
       ]}>
         <div slot="s0" class="touch" data-glass="panel">
-          <span class="touch__fp"><Icon name="touchid" /></span>
+          <span class="touch__fp"><AppIcon name="touchid" /></span>
           <h4>Slinky</h4>
           <p>Slinky wants to unlock your vault.<br />Touch ID or enter your password to allow this.</p>
           <span class="touch__btn">Use Password…</span>
@@ -225,12 +226,12 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
           <div class="additem__top">Use the vault in this folder</div>
           <p class="sync__note" style="margin-top:0">This folder already has a Slinky vault, from your other Mac. Enter its Recovery Key to use it here. This Mac’s items are added to it.</p>
           <div class="card__value" style="height:34px"><span>••••-••••-••••-••••-••••</span></div>
-          <div class="additem__foot"><span class="encnote"><Icon name="lock" /> Encrypted on this Mac</span> <span class="save">Use This Vault ↵</span></div>
+          <div class="additem__foot"><span class="encnote"><AppIcon name="lock" /> Encrypted on this Mac</span> <span class="save">Use This Vault ↵</span></div>
         </div>
         <div slot="s2" class="sync__macs">
           {[['MacBook Air', 'Just now'], ['Mac Studio', 'Just now']].map(([mac, when]) => (
             <div class="additem sync sync__mac" data-glass="panel">
-              <div class="sync__device"><Icon name="update" /> {mac}</div>
+              <div class="sync__device"><AppIcon name="update" /> {mac}</div>
               <div class="lib__row is-on"><Monogram text="Stripe" size={32} /><div class="lib__text"><div class="lib__name mono">STRIPE_SECRET_KEY</div><div class="lib__sub">Changed {when.toLowerCase()}</div></div><span class="chip chip--live">Live</span></div>
               <div class="lib__row"><Monogram text="GitHub" size={32} /><div class="lib__text"><div class="lib__name mono">GITHUB_TOKEN</div><div class="lib__sub">GitHub</div></div></div>
             </div>
@@ -259,7 +260,7 @@ const versionLine = `v${release.version} · ${release.minOS} · Apple silicon`;
   ✓ started with 4 secrets from Acme
   STRIPE_SECRET_KEY=••••••••</pre>
           <div class="touch" data-glass="panel">
-            <span class="touch__fp"><Icon name="touchid" /></span>
+            <span class="touch__fp"><AppIcon name="touchid" /></span>
             <h4>Slinky</h4>
             <p>Slinky wants to let Claude Code run “npm run dev” with 4 secrets from Acme.</p>
             <span class="touch__btn">Use Password…</span>

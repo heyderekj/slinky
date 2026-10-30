@@ -2,7 +2,7 @@
 // A feature row as an editorial list: a headline, then the features split by hairlines, beside a desktop.
 // The desktop's content goes in the default slot.
 import Desktop from './Desktop.astro';
-import Icon from './Icon.astro';
+import Icon from './SiteIcon.astro';
 interface Feature { icon: string; title: string; text: string }
 interface Props { eyebrow: string; title: string; features: Feature[]; flip?: boolean }
 const { eyebrow, title, features, flip = false } = Astro.props;
