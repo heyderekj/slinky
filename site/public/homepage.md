@@ -16,10 +16,6 @@ API keys, each project's .env, backup codes and recovery keys. Paste it, and Sli
 - **Your vault on each of your Macs.** Optional sync through a folder you choose, like one in iCloud Drive: an encrypted copy that opens only with your Recovery Key or on a Mac you've set up. Slinky itself sends nothing.
 - **Share keys with your team. No server in between.** Pick people and Slinky makes a .slinkyshare file only their Macs can open; send it any way you like. Compare codes once in People (⌘8). Shared projects keep one signed, encrypted .slinkyproject file in a folder your team already syncs. Removing someone makes a new key, and Slinky lists the keys to replace, since they keep what they saw.
 - **AI agents use your keys without seeing them.** Claude Code, Cursor and Codex run your app through `slinky run`. You approve each command with Touch ID; agents only ever see names.
-
-## New in 2.0
-
-- **Sharing with people and teams**, through files you send or a folder your team already syncs. No account, no server, and no new network request.
 - **A post-quantum lock.** On macOS 26 and later, the vault key and sharing use P-256 plus ML-KEM-768, with ML-DSA-65 signatures. An older vault moves over the next time you unlock it.
 - **Ready for macOS 27.** Slinky's menu bar menu works from the keyboard like the menus beside it (Control-F8, then the arrow keys). Lock Slinky from Control Center or the menu bar (macOS 26 and later). In Shortcuts, Copy from Slinky and Add to Slinky run only in Slinky itself.
 
